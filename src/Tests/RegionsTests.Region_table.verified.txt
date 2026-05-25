@@ -1,0 +1,55 @@
+﻿MapBundle.World
+  all countries
+MapBundle.Africa
+  continents: Africa
+MapBundle.AfricaNorthern
+  subregions: Northern Africa
+MapBundle.AfricaWestern
+  subregions: Western Africa
+MapBundle.AfricaCentral
+  subregions: Middle Africa
+MapBundle.AfricaEastern
+  subregions: Eastern Africa
+MapBundle.AfricaSouthern
+  subregions: Southern Africa
+MapBundle.Americas
+  continents: North America, South America
+MapBundle.AmericasNorthern
+  subregions: Northern America
+  include: MEX
+MapBundle.AmericasCentral
+  subregions: Central America
+  exclude: MEX
+MapBundle.AmericasSouthern
+  subregions: South America
+MapBundle.AmericasCaribbean
+  subregions: Caribbean
+MapBundle.Asia
+  continents: Asia
+MapBundle.AsiaCentral
+  subregions: Central Asia
+MapBundle.AsiaEastern
+  subregions: Eastern Asia
+MapBundle.AsiaSouthEastern
+  subregions: South-Eastern Asia
+MapBundle.AsiaSouthern
+  subregions: Southern Asia
+  exclude: IRN
+MapBundle.AsiaWestern
+  subregions: Western Asia
+  include: IRN
+MapBundle.Europe
+  continents: Europe
+MapBundle.EuropeNorthern
+  subregions: Northern Europe
+MapBundle.EuropeWestern
+  subregions: Western Europe
+MapBundle.EuropeSouthern
+  subregions: Southern Europe
+MapBundle.EuropeEastern
+  subregions: Eastern Europe
+MapBundle.Oceania
+  continents: Oceania
+MapBundle.MiddleEast
+  subregions: Western Asia
+  include: EGY, IRN

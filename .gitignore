@@ -1,0 +1,40 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+## Locally built nuget packages
+nugets/
+
+## Natural Earth download cache (builder)
+.cache/
+
+## Test + coverage output
+TestResults/
+
+## BenchmarkDotNet output
+BenchmarkDotNet.Artifacts/
+
+## Verify
+*.received.*
+*.received/
+
+## Rider / VS / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+.vscode/
+
+## OS
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+
+## Temporary local nuget feed (GeoConvert verification)
+.localfeed/
+
+## End-to-end consumer verification
+.verify/

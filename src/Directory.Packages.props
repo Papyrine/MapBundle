@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 0.1.3 = FlatGeobuf writer fix (large features) + UTF-8 .dbf decoding (.cpg code page). -->
+    <PackageVersion Include="GeoConvert" Version="0.1.3" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
+    <PackageVersion Include="Polyfill" Version="10.7.0" />
+    <PackageVersion Include="ProjectFiles" Version="1.2.0" />
+    <PackageVersion Include="TUnit" Version="1.45.29" />
+    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.2.0" />
+    <PackageVersion Include="Verify" Version="31.17.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.17.0" />
+    <PackageVersion Include="Verify.DiffPlex" Version="3.1.2" />
+  </ItemGroup>
+</Project>

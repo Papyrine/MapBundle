@@ -1,0 +1,28 @@
+Downloading Natural Earth 10m into '.cache' ...
+Loaded 258 countries and 7342 populated places.
+  MapBundle.World.0.1.0.nupkg
+  MapBundle.Africa.0.1.0.nupkg
+  MapBundle.AfricaNorthern.0.1.0.nupkg
+  MapBundle.AfricaWestern.0.1.0.nupkg
+  MapBundle.AfricaCentral.0.1.0.nupkg
+  MapBundle.AfricaEastern.0.1.0.nupkg
+  MapBundle.AfricaSouthern.0.1.0.nupkg
+  MapBundle.Americas.0.1.0.nupkg
+  MapBundle.AmericasNorthern.0.1.0.nupkg
+  MapBundle.AmericasCentral.0.1.0.nupkg
+  MapBundle.AmericasSouthern.0.1.0.nupkg
+  MapBundle.AmericasCaribbean.0.1.0.nupkg
+  MapBundle.Asia.0.1.0.nupkg
+  MapBundle.AsiaCentral.0.1.0.nupkg
+  MapBundle.AsiaEastern.0.1.0.nupkg
+  MapBundle.AsiaSouthEastern.0.1.0.nupkg
+  MapBundle.AsiaSouthern.0.1.0.nupkg
+  MapBundle.AsiaWestern.0.1.0.nupkg
+  MapBundle.Europe.0.1.0.nupkg
+  MapBundle.EuropeNorthern.0.1.0.nupkg
+  MapBundle.EuropeWestern.0.1.0.nupkg
+  MapBundle.EuropeSouthern.0.1.0.nupkg
+  MapBundle.EuropeEastern.0.1.0.nupkg
+  MapBundle.Oceania.0.1.0.nupkg
+  MapBundle.MiddleEast.0.1.0.nupkg
+Done. Packed 25 package(s) into 'nugets'.

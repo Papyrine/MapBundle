@@ -1,0 +1,13 @@
+<Solution>
+  <Project Path="MapBundle/MapBundle.csproj" />
+  <Project Path="MapBundle.Builder/MapBundle.Builder.csproj" />
+  <Project Path="Tests/Tests.csproj" />
+  <Folder Name="/SolutionItems/">
+    <File Path="../readme.md" />
+    <File Path="appveyor.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="mdsnippets.json" />
+    <File Path="nuget.config" />
+  </Folder>
+</Solution>

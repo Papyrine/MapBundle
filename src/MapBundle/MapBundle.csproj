@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <Description>Core runtime for MapBundle. Loads bundled map data (borders, cities, waterways) that ships as FlatGeobuf in the MapBundle.World and MapBundle.[Region] packages. Data is derived from Natural Earth (public domain).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\readme.md" Pack="true" PackagePath="\" Visible="false" />
+    <PackageReference Include="GeoConvert" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

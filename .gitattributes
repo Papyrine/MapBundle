@@ -1,0 +1,22 @@
+* text=auto
+
+*.cs text diff=csharp
+*.csproj text
+*.slnx text
+*.props text
+*.targets text
+*.json text
+*.md text
+*.yml text
+
+*.verified.txt text eol=lf working-tree-encoding=UTF-8
+*.verified.json text eol=lf working-tree-encoding=UTF-8
+*.verified.xml text eol=lf working-tree-encoding=UTF-8
+
+*.shp binary
+*.shx binary
+*.dbf binary
+*.prj binary
+*.fgb binary
+*.png binary
+*.snk binary

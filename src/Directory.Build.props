@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PackageTags>map;maps;geo;geospatial;naturalearth;flatgeobuf;borders;cities;rivers;offline</PackageTags>
+    <NoWarn>$(NoWarn);CS1591;NU1608;NU1109;IDE0005</NoWarn>
+  </PropertyGroup>
+</Project>
