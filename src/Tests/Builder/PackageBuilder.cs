@@ -1,30 +1,36 @@
-using System.Collections.Concurrent;
-
-namespace MapBundle.Builder;
-
 /// <summary>
 /// Builds the region data packages from OpenStreetMap sources: Geofabrik per-region extracts (cities,
 /// rivers, lakes), country-levels boundaries (borders, states) and osmdata polygons (land, ocean, and the
 /// coastline derived from land). Each region's layers are written as FlatGeobuf and packed into a nupkg.
 /// </summary>
-public static class PackageBuilder
+public class PackageBuilder
 {
-    const string Version = "0.1.0";
-    const string ProjectUrl = "https://github.com/SimonCropp/MapBundle";
-    const string Tags = "map maps geo geospatial openstreetmap osm flatgeobuf borders cities rivers offline";
+    [Test]
+    [Explicit]
+    public Task Generate() =>
+        RunAsync();
+
+    [Test]
+    [Explicit]
+    public Task Slice() =>
+        BuildAsync("monaco");
+
+    const string version = "0.1.0";
+    const string projectUrl = "https://github.com/SimonCropp/MapBundle";
+    const string tags = "map maps geo geospatial openstreetmap osm flatgeobuf borders cities rivers offline";
 
     public const string Attribution =
         "© OpenStreetMap contributors, ODbL. Boundaries via country-levels; land/ocean via osmdata.openstreetmap.de.";
 
     // Simplification tolerance (degrees) for the detailed Geofabrik line/polygon layers. ~0.0005° ≈ 50 m.
-    const double WaterwayTolerance = 0.0005;
-    const double LakeTolerance = 0.0005;
+    const double waterwayTolerance = 0.0005;
+    const double lakeTolerance = 0.0005;
 
-    static readonly string Root = FindRoot();
-    static string OutputDirectory => Path.Combine(Root, "nugets");
-    static string CacheDirectory => Path.Combine(Root, ".cache");
-    static string IconPath => Path.Combine(Root, "src", "icon.png");
-    static string ReadmePath => Path.Combine(Root, "readme.md");
+    static readonly string root = FindRoot();
+    static string OutputDirectory => Path.Combine(root, "nugets");
+    static string CacheDirectory => Path.Combine(root, ".cache");
+    static string IconPath => Path.Combine(root, "src", "icon.png");
+    static string ReadmePath => Path.Combine(root, "readme.md");
 
     /// <summary>Builds and packs every region package (continents, countries and the merged World).</summary>
     public static Task RunAsync() =>
@@ -90,7 +96,7 @@ public static class PackageBuilder
         // Keep the degree modest: downloads are bandwidth-bound, and fewer concurrent gives each large
         // extract more throughput (so it doesn't hit the request timeout).
         var options = new ParallelOptions { MaxDegreeOfParallelism = 3 };
-        await Parallel.ForEachAsync(chosen.Where(_ => !_.IsWorld && !_.IsContinent), options, async (region, _) => await Build(region));
+        await Parallel.ForEachAsync(chosen.Where(_ => _ is { IsWorld: false, IsContinent: false }), options, async (region, _) => await Build(region));
         await Parallel.ForEachAsync(chosen.Where(_ => _.IsContinent), options, async (region, _) => await Build(region));
         foreach (var region in chosen.Where(_ => _.IsWorld))
         {
@@ -183,7 +189,7 @@ public static class PackageBuilder
         [
             .. Layer(root, Geofabrik.WaterwaysLayer)
                 .Where(_ => Fclass(_) is "river" && Named(_))
-                .Select(_ => Simplify(_, WaterwayTolerance))
+                .Select(_ => Simplify(_, waterwayTolerance))
                 .OfType<Feature>()
                 .Select(_ => Trim(_, "osm_id", "name", "fclass"))
         ];
@@ -193,7 +199,7 @@ public static class PackageBuilder
         [
             .. Layer(root, Geofabrik.WaterLayer)
                 .Where(_ => Fclass(_) is "water" or "reservoir" && Named(_))
-                .Select(_ => Simplify(_, LakeTolerance))
+                .Select(_ => Simplify(_, lakeTolerance))
                 .OfType<Feature>()
                 .Select(_ => Trim(_, "osm_id", "name", "fclass"))
         ];
@@ -274,17 +280,17 @@ public static class PackageBuilder
             files["readme.md"] = File.ReadAllBytes(ReadmePath);
         }
 
-        var packagePath = Path.Combine(OutputDirectory, $"{region.PackageId}.{Version}.nupkg");
+        var packagePath = Path.Combine(OutputDirectory, $"{region.PackageId}.{version}.nupkg");
         NuPkgWriter.Write(
             packagePath,
             region.PackageId,
-            Version,
+            version,
             Description(region),
-            ProjectUrl,
-            Tags,
+            projectUrl,
+            tags,
             license: "ODbL-1.0",
             dependencyId: "MapBundle",
-            dependencyVersion: Version,
+            dependencyVersion: version,
             files);
         return packagePath;
     }
@@ -337,7 +343,7 @@ public static class PackageBuilder
             "| --- | --- | --: | --: | --: | --: |\n" +
             string.Join("\n", rows) + "\n";
 
-        var path = Path.Combine(Root, "src", "bundles.include.md");
+        var path = Path.Combine(root, "src", "bundles.include.md");
         File.WriteAllText(path, content);
         Console.WriteLine($"Wrote {path} ({bundles.Count} bundles).");
     }

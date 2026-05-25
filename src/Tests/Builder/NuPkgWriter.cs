@@ -1,5 +1,3 @@
-namespace MapBundle.Builder;
-
 /// <summary>
 /// Writes a NuGet package (an OPC zip) by hand — no SDK pack step. Adds the required
 /// <c>[Content_Types].xml</c>, <c>_rels/.rels</c>, <c>.nuspec</c> and core-properties entries around

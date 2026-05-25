@@ -1,5 +1,3 @@
-namespace MapBundle.Builder;
-
 /// <summary>
 /// The region catalog, built from Geofabrik's download index. We publish the continents (top-level
 /// regions) and their direct children (countries); sub-country levels (US states, German Bundesländer)

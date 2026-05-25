@@ -1,8 +1,6 @@
 using Nts = NetTopologySuite.Geometries;
 using NetTopologySuite.Simplify;
 
-namespace MapBundle.Builder;
-
 /// <summary>
 /// Geometry helpers for the builder. GeoConvert ships its own geometry model with no simplify,
 /// reproject or topology operations, so here we bridge losslessly to NetTopologySuite for those.
@@ -10,23 +8,23 @@ namespace MapBundle.Builder;
 /// </summary>
 static class Geo
 {
-    static readonly Nts.GeometryFactory Factory = new();
+    static readonly Nts.GeometryFactory factory = new();
 
     // Spherical Web Mercator (EPSG:3857) radius. The simplified osmdata polygons ship only in 3857.
-    const double MercatorRadius = 6378137d;
-    const double Rad2Deg = 180d / Math.PI;
+    const double mercatorRadius = 6378137d;
+    const double rad2Deg = 180d / Math.PI;
 
     /// <summary>Converts a GeoConvert geometry to its NetTopologySuite equivalent (2D).</summary>
     public static Nts.Geometry ToNts(Geometry geometry) =>
         geometry switch
         {
-            Point point => Factory.CreatePoint(Coord(point.Coordinate)),
-            MultiPoint multi => Factory.CreateMultiPointFromCoords(Coords(multi.Positions)),
-            LineString line => Factory.CreateLineString(Coords(line.Positions)),
+            Point point => factory.CreatePoint(Coord(point.Coordinate)),
+            MultiPoint multi => factory.CreateMultiPointFromCoords(Coords(multi.Positions)),
+            LineString line => factory.CreateLineString(Coords(line.Positions)),
             Polygon polygon => ToNtsPolygon(polygon),
-            MultiLineString multi => Factory.CreateMultiLineString([.. multi.LineStrings.Select(_ => Factory.CreateLineString(Coords(_.Positions)))]),
-            MultiPolygon multi => Factory.CreateMultiPolygon([.. multi.Polygons.Select(ToNtsPolygon)]),
-            GeometryCollection collection => Factory.CreateGeometryCollection([.. collection.Geometries.Select(ToNts)]),
+            MultiLineString multi => factory.CreateMultiLineString([.. multi.LineStrings.Select(_ => factory.CreateLineString(Coords(_.Positions)))]),
+            MultiPolygon multi => factory.CreateMultiPolygon([.. multi.Polygons.Select(ToNtsPolygon)]),
+            GeometryCollection collection => factory.CreateGeometryCollection([.. collection.Geometries.Select(ToNts)]),
             _ => throw new($"Unsupported geometry: {geometry.Type}"),
         };
 
@@ -110,7 +108,7 @@ static class Geo
     {
         try
         {
-            var rectangle = Factory.ToGeometry(new Nts.Envelope(bounds.MinX, bounds.MaxX, bounds.MinY, bounds.MaxY));
+            var rectangle = factory.ToGeometry(new(bounds.MinX, bounds.MaxX, bounds.MinY, bounds.MaxY));
             var clipped = ToNts(geometry).Intersection(rectangle);
             return clipped.IsEmpty ? null : ToGeo(clipped);
         }
@@ -122,8 +120,8 @@ static class Geo
 
     static Position MercatorToWgs84(double x, double y)
     {
-        var lon = x / MercatorRadius * Rad2Deg;
-        var lat = (2 * Math.Atan(Math.Exp(y / MercatorRadius)) - Math.PI / 2) * Rad2Deg;
+        var lon = x / mercatorRadius * rad2Deg;
+        var lat = (2 * Math.Atan(Math.Exp(y / mercatorRadius)) - Math.PI / 2) * rad2Deg;
         return new(lon, lat);
     }
 
@@ -171,12 +169,12 @@ static class Geo
 
     static Nts.Polygon ToNtsPolygon(Polygon polygon)
     {
-        var shell = Factory.CreateLinearRing(Coords(polygon.Rings[0]));
+        var shell = factory.CreateLinearRing(Coords(polygon.Rings[0]));
         var holes = polygon.Rings
             .Skip(1)
-            .Select(_ => Factory.CreateLinearRing(Coords(_)))
+            .Select(_ => factory.CreateLinearRing(Coords(_)))
             .ToArray();
-        return Factory.CreatePolygon(shell, holes);
+        return factory.CreatePolygon(shell, holes);
     }
 
     static Polygon ToGeoPolygon(Nts.Polygon polygon)

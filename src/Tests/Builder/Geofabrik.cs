@@ -1,7 +1,5 @@
 using System.Text.Json;
 
-namespace MapBundle.Builder;
-
 /// <summary>One entry from Geofabrik's download index: a region, its parent, ISO codes and shapefile URL.</summary>
 public sealed record GeofabrikEntry(string Id, string? Parent, string Name, string[] Iso2, string? ShpUrl);
 
@@ -12,7 +10,7 @@ public sealed record GeofabrikEntry(string Id, string? Parent, string Name, stri
 /// </summary>
 public static class Geofabrik
 {
-    const string IndexUrl = "https://download.geofabrik.de/index-v1-nogeom.json";
+    const string indexUrl = "https://download.geofabrik.de/index-v1-nogeom.json";
 
     // Layer shapefile base names inside a "<region>-latest-free.shp.zip".
     public const string PlacesLayer = "gis_osm_places_free_1";
@@ -23,7 +21,7 @@ public static class Geofabrik
     {
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "geofabrik-index-v1-nogeom.json");
-        await httpCache.ToFileAsync(IndexUrl, path);
+        await httpCache.ToFileAsync(indexUrl, path);
 
         await using var stream = File.OpenRead(path);
         using var document = await JsonDocument.ParseAsync(stream);

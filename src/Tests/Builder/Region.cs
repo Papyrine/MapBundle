@@ -1,5 +1,3 @@
-namespace MapBundle.Builder;
-
 /// <summary>
 /// A published region package, derived from a Geofabrik index entry. Continents have no
 /// <see cref="Parent"/>; countries name their continent. <see cref="World"/> is synthetic and merges

@@ -1,7 +1,7 @@
 public class GeoTests
 {
     static Polygon UnitSquare() =>
-        new([[new Position(0, 0), new Position(0, 1), new Position(1, 1), new Position(1, 0), new Position(0, 0)]]);
+        new([[new(0, 0), new(0, 1), new(1, 1), new(1, 0), new(0, 0)]]);
 
     [Test]
     public async Task Polygon_round_trips_through_nts()
@@ -38,7 +38,7 @@ public class GeoTests
     [Test]
     public async Task Simplify_drops_near_collinear_points()
     {
-        var line = new LineString([new Position(0, 0), new Position(1, 0.0000001), new Position(2, 0), new Position(3, 0)]);
+        var line = new LineString([new(0, 0), new(1, 0.0000001), new(2, 0), new(3, 0)]);
         var simplified = (LineString) Geo.Simplify(line, 0.001)!;
         await Assert.That(simplified.Positions.Count).IsLessThan(4);
     }

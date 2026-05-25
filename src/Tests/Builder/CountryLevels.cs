@@ -1,7 +1,5 @@
 using System.Text.Json.Nodes;
 
-namespace MapBundle.Builder;
-
 /// <summary>
 /// The OSM-derived administrative boundaries from the "country-levels" project (pinned release, simplified
 /// WGS84 GeoJSON). <c>iso1</c> files are country borders (admin level 2); <c>iso2</c> files are the
@@ -12,8 +10,8 @@ public sealed class CountryLevels
     // Borders are the headline layer (one polygon per country), so take them from the detailed "high" tier
     // — "low"/"medium" collapse small countries like Monaco to a triangle. Subdivisions are far more
     // numerous (~9k worldwide), so take them from "medium" to keep package sizes reasonable. Pinned v2.2.0.
-    const string BordersUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_high.tgz";
-    const string SubdivisionsUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_medium.tgz";
+    const string bordersUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_high.tgz";
+    const string subdivisionsUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_medium.tgz";
 
     readonly Dictionary<string, Feature> borders;
     readonly Dictionary<string, List<Feature>> subdivisions;
@@ -34,8 +32,8 @@ public sealed class CountryLevels
 
     public static async Task<CountryLevels> Download(HttpCache httpCache, string directory)
     {
-        var high = await Archives.TarGz(httpCache, BordersUrl, directory);
-        var medium = await Archives.TarGz(httpCache, SubdivisionsUrl, directory);
+        var high = await Archives.TarGz(httpCache, bordersUrl, directory);
+        var medium = await Archives.TarGz(httpCache, subdivisionsUrl, directory);
 
         var borders = Read(Folder(high, "iso1"))
             .ToDictionary(_ => Country(_.Key), _ => _.Feature);

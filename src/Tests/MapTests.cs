@@ -2,7 +2,7 @@ public class MapTests
 {
     static void WriteFgb(string directory, MapLayer layer)
     {
-        System.IO.Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(directory);
         const string geojson =
             """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[1,2]},"properties":{"name":"x"}}]}""";
         var features = GeoConverter.Read(new MemoryStream(Encoding.UTF8.GetBytes(geojson)), GeoFormat.GeoJson);
@@ -73,8 +73,8 @@ public class MapTests
     public async Task Regions_are_listed_in_order()
     {
         using var temp = new TempDirectory();
-        System.IO.Directory.CreateDirectory(Path.Combine(temp, "World"));
-        System.IO.Directory.CreateDirectory(Path.Combine(temp, "Africa"));
+        Directory.CreateDirectory(Path.Combine(temp, "World"));
+        Directory.CreateDirectory(Path.Combine(temp, "Africa"));
         var regions = Maps.Open(temp).Regions;
         await Assert.That(regions.Count).IsEqualTo(2);
         await Assert.That(regions[0]).IsEqualTo("Africa");

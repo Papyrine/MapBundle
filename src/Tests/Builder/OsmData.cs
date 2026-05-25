@@ -1,5 +1,3 @@
-namespace MapBundle.Builder;
-
 /// <summary>
 /// The global physical layers from osmdata.openstreetmap.de: simplified land and ocean polygons derived
 /// from the OSM coastline. They ship only in EPSG:3857, so features are clipped to a region (by lon/lat
@@ -8,8 +6,8 @@ namespace MapBundle.Builder;
 /// </summary>
 public sealed class OsmData
 {
-    const string LandUrl = "https://osmdata.openstreetmap.de/download/simplified-land-polygons-complete-3857.zip";
-    const string OceanUrl = "https://osmdata.openstreetmap.de/download/simplified-water-polygons-split-3857.zip";
+    const string landUrl = "https://osmdata.openstreetmap.de/download/simplified-land-polygons-complete-3857.zip";
+    const string oceanUrl = "https://osmdata.openstreetmap.de/download/simplified-water-polygons-split-3857.zip";
 
     readonly FeatureCollection land;
     readonly FeatureCollection ocean;
@@ -34,8 +32,8 @@ public sealed class OsmData
 
     public static async Task<OsmData> Download(HttpCache httpCache, string directory)
     {
-        var land = await Read(httpCache, LandUrl, directory);
-        var ocean = await Read(httpCache, OceanUrl, directory);
+        var land = await Read(httpCache, landUrl, directory);
+        var ocean = await Read(httpCache, oceanUrl, directory);
         return new(land, ocean);
     }
 

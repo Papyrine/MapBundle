@@ -1,7 +1,5 @@
 using System.Formats.Tar;
 
-namespace MapBundle.Builder;
-
 /// <summary>
 /// Downloads (via Replicant's cache) and extracts the zip/tar.gz archives the OSM sources ship as.
 /// Extraction is itself cached: a <c>.extracted</c> marker lets repeat runs skip re-unpacking.

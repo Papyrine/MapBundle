@@ -4,7 +4,6 @@ global using System.Runtime.CompilerServices;
 global using System.Text;
 global using GeoConvert;
 global using MapBundle;
-global using MapBundle.Builder;
 global using Replicant;
 global using TUnit.Core;
 global using TUnit.Assertions;

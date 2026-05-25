@@ -1,5 +1,3 @@
-namespace MapBundle.Builder;
-
 /// <summary>Case-insensitive access to feature attributes (shapefile DBF column names vary in case).</summary>
 static class Props
 {
