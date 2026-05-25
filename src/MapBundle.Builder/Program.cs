@@ -11,7 +11,7 @@ http.DefaultRequestHeaders.UserAgent.ParseAdd("MapBundle.Builder");
 Console.WriteLine($"Downloading Natural Earth {NaturalEarth.ScaleToken(options.Scale)} into '{options.CacheDirectory}' ...");
 var cache = new DataCache(options.CacheDirectory, http);
 var sources = await Sources.Download(cache, options.Scale);
-Console.WriteLine($"Loaded {sources.Countries.Count} countries and {sources.Places.Count} populated places.");
+Console.WriteLine($"Loaded {sources.Countries.Count} countries and {sources.Layers.Count} other layers.");
 
 Directory.CreateDirectory(options.OutputDirectory);
 var staging = Path.Combine(options.OutputDirectory, ".staging");

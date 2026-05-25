@@ -20,6 +20,12 @@ public enum SourceLayer
     PopulatedPlaces,
     Rivers,
     Lakes,
+    StatesProvinces,
+    UrbanAreas,
+    MinorIslands,
+    Coastline,
+    Land,
+    Ocean,
 }
 
 /// <summary>
@@ -65,6 +71,12 @@ public static class NaturalEarth
             SourceLayer.PopulatedPlaces => MapLayer.Cities,
             SourceLayer.Rivers => MapLayer.Rivers,
             SourceLayer.Lakes => MapLayer.Lakes,
+            SourceLayer.StatesProvinces => MapLayer.StatesProvinces,
+            SourceLayer.UrbanAreas => MapLayer.UrbanAreas,
+            SourceLayer.MinorIslands => MapLayer.MinorIslands,
+            SourceLayer.Coastline => MapLayer.Coastline,
+            SourceLayer.Land => MapLayer.Land,
+            SourceLayer.Ocean => MapLayer.Ocean,
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
         };
 
@@ -76,8 +88,14 @@ public static class NaturalEarth
         {
             SourceLayer.Countries => ("cultural", $"ne_{token}_admin_0_countries"),
             SourceLayer.PopulatedPlaces => ("cultural", $"ne_{token}_populated_places"),
+            SourceLayer.StatesProvinces => ("cultural", $"ne_{token}_admin_1_states_provinces"),
+            SourceLayer.UrbanAreas => ("cultural", $"ne_{token}_urban_areas"),
             SourceLayer.Rivers => ("physical", $"ne_{token}_rivers_lake_centerlines"),
             SourceLayer.Lakes => ("physical", $"ne_{token}_lakes"),
+            SourceLayer.MinorIslands => ("physical", $"ne_{token}_minor_islands"),
+            SourceLayer.Coastline => ("physical", $"ne_{token}_coastline"),
+            SourceLayer.Land => ("physical", $"ne_{token}_land"),
+            SourceLayer.Ocean => ("physical", $"ne_{token}_ocean"),
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
         };
     }

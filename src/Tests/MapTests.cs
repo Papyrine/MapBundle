@@ -32,6 +32,12 @@ public class MapTests
         await Assert.That(map.Cities.Count).IsEqualTo(1);
         await Assert.That(map.Rivers.Count).IsEqualTo(1);
         await Assert.That(map.Lakes.Count).IsEqualTo(1);
+        await Assert.That(map.StatesProvinces.Count).IsEqualTo(1);
+        await Assert.That(map.UrbanAreas.Count).IsEqualTo(1);
+        await Assert.That(map.MinorIslands.Count).IsEqualTo(1);
+        await Assert.That(map.Coastline.Count).IsEqualTo(1);
+        await Assert.That(map.Land.Count).IsEqualTo(1);
+        await Assert.That(map.Ocean.Count).IsEqualTo(1);
         await Assert.That(map.Load(MapLayer.Borders).Count).IsEqualTo(1);
     }
 

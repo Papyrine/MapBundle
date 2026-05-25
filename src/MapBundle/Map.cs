@@ -42,6 +42,24 @@ public sealed class Map
     /// <summary>Lake and reservoir polygons.</summary>
     public FeatureCollection Lakes => Load(MapLayer.Lakes);
 
+    /// <summary>State / province boundary polygons.</summary>
+    public FeatureCollection StatesProvinces => Load(MapLayer.StatesProvinces);
+
+    /// <summary>Built-up urban area polygons.</summary>
+    public FeatureCollection UrbanAreas => Load(MapLayer.UrbanAreas);
+
+    /// <summary>Small island polygons.</summary>
+    public FeatureCollection MinorIslands => Load(MapLayer.MinorIslands);
+
+    /// <summary>Coastlines as lines.</summary>
+    public FeatureCollection Coastline => Load(MapLayer.Coastline);
+
+    /// <summary>Global land polygons.</summary>
+    public FeatureCollection Land => Load(MapLayer.Land);
+
+    /// <summary>Global ocean polygons.</summary>
+    public FeatureCollection Ocean => Load(MapLayer.Ocean);
+
     string PathFor(MapLayer layer) =>
         Path.Combine(directory, FileName(layer));
 
@@ -53,6 +71,12 @@ public sealed class Map
             MapLayer.Cities => "cities.fgb",
             MapLayer.Rivers => "rivers.fgb",
             MapLayer.Lakes => "lakes.fgb",
+            MapLayer.StatesProvinces => "states.fgb",
+            MapLayer.UrbanAreas => "urban.fgb",
+            MapLayer.MinorIslands => "islands.fgb",
+            MapLayer.Coastline => "coastline.fgb",
+            MapLayer.Land => "land.fgb",
+            MapLayer.Ocean => "ocean.fgb",
             _ => throw new MapBundleException($"Unknown layer '{layer}'."),
         };
 }

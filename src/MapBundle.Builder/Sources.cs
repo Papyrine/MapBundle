@@ -4,31 +4,48 @@ namespace MapBundle.Builder;
 public sealed class Sources(
     Scale scale,
     IReadOnlyList<Country> countries,
-    FeatureCollection places,
-    FeatureCollection? rivers,
-    FeatureCollection? lakes)
+    IReadOnlyDictionary<MapLayer, FeatureCollection> layers)
 {
     public Scale Scale => scale;
+
+    /// <summary>Admin-0 countries, parsed for region selection; the source of the Borders layer.</summary>
     public IReadOnlyList<Country> Countries => countries;
-    public FeatureCollection Places => places;
-    public FeatureCollection? Rivers => rivers;
-    public FeatureCollection? Lakes => lakes;
+
+    /// <summary>All other layers that were available at this scale, keyed by target layer.</summary>
+    public IReadOnlyDictionary<MapLayer, FeatureCollection> Layers => layers;
+
+    // Everything except admin-0 countries (which becomes Borders via the parsed Country list).
+    static readonly SourceLayer[] extraLayers =
+    [
+        SourceLayer.PopulatedPlaces,
+        SourceLayer.StatesProvinces,
+        SourceLayer.UrbanAreas,
+        SourceLayer.Rivers,
+        SourceLayer.Lakes,
+        SourceLayer.MinorIslands,
+        SourceLayer.Coastline,
+        SourceLayer.Land,
+        SourceLayer.Ocean,
+    ];
 
     public static async Task<Sources> Download(DataCache cache, Scale scale, CancellationToken cancellation = default)
     {
         var countriesPath = await Shapefile(cache, SourceLayer.Countries, scale, required: true, cancellation);
-        var placesPath = await Shapefile(cache, SourceLayer.PopulatedPlaces, scale, required: true, cancellation);
-        var riversPath = await Shapefile(cache, SourceLayer.Rivers, scale, required: false, cancellation);
-        var lakesPath = await Shapefile(cache, SourceLayer.Lakes, scale, required: false, cancellation);
-
         var countries = GeoConverter.Read(countriesPath!, GeoFormat.Shapefile)
             .Select(ToCountry)
             .ToList();
-        var places = GeoConverter.Read(placesPath!, GeoFormat.Shapefile);
-        var rivers = riversPath is null ? null : GeoConverter.Read(riversPath, GeoFormat.Shapefile);
-        var lakes = lakesPath is null ? null : GeoConverter.Read(lakesPath, GeoFormat.Shapefile);
 
-        return new(scale, countries, places, rivers, lakes);
+        var layers = new Dictionary<MapLayer, FeatureCollection>();
+        foreach (var source in extraLayers)
+        {
+            var path = await Shapefile(cache, source, scale, required: false, cancellation);
+            if (path is not null)
+            {
+                layers[NaturalEarth.ToMapLayer(source)] = GeoConverter.Read(path, GeoFormat.Shapefile);
+            }
+        }
+
+        return new(scale, countries, layers);
     }
 
     static async Task<string?> Shapefile(DataCache cache, SourceLayer layer, Scale scale, bool required, CancellationToken cancellation)

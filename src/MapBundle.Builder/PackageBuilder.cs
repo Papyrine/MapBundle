@@ -5,11 +5,23 @@ public static class PackageBuilder
 {
     const string Tags = "map maps geo geospatial naturalearth flatgeobuf borders cities rivers offline";
 
-    // Natural Earth ships dozens of attribute columns per feature; keep only a small, useful subset.
-    // This shrinks the data and avoids overflowing the FlatGeobuf header with very wide attribute tables.
-    static readonly string[] BorderKeys = ["NAME", "NAME_LONG", "ISO_A2", "ADM0_A3", "CONTINENT", "SUBREGION"];
-    static readonly string[] CityKeys = ["NAME", "ADM0_A3", "SCALERANK", "POP_MAX"];
-    static readonly string[] WaterKeys = ["name", "name_en", "featurecla", "scalerank"];
+    // Natural Earth ships dozens of attribute columns per feature; keep only a small, useful subset per
+    // layer (matching is case-insensitive, so the case here need not match the source exactly).
+    static string[] KeysFor(MapLayer layer) =>
+        layer switch
+        {
+            MapLayer.Borders => ["NAME", "NAME_LONG", "ISO_A2", "ADM0_A3", "CONTINENT", "SUBREGION", "POP_EST", "ECONOMY"],
+            MapLayer.Cities => ["NAME", "NAME_EN", "ADM0_A3", "ADM0NAME", "ADM1NAME", "FEATURECLA", "SCALERANK", "POP_MAX", "POP_MIN"],
+            MapLayer.StatesProvinces => ["name", "name_en", "adm0_a3", "iso_3166_2", "type_en"],
+            MapLayer.UrbanAreas => ["scalerank", "area_sqkm"],
+            MapLayer.Rivers => ["name", "name_en", "featurecla", "scalerank"],
+            MapLayer.Lakes => ["name", "name_en", "featurecla"],
+            MapLayer.MinorIslands => ["featurecla", "name"],
+            MapLayer.Coastline => ["featurecla", "scalerank", "min_zoom"],
+            MapLayer.Land => ["featurecla", "min_zoom"],
+            MapLayer.Ocean => ["featurecla", "min_zoom"],
+            _ => [],
+        };
 
     /// <summary>Filters and writes the region's FlatGeobuf layers (plus meta.json) into a staging folder.</summary>
     public static string BuildRegion(Region region, Sources sources, string stagingRoot)
@@ -30,25 +42,29 @@ public static class PackageBuilder
         var borderFeatures = countries.Select(_ => _.Feature).ToList();
         var bounds = new FeatureCollection(borderFeatures).GetBounds();
 
-        var places = sources.Places
-            .Where(_ => region.All || isoSet.Contains(Props.Text(_, "ADM0_A3")));
-
         var counts = new Dictionary<MapLayer, int>();
-        Write(directory, MapLayer.Borders, Trim(borderFeatures, BorderKeys), counts);
-        Write(directory, MapLayer.Cities, Trim(places, CityKeys), counts);
+        Write(directory, MapLayer.Borders, Trim(borderFeatures, KeysFor(MapLayer.Borders)), counts);
 
-        if (sources.Rivers is { } rivers)
+        foreach (var (layer, features) in sources.Layers)
         {
-            Write(directory, MapLayer.Rivers, Trim(Within(rivers, bounds, region.All), WaterKeys), counts);
-        }
-
-        if (sources.Lakes is { } lakes)
-        {
-            Write(directory, MapLayer.Lakes, Trim(Within(lakes, bounds, region.All), WaterKeys), counts);
+            var filtered = Filter(layer, features, region, isoSet, bounds);
+            Write(directory, layer, Trim(filtered, KeysFor(layer)), counts);
         }
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, sources.Scale, counts));
         return directory;
+    }
+
+    // Cities and states/provinces carry a country code, so they're filtered by country membership;
+    // everything else by bounding-box intersection with the region (whole features, no clipping).
+    static IEnumerable<Feature> Filter(MapLayer layer, FeatureCollection features, Region region, HashSet<string> isoSet, Envelope bounds)
+    {
+        if (layer is MapLayer.Cities or MapLayer.StatesProvinces)
+        {
+            return region.All ? features : features.Where(_ => isoSet.Contains(Props.Text(_, "ADM0_A3")));
+        }
+
+        return Within(features, bounds, region.All);
     }
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>
