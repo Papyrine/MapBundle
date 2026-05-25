@@ -8,7 +8,7 @@ artifacts/
 ## Locally built nuget packages
 nugets/
 
-## Natural Earth download cache (builder)
+## OpenStreetMap source download/extract cache (builder)
 .cache/
 
 ## Test + coverage output

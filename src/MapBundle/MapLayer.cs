@@ -18,12 +18,6 @@ public enum MapLayer
     /// <summary>State / province boundary polygons (admin level 1).</summary>
     StatesProvinces,
 
-    /// <summary>Built-up urban area polygons.</summary>
-    UrbanAreas,
-
-    /// <summary>Small island polygons omitted from the country boundaries.</summary>
-    MinorIslands,
-
     /// <summary>Coastlines as lines.</summary>
     Coastline,
 

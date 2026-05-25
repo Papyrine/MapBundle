@@ -1,43 +1,29 @@
 namespace MapBundle.Builder;
 
 /// <summary>
-/// A published region package. Country membership is declarative: a country is selected if it is not
-/// excluded and it is either explicitly included, in one of the listed continents, or in one of the
-/// listed Natural Earth sub-regions. Overlap between regions is allowed.
+/// A published region package, derived from a Geofabrik index entry. Continents have no
+/// <see cref="Parent"/>; countries name their continent. <see cref="World"/> is synthetic and merges
+/// every continent.
 /// </summary>
 public sealed record Region(
-    string Key,
+    string Id,
+    string? Parent,
     string Name,
-    string[] Subregions,
-    string[] Continents,
-    string[] IncludeIso,
-    string[] ExcludeIso,
-    bool All = false)
+    string[] Iso,
+    string? ShpUrl,
+    bool IsWorld = false)
 {
+    /// <summary>The folder/key the data ships under (PascalCase), for example <c>"Monaco"</c> or <c>"NorthAmerica"</c>.</summary>
+    public string Key => IsWorld ? "World" : Pascal(Id);
+
     public string PackageId => $"MapBundle.{Key}";
 
-    public bool Selects(Country country)
-    {
-        if (ExcludeIso.Contains(country.Iso, StringComparer.OrdinalIgnoreCase))
-        {
-            return false;
-        }
+    /// <summary>A continent (or continent-sized leaf such as Russia): a top-level Geofabrik region.</summary>
+    public bool IsContinent => !IsWorld && Parent is null;
 
-        if (All)
-        {
-            return true;
-        }
-
-        if (IncludeIso.Contains(country.Iso, StringComparer.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (Continents.Contains(country.Continent, StringComparer.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return Subregions.Contains(country.Subregion, StringComparer.OrdinalIgnoreCase);
-    }
+    static string Pascal(string id) =>
+        string.Concat(id
+            .Split('-', '/')
+            .Where(_ => _.Length > 0)
+            .Select(_ => char.ToUpperInvariant(_[0]) + _[1..]));
 }

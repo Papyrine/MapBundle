@@ -4,13 +4,14 @@ environment:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-# AppVeyor builds the code, runs tests, gates coverage, then runs the full data build: downloading
-# Natural Earth (cached on disk by Replicant) and packing every World/Region data package. The .cache
-# folder is persisted between builds and re-validated, so only changed source files are re-downloaded.
+# AppVeyor builds the code, runs tests, gates coverage, then runs the full data build: downloading the
+# OpenStreetMap sources (Geofabrik extracts, country-levels boundaries, osmdata polygons — cached on
+# disk by Replicant) and packing every World/Region data package. The .cache folder is persisted
+# between builds and re-validated, so only changed source files are re-downloaded.
 cache:
-  # Replicant's HTTP cache (the expensive part). The .cache/source shapefiles are rewritten from it
-  # each build, so there's no point caching them too.
-  - .cache/http -> src/Tests/Builder/NaturalEarth.cs
+  # Replicant's HTTP cache (the expensive part). The extracted archives are rewritten from it each
+  # build, so there's no point caching them too. Keyed on the files that hold the source URLs.
+  - .cache/http -> src/Tests/Builder/Geofabrik.cs src/Tests/Builder/CountryLevels.cs src/Tests/Builder/OsmData.cs
 build_script:
 - sh: |
     set -e

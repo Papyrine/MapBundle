@@ -1,77 +1,87 @@
 public class RegionsTests
 {
+    // A miniature Geofabrik index: a continent with countries, a sub-country level (excluded), and a
+    // continent-sized leaf (Russia) with no children.
+    static readonly GeofabrikEntry[] SampleIndex =
+    [
+        new("europe", null, "Europe", [], null),
+        new("monaco", "europe", "Monaco", ["MC"], "https://download.geofabrik.de/europe/monaco-latest-free.shp.zip"),
+        new("germany", "europe", "Germany", ["DE"], "https://download.geofabrik.de/europe/germany-latest-free.shp.zip"),
+        new("germany/bayern", "germany", "Bayern", [], "https://download.geofabrik.de/europe/germany/bayern-latest-free.shp.zip"),
+        new("russia", null, "Russia", ["RU"], "https://download.geofabrik.de/russia-latest-free.shp.zip"),
+    ];
+
     [Test]
     public Task Region_table() =>
-        Verify(Describe());
+        Verify(Describe(Regions.Build(SampleIndex)));
 
-    static string Describe()
+    static string Describe(IReadOnlyList<Region> regions)
     {
         var builder = new StringBuilder();
-        foreach (var region in Regions.All)
+        foreach (var region in regions)
         {
-            builder.AppendLine(region.PackageId);
-            if (region.All)
-            {
-                builder.AppendLine("  all countries");
-            }
-
-            if (region.Continents.Length > 0)
-            {
-                builder.AppendLine($"  continents: {string.Join(", ", region.Continents)}");
-            }
-
-            if (region.Subregions.Length > 0)
-            {
-                builder.AppendLine($"  subregions: {string.Join(", ", region.Subregions)}");
-            }
-
-            if (region.IncludeIso.Length > 0)
-            {
-                builder.AppendLine($"  include: {string.Join(", ", region.IncludeIso)}");
-            }
-
-            if (region.ExcludeIso.Length > 0)
-            {
-                builder.AppendLine($"  exclude: {string.Join(", ", region.ExcludeIso)}");
-            }
+            builder.AppendLine(region.Key);
+            builder.AppendLine($"  id: {region.Id}");
+            builder.AppendLine($"  parent: {region.Parent ?? "(none)"}");
+            builder.AppendLine($"  iso: {(region.Iso.Length == 0 ? "(none)" : string.Join(", ", region.Iso))}");
+            builder.AppendLine($"  shp: {(region.ShpUrl is null ? "no" : "yes")}");
         }
 
         return builder.ToString();
     }
 
-    static Country Country(string iso, string continent, string subregion) =>
-        new(iso, iso, continent, subregion, new());
-
-    static Region Region(string key) =>
-        Regions.All.Single(_ => _.Key == key);
-
     [Test]
-    public async Task Mexico_is_grouped_north_not_central()
+    public async Task Includes_continents_and_countries_but_not_subcountry()
     {
-        var mexico = Country("MEX", "North America", "Central America");
-        await Assert.That(Region("AmericasNorthern").Selects(mexico)).IsTrue();
-        await Assert.That(Region("AmericasCentral").Selects(mexico)).IsFalse();
+        var ids = Regions.Build(SampleIndex).Select(_ => _.Id).ToList();
+        await Assert.That(ids).Contains("europe");
+        await Assert.That(ids).Contains("monaco");
+        await Assert.That(ids).Contains("russia");
+        await Assert.That(ids.Contains("germany/bayern")).IsFalse();
     }
 
     [Test]
-    public async Task Iran_is_western_and_middle_east_not_southern()
+    public async Task World_is_synthetic_and_first()
     {
-        var iran = Country("IRN", "Asia", "Southern Asia");
-        await Assert.That(Region("AsiaWestern").Selects(iran)).IsTrue();
-        await Assert.That(Region("MiddleEast").Selects(iran)).IsTrue();
-        await Assert.That(Region("AsiaSouthern").Selects(iran)).IsFalse();
+        var regions = Regions.Build(SampleIndex);
+        await Assert.That(regions[0].IsWorld).IsTrue();
+        await Assert.That(regions[0].Key).IsEqualTo("World");
     }
 
     [Test]
-    public async Task Continent_and_subregion_both_match()
+    public async Task Continent_has_no_parent()
     {
-        var kenya = Country("KEN", "Africa", "Eastern Africa");
-        await Assert.That(Region("Africa").Selects(kenya)).IsTrue();
-        await Assert.That(Region("AfricaEastern").Selects(kenya)).IsTrue();
-        await Assert.That(Region("AfricaNorthern").Selects(kenya)).IsFalse();
+        var europe = Regions.Build(SampleIndex).Single(_ => _.Id == "europe");
+        await Assert.That(europe.IsContinent).IsTrue();
     }
 
     [Test]
-    public async Task World_selects_anything() =>
-        await Assert.That(Regions.World.Selects(Country("ZZZ", "Nowhere", "Nowhere"))).IsTrue();
+    public async Task Key_is_pascal_cased()
+    {
+        var region = new Region("north-america", null, "North America", [], null);
+        await Assert.That(region.Key).IsEqualTo("NorthAmerica");
+    }
+
+    static IReadOnlyList<string> MemberIds(string id)
+    {
+        var regions = Regions.Build(SampleIndex);
+        var region = id == "world" ? Regions.World : regions.Single(_ => _.Id == id);
+        return Regions.Members(region, regions).Select(_ => _.Id).OrderBy(_ => _).ToList();
+    }
+
+    [Test]
+    public async Task Country_is_its_own_member() =>
+        await Assert.That(MemberIds("monaco")).IsEquivalentTo((string[]) ["monaco"]);
+
+    [Test]
+    public async Task Continent_merges_its_countries() =>
+        await Assert.That(MemberIds("europe")).IsEquivalentTo((string[]) ["germany", "monaco"]);
+
+    [Test]
+    public async Task Childless_continent_is_its_own_member() =>
+        await Assert.That(MemberIds("russia")).IsEquivalentTo((string[]) ["russia"]);
+
+    [Test]
+    public async Task World_merges_every_extract() =>
+        await Assert.That(MemberIds("world")).IsEquivalentTo((string[]) ["germany", "monaco", "russia"]);
 }

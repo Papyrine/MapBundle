@@ -1,6 +1,6 @@
 namespace MapBundle.Builder;
 
-/// <summary>Case-insensitive access to feature attributes (Natural Earth DBF column names vary in case).</summary>
+/// <summary>Case-insensitive access to feature attributes (shapefile DBF column names vary in case).</summary>
 static class Props
 {
     public static string Text(Feature feature, string key)

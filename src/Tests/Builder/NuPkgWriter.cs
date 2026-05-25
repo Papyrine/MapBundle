@@ -14,6 +14,7 @@ public static class NuPkgWriter
         string description,
         string projectUrl,
         string tags,
+        string license,
         string dependencyId,
         string dependencyVersion,
         IReadOnlyDictionary<string, byte[]> files)
@@ -27,7 +28,7 @@ public static class NuPkgWriter
 
         WriteText(zip, "[Content_Types].xml", ContentTypes());
         WriteText(zip, "_rels/.rels", Rels(id, psmdcp));
-        WriteText(zip, $"{id}.nuspec", Nuspec(id, version, description, projectUrl, tags, dependencyId, dependencyVersion, hasIcon, hasReadme));
+        WriteText(zip, $"{id}.nuspec", Nuspec(id, version, description, projectUrl, tags, license, dependencyId, dependencyVersion, hasIcon, hasReadme));
         WriteText(zip, psmdcp, Psmdcp(id, version, description, tags));
 
         foreach (var pair in files)
@@ -76,6 +77,7 @@ public static class NuPkgWriter
         string description,
         string projectUrl,
         string tags,
+        string license,
         string dependencyId,
         string dependencyVersion,
         bool hasIcon,
@@ -92,7 +94,7 @@ public static class NuPkgWriter
             <authors>Simon Cropp</authors>
             <description>{Escape(description)}</description>
             <projectUrl>{projectUrl}</projectUrl>
-            <license type="expression">MIT</license>{icon}{readme}
+            <license type="expression">{license}</license>{icon}{readme}
             <tags>{Escape(tags)}</tags>
             <dependencies>
               <group>

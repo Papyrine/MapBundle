@@ -45,12 +45,6 @@ public sealed class Map
     /// <summary>State / province boundary polygons.</summary>
     public FeatureCollection StatesProvinces => Load(MapLayer.StatesProvinces);
 
-    /// <summary>Built-up urban area polygons.</summary>
-    public FeatureCollection UrbanAreas => Load(MapLayer.UrbanAreas);
-
-    /// <summary>Small island polygons.</summary>
-    public FeatureCollection MinorIslands => Load(MapLayer.MinorIslands);
-
     /// <summary>Coastlines as lines.</summary>
     public FeatureCollection Coastline => Load(MapLayer.Coastline);
 
@@ -72,8 +66,6 @@ public sealed class Map
             MapLayer.Rivers => "rivers.fgb",
             MapLayer.Lakes => "lakes.fgb",
             MapLayer.StatesProvinces => "states.fgb",
-            MapLayer.UrbanAreas => "urban.fgb",
-            MapLayer.MinorIslands => "islands.fgb",
             MapLayer.Coastline => "coastline.fgb",
             MapLayer.Land => "land.fgb",
             MapLayer.Ocean => "ocean.fgb",

@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <PackageTags>map;maps;geo;geospatial;naturalearth;flatgeobuf;borders;cities;rivers;offline</PackageTags>
+    <PackageTags>map;maps;geo;geospatial;openstreetmap;osm;flatgeobuf;borders;cities;rivers;offline</PackageTags>
     <NoWarn>$(NoWarn);CS1591;NU1608;NU1109;IDE0005</NoWarn>
   </PropertyGroup>
 </Project>

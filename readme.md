@@ -2,20 +2,21 @@
 
 Bundled, offline map data for .NET apps — borders, cities, waterways and base layers — shipped as
 [FlatGeobuf](https://flatgeobuf.org/) inside NuGet packages. Data is derived from
-[Natural Earth](https://www.naturalearthdata.com/) (public domain), so it can be freely redistributed.
+[OpenStreetMap](https://www.openstreetmap.org/) and is available under the
+[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
 
 ## Packages
 
 | Package | Contents |
 | --- | --- |
 | `MapBundle` | Core runtime. Loads the bundled `.fgb` layers. No data of its own. |
-| `MapBundle.World` | The whole world. |
-| `MapBundle.[Region]` | A single region (for example `MapBundle.EuropeWestern`). |
+| `MapBundle.World` | The whole world (every continent merged). |
+| `MapBundle.[Region]` | A single continent or country (for example `MapBundle.Europe` or `MapBundle.Monaco`). |
 
 Install the core package plus the area required:
 
 ```
-dotnet add package MapBundle.EuropeWestern
+dotnet add package MapBundle.Monaco
 ```
 
 A data package copies its FlatGeobuf files into a `maps/<Region>` folder beside the application at
@@ -24,13 +25,13 @@ build time; the `MapBundle` core reads them from there.
 ## Usage
 
 ```csharp
-var map = Maps.Open().Load("EuropeWestern");
+var map = Maps.Open().Load("Monaco");
 
 var borders = map.Borders;        // country polygons
 var cities = map.Cities;          // populated places
 var states = map.StatesProvinces; // admin-1 polygons
-var rivers = map.Rivers;          // river and lake centerlines
-// also: map.Lakes, map.UrbanAreas, map.MinorIslands, map.Coastline, map.Land, map.Ocean
+var rivers = map.Rivers;          // rivers
+// also: map.Lakes, map.Coastline, map.Land, map.Ocean
 ```
 
 Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coordinates are WGS84
@@ -38,44 +39,56 @@ longitude/latitude).
 
 ## Layers
 
-All from Natural Earth (the `MapLayer` enum):
+The `MapLayer` enum (a layer is omitted from a package when the source has nothing for that region):
 
-- **Borders** — country polygons (`admin_0_countries`)
-- **Cities** — populated places (`populated_places`)
-- **StatesProvinces** — state/province polygons (`admin_1_states_provinces`)
-- **UrbanAreas** — built-up area polygons (`urban_areas`)
-- **Rivers** — river and lake centerlines (`rivers_lake_centerlines`)
-- **Lakes** — lake polygons (`lakes`)
-- **MinorIslands** — small island polygons (`minor_islands`)
-- **Coastline** — coastlines (`coastline`)
-- **Land** / **Ocean** — global base polygons (`land`, `ocean`)
+- **Borders** — country polygons (OSM admin level 2)
+- **StatesProvinces** — state/province polygons (OSM admin level 4 / ISO 3166-2)
+- **Cities** — populated places (`place=city`/`town`)
+- **Rivers** — major waterways (`waterway=river`)
+- **Lakes** — lake and reservoir polygons (`natural=water`, `reservoir`)
+- **Coastline** — coastlines (derived from the land outlines)
+- **Land** / **Ocean** — global base polygons
 
-Terrain, roads and railways are intentionally excluded.
+Roads, railways, buildings, land use and terrain are intentionally excluded.
 
-## Accuracy and size
+## Data sources
 
-Accuracy is set when a package is built, from Natural Earth's three scales — `110m` (coarse), `50m`
-(medium) and `10m` (fine, the default). Coarser scales produce smaller packages. To change accuracy,
-rebuild the data packages at a different scale.
+- **Borders** and **StatesProvinces** come from
+  [country-levels](https://github.com/hyperknot/country-levels) — OSM-derived, pre-simplified WGS84
+  boundaries keyed by ISO code.
+- **Cities**, **Rivers** and **Lakes** come from per-region
+  [Geofabrik](https://download.geofabrik.de/) shapefile extracts of OpenStreetMap.
+- **Land** and **Ocean** come from
+  [osmdata.openstreetmap.de](https://osmdata.openstreetmap.de/); **Coastline** is derived from the land
+  polygons.
 
 ## Regions
 
-Grouping follows the UN M49 geoscheme, with a few deliberate calls (Mexico in Northern America; Iran in
-Western Asia; Middle East = Western Asia + Egypt + Iran; Russia kept whole in Eastern Europe). Regions
-may overlap. See `src/Tests/Builder/Regions.cs` for the exact table.
+The region tree follows [Geofabrik's download index](https://download.geofabrik.de/index-v1.json):
+the continents and their countries. `MapBundle.World` merges every continent. Sub-country levels (US
+states, German Bundesländer) are not published. See `src/Tests/Builder/Regions.cs`.
 
 ## Building the data packages
 
-The builder lives in the test project (`src/Tests/Builder/`) and runs as a gated test. Set
-`MAPBUNDLE_BUILD=1` and run that one test; it downloads Natural Earth (cached locally), filters each
-region, exports FlatGeobuf and writes the `.nupkg` files into `nugets/`:
+The builder lives in the test project (`src/Tests/Builder/`) and runs as a gated test. It downloads
+the OSM sources (cached locally by [Replicant](https://github.com/SimonCropp/Replicant)), filters and
+simplifies each region, exports FlatGeobuf and writes the `.nupkg` files into `nugets/`:
 
 ```
 MAPBUNDLE_BUILD=1 src/Tests/bin/Release/net10.0/Tests --treenode-filter "/*/*/PackageGeneration/Generate"
 ```
 
-Settings (1:10m scale, output and cache folders) are fixed in `PackageBuilder`.
+To validate the pipeline on a single region (default `monaco`) without building the whole tree:
+
+```
+MAPBUNDLE_SLICE=monaco src/Tests/bin/Debug/net10.0/Tests --treenode-filter "/*/*/PackageGeneration/Slice"
+```
+
+Geometry simplification and EPSG:3857→4326 reprojection use
+[NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite), a **build-only** dependency;
+the shipped `MapBundle` core depends only on GeoConvert.
 
 ## License
 
-MIT. Map data is from Natural Earth (public domain).
+The `MapBundle` core library is MIT. The data packages contain OpenStreetMap data and are licensed
+under the [ODbL](https://opendatacommons.org/licenses/odbl/) — © OpenStreetMap contributors.
