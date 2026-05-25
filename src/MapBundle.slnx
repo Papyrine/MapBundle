@@ -1,6 +1,5 @@
 <Solution>
   <Project Path="MapBundle/MapBundle.csproj" />
-  <Project Path="MapBundle.Builder/MapBundle.Builder.csproj" />
   <Project Path="Tests/Tests.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../readme.md" />

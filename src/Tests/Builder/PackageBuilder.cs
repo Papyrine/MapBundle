@@ -5,6 +5,53 @@ public static class PackageBuilder
 {
     const string Tags = "map maps geo geospatial naturalearth flatgeobuf borders cities rivers offline";
 
+    // Fixed build settings. Paths are anchored to the repo root, not the process working directory:
+    // the test host sets the cwd to the test binary's folder, so relative paths would land in bin/.
+    const string Version = "0.1.0";
+    const string ProjectUrl = "https://github.com/SimonCropp/MapBundle";
+    static readonly string Root = FindRoot();
+    static string OutputDirectory => Path.Combine(Root, "nugets");
+    static string CacheDirectory => Path.Combine(Root, ".cache");
+    static string IconPath => Path.Combine(Root, "src", "icon.png");
+    static string ReadmePath => Path.Combine(Root, "readme.md");
+
+    static string FindRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "global.json")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new MapBundleException("Could not locate the repository root (no global.json above the test binary).");
+    }
+
+    /// <summary>Downloads Natural Earth (cached via Replicant) at 1:10m, then builds and packs every region package.</summary>
+    public static async Task RunAsync()
+    {
+        var httpDirectory = Path.Combine(CacheDirectory, "http");
+        Directory.CreateDirectory(httpDirectory);
+        await using var httpCache = new HttpCache(httpDirectory);
+
+        var sources = await Sources.Download(httpCache, Path.Combine(CacheDirectory, "source"), Scale.M10);
+        Console.WriteLine($"Loaded {sources.Countries.Count} countries and {sources.Layers.Count} other layers.");
+
+        Directory.CreateDirectory(OutputDirectory);
+        var staging = Path.Combine(OutputDirectory, ".staging");
+
+        foreach (var region in Regions.All)
+        {
+            var directory = BuildRegion(region, sources, staging);
+            var package = Pack(region, directory);
+            Console.WriteLine($"  {Path.GetFileName(package)}");
+        }
+    }
+
     // Natural Earth ships dozens of attribute columns per feature; keep only a small, useful subset per
     // layer (matching is case-insensitive, so the case here need not match the source exactly).
     static string[] KeysFor(MapLayer layer) =>
@@ -68,7 +115,7 @@ public static class PackageBuilder
     }
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>
-    public static string Pack(Region region, string stagingDirectory, Options options)
+    public static string Pack(Region region, string stagingDirectory)
     {
         var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var file in Directory.GetFiles(stagingDirectory))
@@ -78,26 +125,26 @@ public static class PackageBuilder
 
         files[$"buildTransitive/{region.PackageId}.targets"] = Encoding.UTF8.GetBytes(Targets(region));
 
-        if (File.Exists(options.IconPath))
+        if (File.Exists(IconPath))
         {
-            files["icon.png"] = File.ReadAllBytes(options.IconPath);
+            files["icon.png"] = File.ReadAllBytes(IconPath);
         }
 
-        if (File.Exists(options.ReadmePath))
+        if (File.Exists(ReadmePath))
         {
-            files["readme.md"] = File.ReadAllBytes(options.ReadmePath);
+            files["readme.md"] = File.ReadAllBytes(ReadmePath);
         }
 
-        var packagePath = Path.Combine(options.OutputDirectory, $"{region.PackageId}.{options.Version}.nupkg");
+        var packagePath = Path.Combine(OutputDirectory, $"{region.PackageId}.{Version}.nupkg");
         NuPkgWriter.Write(
             packagePath,
             region.PackageId,
-            options.Version,
+            Version,
             Description(region),
-            options.ProjectUrl,
+            ProjectUrl,
             Tags,
             dependencyId: "MapBundle",
-            dependencyVersion: options.Version,
+            dependencyVersion: Version,
             files);
         return packagePath;
     }

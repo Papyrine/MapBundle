@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The data-package builder lives under Builder/ in this project (run via the gated
+         PackageGeneration test); it is not shipped. -->
+    <PackageReference Include="GeoConvert" />
+    <PackageReference Include="Replicant" />
     <PackageReference Include="ProjectFiles" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="Verify.TUnit" />
@@ -15,7 +19,6 @@
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <ProjectReference Include="..\MapBundle\MapBundle.csproj" />
-    <ProjectReference Include="..\MapBundle.Builder\MapBundle.Builder.csproj" />
   </ItemGroup>
 
 </Project>

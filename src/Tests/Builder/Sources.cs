@@ -28,9 +28,11 @@ public sealed class Sources(
         SourceLayer.Ocean,
     ];
 
-    public static async Task<Sources> Download(DataCache cache, Scale scale, CancellationToken cancellation = default)
+    public static async Task<Sources> Download(HttpCache httpCache, string directory, Scale scale)
     {
-        var countriesPath = await Shapefile(cache, SourceLayer.Countries, scale, required: true, cancellation);
+        Directory.CreateDirectory(directory);
+
+        var countriesPath = await Shapefile(httpCache, directory, SourceLayer.Countries, scale, required: true);
         var countries = GeoConverter.Read(countriesPath!, GeoFormat.Shapefile)
             .Select(ToCountry)
             .ToList();
@@ -38,7 +40,7 @@ public sealed class Sources(
         var layers = new Dictionary<MapLayer, FeatureCollection>();
         foreach (var source in extraLayers)
         {
-            var path = await Shapefile(cache, source, scale, required: false, cancellation);
+            var path = await Shapefile(httpCache, directory, source, scale, required: false);
             if (path is not null)
             {
                 layers[NaturalEarth.ToMapLayer(source)] = GeoConverter.Read(path, GeoFormat.Shapefile);
@@ -48,15 +50,26 @@ public sealed class Sources(
         return new(scale, countries, layers);
     }
 
-    static async Task<string?> Shapefile(DataCache cache, SourceLayer layer, Scale scale, bool required, CancellationToken cancellation)
+    // Downloads each shapefile component (cached by Replicant) to a sibling file so GeoConvert can read
+    // them together. Optional components/layers that 404 are skipped.
+    static async Task<string?> Shapefile(HttpCache httpCache, string directory, SourceLayer layer, Scale scale, bool required)
     {
         var (_, name) = NaturalEarth.Source(layer, scale);
         string? shp = null;
         foreach (var component in NaturalEarth.Components)
         {
-            var componentRequired = required && component is ".shp" or ".shx" or ".dbf";
             var url = NaturalEarth.ComponentUrl(layer, scale, component);
-            var path = await cache.Download(url, name + component, componentRequired, cancellation);
+            var path = Path.Combine(directory, name + component);
+            var componentRequired = required && component is ".shp" or ".shx" or ".dbf";
+            try
+            {
+                await httpCache.ToFileAsync(url, path);
+            }
+            catch (HttpRequestException) when (!componentRequired)
+            {
+                continue;
+            }
+
             if (component == ".shp")
             {
                 shp = path;
