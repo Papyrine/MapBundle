@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace MapBundle.Builder;
 
 /// <summary>
@@ -26,23 +28,23 @@ public static class PackageBuilder
 
     /// <summary>Builds and packs every region package (continents, countries and the merged World).</summary>
     public static Task RunAsync() =>
-        BuildAsync(_ => true);
+        BuildAsync(_ => true, writeIndex: true);
 
     /// <summary>Builds and packs only the regions whose id is listed — used to validate a slice end-to-end.</summary>
     public static Task BuildAsync(params string[] ids)
     {
         var wanted = ids.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        return BuildAsync(_ => wanted.Contains(_.Id) || wanted.Contains(_.Key));
+        return BuildAsync(_ => wanted.Contains(_.Id) || wanted.Contains(_.Key), writeIndex: false);
     }
 
-    static async Task BuildAsync(Func<Region, bool> selected)
+    static async Task BuildAsync(Func<Region, bool> selected, bool writeIndex)
     {
         Directory.CreateDirectory(OutputDirectory);
         var httpDirectory = Path.Combine(CacheDirectory, "http");
         Directory.CreateDirectory(httpDirectory);
-        // osmdata.openstreetmap.de throttles hard, so a download can outlast HttpClient's default 100s
-        // timeout. Give it room and retry transient drops.
-        var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+        // The OSM servers throttle, and large country extracts over a shared connection can take a long
+        // time, so give each request a generous timeout (well past HttpClient's 100s default).
+        var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
         await using var httpCache = new HttpCache(httpDirectory, httpClient, maxRetries: 3);
 
         var regions = await Regions.Load(httpCache, Path.Combine(CacheDirectory, "geofabrik"));
@@ -52,16 +54,62 @@ public static class PackageBuilder
         var context = new Context(httpCache, regions, countryLevels, osmData);
         var staging = Path.Combine(OutputDirectory, ".staging");
 
-        foreach (var region in regions.Where(selected))
+        var chosen = regions.Where(selected).ToList();
+        var bundles = new ConcurrentBag<Bundle>();
+        var failures = new ConcurrentBag<string>();
+
+        // Network blips on a single region must not sink the whole build: retry a few times, then skip it.
+        async Task Build(Region region)
         {
-            var directory = await BuildRegion(region, context, staging);
-            var package = Pack(region, directory);
-            Console.WriteLine($"  {Path.GetFileName(package)}");
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    var (directory, counts) = await BuildRegion(region, context, staging);
+                    var package = Pack(region, directory);
+                    bundles.Add(new(region, package, directory, counts));
+                    Console.WriteLine($"  {Path.GetFileName(package)}");
+                    return;
+                }
+                catch (Exception exception) when (attempt < 4)
+                {
+                    Console.WriteLine($"  retry {region.Id} (attempt {attempt}): {exception.Message}");
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+                catch (Exception exception)
+                {
+                    failures.Add(region.Id);
+                    Console.WriteLine($"  FAILED {region.Id}: {exception.Message}");
+                    return;
+                }
+            }
+        }
+
+        // Countries are independent — download and build them in parallel. Continents then merge from the
+        // cached country layers (also independent, so parallel too); World merges everything, so it's last.
+        // Keep the degree modest: downloads are bandwidth-bound, and fewer concurrent gives each large
+        // extract more throughput (so it doesn't hit the request timeout).
+        var options = new ParallelOptions { MaxDegreeOfParallelism = 3 };
+        await Parallel.ForEachAsync(chosen.Where(_ => !_.IsWorld && !_.IsContinent), options, async (region, _) => await Build(region));
+        await Parallel.ForEachAsync(chosen.Where(_ => _.IsContinent), options, async (region, _) => await Build(region));
+        foreach (var region in chosen.Where(_ => _.IsWorld))
+        {
+            await Build(region);
+        }
+
+        if (!failures.IsEmpty)
+        {
+            Console.WriteLine($"Skipped {failures.Count} region(s) after retries: {string.Join(", ", failures.OrderBy(_ => _))}");
+        }
+
+        if (writeIndex)
+        {
+            WriteBundlesIndex([.. bundles]);
         }
     }
 
     /// <summary>Filters and writes a region's FlatGeobuf layers (plus meta.json) into a staging folder.</summary>
-    static async Task<string> BuildRegion(Region region, Context context, string stagingRoot)
+    static async Task<(string Directory, Dictionary<MapLayer, int> Counts)> BuildRegion(Region region, Context context, string stagingRoot)
     {
         var directory = Path.Combine(stagingRoot, region.Key);
         if (Directory.Exists(directory))
@@ -102,7 +150,7 @@ public static class PackageBuilder
         Write(directory, MapLayer.Coastline, context.OsmData.Coastline(bounds), counts);
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, counts));
-        return directory;
+        return (directory, counts);
     }
 
     /// <summary>Reads, filters, simplifies and trims a single Geofabrik extract into the cities/rivers/lakes layers.</summary>
@@ -130,21 +178,21 @@ public static class PackageBuilder
                 .Select(_ => Trim(_, "osm_id", "name", "fclass", "population"))
         ];
 
-        // Major waterways (rivers only — not streams/canals/drains).
+        // Major waterways: named rivers only (not streams/canals/drains, nor unnamed minor segments).
         layers[MapLayer.Rivers] =
         [
             .. Layer(root, Geofabrik.WaterwaysLayer)
-                .Where(_ => Fclass(_) is "river")
+                .Where(_ => Fclass(_) is "river" && Named(_))
                 .Select(_ => Simplify(_, WaterwayTolerance))
                 .OfType<Feature>()
                 .Select(_ => Trim(_, "osm_id", "name", "fclass"))
         ];
 
-        // Lakes and reservoirs.
+        // Major lakes and reservoirs: named water bodies (OSM has millions of unnamed ponds/basins).
         layers[MapLayer.Lakes] =
         [
             .. Layer(root, Geofabrik.WaterLayer)
-                .Where(_ => Fclass(_) is "water" or "reservoir")
+                .Where(_ => Fclass(_) is "water" or "reservoir" && Named(_))
                 .Select(_ => Simplify(_, LakeTolerance))
                 .OfType<Feature>()
                 .Select(_ => Trim(_, "osm_id", "name", "fclass"))
@@ -175,6 +223,9 @@ public static class PackageBuilder
 
     static string Fclass(Feature feature) =>
         Props.Text(feature, "fclass");
+
+    static bool Named(Feature feature) =>
+        Props.Text(feature, "name").Length > 0;
 
     static Feature Trim(Feature feature, params string[] keep)
     {
@@ -273,6 +324,40 @@ public static class PackageBuilder
         """;
     }
 
+    /// <summary>Writes the <c>src/bundles.include.md</c> table listing every built package (for the readme).</summary>
+    static void WriteBundlesIndex(IReadOnlyList<Bundle> bundles)
+    {
+        var rows = bundles
+            .OrderBy(_ => _.Region.IsWorld ? 0 : _.Region.IsContinent ? 1 : 2)
+            .ThenBy(_ => _.Region.Name, StringComparer.Ordinal)
+            .Select(Row);
+
+        var content =
+            "| Bundle | Type | NuGet | Data | Layers | Features |\n" +
+            "| --- | --- | --: | --: | --: | --: |\n" +
+            string.Join("\n", rows) + "\n";
+
+        var path = Path.Combine(Root, "src", "bundles.include.md");
+        File.WriteAllText(path, content);
+        Console.WriteLine($"Wrote {path} ({bundles.Count} bundles).");
+    }
+
+    static string Row(Bundle bundle)
+    {
+        var id = bundle.Region.PackageId;
+        var type = bundle.Region.IsWorld ? "World" : bundle.Region.IsContinent ? "Continent" : "Country";
+        var nuget = Size(new FileInfo(bundle.Package).Length);
+        var data = Size(Directory.GetFiles(bundle.Staging, "*.fgb").Sum(_ => new FileInfo(_).Length));
+        var layers = string.Join(" ", bundle.Counts.Keys.OrderBy(_ => _).Select(_ => _.ToString()));
+        var features = bundle.Counts.Values.Sum();
+        return $"| [{id}](https://www.nuget.org/packages/{id}) | {type} | {nuget} | {data} | {layers} | {features:N0} |";
+    }
+
+    static string Size(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024:F1} MB" :
+        bytes >= 1024 ? $"{bytes / 1024d:F0} KB" :
+        $"{bytes} B";
+
     static string FindRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -289,10 +374,13 @@ public static class PackageBuilder
         throw new MapBundleException("Could not locate the repository root (no global.json above the test binary).");
     }
 
+    /// <summary>A built package: its region, the written <c>.nupkg</c> path, its staging folder and layer feature counts.</summary>
+    sealed record Bundle(Region Region, string Package, string Staging, Dictionary<MapLayer, int> Counts);
+
     /// <summary>Shared state for a build: the loaded sources plus a per-extract Geofabrik layer cache.</summary>
     sealed class Context(HttpCache httpCache, IReadOnlyList<Region> regions, CountryLevels countryLevels, OsmData osmData)
     {
-        readonly Dictionary<string, Dictionary<MapLayer, List<Feature>>> geofabrik = new(StringComparer.Ordinal);
+        readonly ConcurrentDictionary<string, Dictionary<MapLayer, List<Feature>>> geofabrik = new(StringComparer.Ordinal);
 
         public CountryLevels CountryLevels => countryLevels;
         public OsmData OsmData => osmData;

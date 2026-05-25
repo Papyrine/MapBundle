@@ -9,10 +9,11 @@ namespace MapBundle.Builder;
 /// </summary>
 public sealed class CountryLevels
 {
-    // Pinned to v2.2.0. "high" is the most detailed tier; "low"/"medium" over-simplify small countries
-    // (e.g. Monaco collapses to a triangle). It's a one-time ~49 MB download (cached), and only a single
-    // country polygon ends up in each package, so the per-package size cost is negligible.
-    const string Url = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_high.tgz";
+    // Borders are the headline layer (one polygon per country), so take them from the detailed "high" tier
+    // — "low"/"medium" collapse small countries like Monaco to a triangle. Subdivisions are far more
+    // numerous (~9k worldwide), so take them from "medium" to keep package sizes reasonable. Pinned v2.2.0.
+    const string BordersUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_high.tgz";
+    const string SubdivisionsUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_medium.tgz";
 
     readonly Dictionary<string, Feature> borders;
     readonly Dictionary<string, List<Feature>> subdivisions;
@@ -33,33 +34,35 @@ public sealed class CountryLevels
 
     public static async Task<CountryLevels> Download(HttpCache httpCache, string directory)
     {
-        var root = await Archives.TarGz(httpCache, Url, directory);
+        var high = await Archives.TarGz(httpCache, BordersUrl, directory);
+        var medium = await Archives.TarGz(httpCache, SubdivisionsUrl, directory);
 
-        var borders = Read(Directory.EnumerateDirectories(root, "iso1", SearchOption.AllDirectories).Single())
+        var borders = Read(Folder(high, "iso1"))
             .ToDictionary(_ => Country(_.Key), _ => _.Feature);
 
-        var subdivisions = Read(Directory.EnumerateDirectories(root, "iso2", SearchOption.AllDirectories).Single())
+        var subdivisions = Read(Folder(medium, "iso2"))
             .GroupBy(_ => Country(_.Key))
             .ToDictionary(_ => _.Key, _ => _.Select(item => item.Feature).ToList());
 
         return new(borders, subdivisions);
     }
 
+    static string Folder(string root, string name) =>
+        Directory.EnumerateDirectories(root, name, SearchOption.AllDirectories).Single();
+
     // The leading ISO 3166-1 code: "MC" -> "MC", "US-CA" -> "US".
     static string Country(string code) =>
         code.Split('-')[0].ToUpperInvariant();
 
-    static IEnumerable<(string Key, Feature Feature)> Read(string directory)
-    {
-        foreach (var path in Directory.EnumerateFiles(directory, "*.geojson"))
-        {
-            var feature = ReadFeature(path);
-            if (feature is not null)
-            {
-                yield return (Path.GetFileNameWithoutExtension(path), feature);
-            }
-        }
-    }
+    // Thousands of files, so read them in parallel (each parse is independent and CPU-bound).
+    static List<(string Key, Feature Feature)> Read(string directory) =>
+    [
+        .. Directory.EnumerateFiles(directory, "*.geojson")
+            .AsParallel()
+            .Select(path => (Key: Path.GetFileNameWithoutExtension(path), Feature: ReadFeature(path)))
+            .Where(_ => _.Feature is not null)
+            .Select(_ => (_.Key, _.Feature!))
+    ];
 
     // country-levels Features carry a huge "osm_data" blob (and nested objects GeoConvert won't model).
     // Re-emit a minimal Feature with just the geometry and the handful of attributes we keep, then parse.
