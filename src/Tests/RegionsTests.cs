@@ -87,17 +87,42 @@ public class RegionsTests
 
     [Test]
     public async Task Country_is_its_own_member() =>
-        await Assert.That(MemberIds("monaco")).IsEquivalentTo((string[]) ["monaco"]);
+        await Assert.That(MemberIds("monaco")).IsEquivalentTo(["monaco"]);
 
     [Test]
     public async Task Continent_merges_its_countries() =>
-        await Assert.That(MemberIds("europe")).IsEquivalentTo((string[]) ["germany", "monaco"]);
+        await Assert.That(MemberIds("europe")).IsEquivalentTo(["germany", "monaco"]);
 
     [Test]
     public async Task Childless_continent_is_its_own_member() =>
-        await Assert.That(MemberIds("russia")).IsEquivalentTo((string[]) ["russia"]);
+        await Assert.That(MemberIds("russia")).IsEquivalentTo(["russia"]);
+
+    [Test]
+    public async Task Continent_with_own_iso_and_children_includes_itself()
+    {
+        // Russia is a continent (parent=null) with its own ISO ("RU") AND child federal districts that
+        // carry no ISO of their own. Members must include Russia itself, otherwise "RU" drops out of the
+        // iso set, no border is found, the bbox is empty and every layer comes back zero.
+        GeofabrikEntry[] index =
+        [
+            new("russia", null, "Russia", ["RU"], "shp"),
+            new("russia/central-fed-district", "russia", "Central Federal District", [], "shp"),
+            new("russia/siberian-fed-district", "russia", "Siberian Federal District", [], "shp"),
+        ];
+        var regions = Regions.Build(index);
+        var russia = regions.Single(_ => _.Id == "russia");
+        var members = Regions.Members(russia, regions);
+        var memberIds = members.Select(_ => _.Id).OrderBy(_ => _).ToList();
+        var iso = members.SelectMany(_ => _.Iso).ToList();
+        await Assert.That(memberIds)
+            .IsEquivalentTo(
+        [
+            "russia", "russia/central-fed-district", "russia/siberian-fed-district",
+        ]);
+        await Assert.That(iso).Contains("RU");
+    }
 
     [Test]
     public async Task World_merges_every_extract() =>
-        await Assert.That(MemberIds("world")).IsEquivalentTo((string[]) ["germany", "monaco", "russia"]);
+        await Assert.That(MemberIds("world")).IsEquivalentTo(["germany", "monaco", "russia"]);
 }

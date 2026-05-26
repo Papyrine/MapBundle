@@ -15,6 +15,7 @@
 | [MapBundle.CentralAmerica](https://www.nuget.org/packages/MapBundle.CentralAmerica) | 2.5 MB | 4.1 MB | Borders Cities Rivers Lakes Coastline Land Ocean | 4,561 |
 | [MapBundle.Europe](https://www.nuget.org/packages/MapBundle.Europe) | 29.5 MB | 43.1 MB | Borders Cities Rivers Lakes Coastline Land Ocean | 60,057 |
 | [MapBundle.NorthAmerica](https://www.nuget.org/packages/MapBundle.NorthAmerica) | 27.0 MB | 36.4 MB | Borders Cities Rivers Lakes Coastline Land Ocean | 53,815 |
+| [MapBundle.Russia](https://www.nuget.org/packages/MapBundle.Russia) | 45.3 MB | 60.5 MB | Borders Cities Rivers Lakes Coastline Land Ocean | 94,181 |
 | [MapBundle.SouthAmerica](https://www.nuget.org/packages/MapBundle.SouthAmerica) | 6.6 MB | 11.8 MB | Borders Cities Rivers Lakes Coastline Land Ocean | 10,388 |
 
 ## Sub-continents
@@ -49,7 +50,7 @@
 | [MapBundle.Botswana](https://www.nuget.org/packages/MapBundle.Botswana) | 58 KB | 117 KB | Borders Cities Rivers Lakes Land | 44 |
 | [MapBundle.Bulgaria](https://www.nuget.org/packages/MapBundle.Bulgaria) | 63 KB | 99 KB | Borders Cities Rivers Coastline Land Ocean | 32 |
 | [MapBundle.BurkinaFaso](https://www.nuget.org/packages/MapBundle.BurkinaFaso) | 53 KB | 106 KB | Borders Cities Rivers Land | 42 |
-| [MapBundle.Burundi](https://www.nuget.org/packages/MapBundle.Burundi) | 36 KB | 55 KB | Borders Cities Rivers Lakes Land | 22 |
+| [MapBundle.Burundi](https://www.nuget.org/packages/MapBundle.Burundi) | 35 KB | 55 KB | Borders Cities Rivers Lakes Land | 22 |
 | [MapBundle.Cambodia](https://www.nuget.org/packages/MapBundle.Cambodia) | 109 KB | 185 KB | Borders Cities Rivers Lakes Coastline Land Ocean | 154 |
 | [MapBundle.Cameroon](https://www.nuget.org/packages/MapBundle.Cameroon) | 106 KB | 224 KB | Borders Cities Rivers Lakes Coastline Land Ocean | 77 |
 | [MapBundle.CapeVerde](https://www.nuget.org/packages/MapBundle.CapeVerde) | 59 KB | 73 KB | Borders Cities Coastline Land Ocean | 39 |

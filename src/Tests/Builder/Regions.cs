@@ -27,9 +27,12 @@ public static class Regions
     }
 
     /// <summary>
-    /// The Geofabrik extracts whose cities/rivers/lakes make up a region: World merges every extract, a
-    /// continent merges its countries (or is itself, if it has none), a country (or childless continent)
-    /// is itself.
+    /// The regions whose ISO codes describe a region (used to look up borders, states and cities).
+    /// World merges every extract. A continent with child entries merges those children — plus the
+    /// continent itself when it is also a country (Russia has its own ISO "RU" alongside child federal
+    /// districts that carry no ISO of their own; without including Russia in its own members, RU would
+    /// drop out of the iso set and Russia would come back with no borders, bounds or layers). A country
+    /// or a childless continent is its own sole member.
     /// </summary>
     public static IReadOnlyList<Region> Members(Region region, IReadOnlyList<Region> regions)
     {
@@ -45,7 +48,8 @@ public static class Regions
 
         if (region.IsContinent && parents.Contains(region.Id))
         {
-            return [.. regions.Where(_ => _.Parent == region.Id && IsExtract(_, parents))];
+            var children = regions.Where(_ => _.Parent == region.Id && IsExtract(_, parents));
+            return region.Iso.Length > 0 ? [region, .. children] : [.. children];
         }
 
         return IsExtract(region, parents) ? [region] : [];
