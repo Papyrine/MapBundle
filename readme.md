@@ -27,7 +27,9 @@ build time; the `MapBundle` core reads them from there.
 
 ## Usage
 
-```csharp
+<!-- snippet: usage -->
+<a id='snippet-usage'></a>
+```cs
 var map = Maps.Open().Load("Monaco");
 
 var borders = map.Borders;        // country polygons
@@ -36,6 +38,8 @@ var states = map.StatesProvinces; // admin-1 polygons
 var rivers = map.Rivers;          // rivers
 // also: map.Lakes, map.Coastline, map.Land, map.Ocean
 ```
+<sup><a href='/src/Tests/Snippets.cs#L7-L15' title='Snippet source file'>snippet source</a> | <a href='#snippet-usage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coordinates are WGS84
 longitude/latitude).

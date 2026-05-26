@@ -3,7 +3,7 @@ namespace MapBundle;
 /// <summary>The set of region maps available in a directory.</summary>
 public sealed class MapCatalog
 {
-    readonly string root;
+    string root;
 
     /// <summary>Creates a catalog over <paramref name="root"/> (one subdirectory per installed region).</summary>
     public MapCatalog(string root) =>
@@ -30,12 +30,11 @@ public sealed class MapCatalog
     public Map Load(string region)
     {
         var directory = Path.Combine(root, region);
-        if (!System.IO.Directory.Exists(directory))
+        if (System.IO.Directory.Exists(directory))
         {
-            throw new MapBundleException(
-                $"No map data for region '{region}' in '{root}'. Add the MapBundle.{region} (or MapBundle.World) package.");
+            return new(region, directory);
         }
 
-        return new(region, directory);
+        throw new MapBundleException($"No map data for region '{region}' in '{root}'. Add the MapBundle.{region} (or MapBundle.World) package.");
     }
 }
