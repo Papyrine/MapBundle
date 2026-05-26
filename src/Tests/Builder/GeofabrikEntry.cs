@@ -1,0 +1,2 @@
+﻿/// <summary>One entry from Geofabrik's download index: a region, its parent, ISO codes and shapefile URL.</summary>
+public sealed record GeofabrikEntry(string Id, string? Parent, string Name, string[] Iso2, string? ShpUrl);

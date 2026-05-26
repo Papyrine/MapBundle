@@ -104,7 +104,8 @@ public class RegionsTests
     {
         // Russia is a continent (parent=null) with its own ISO ("RU") AND child federal districts that
         // carry no ISO of their own. Members must include Russia itself, otherwise "RU" drops out of the
-        // iso set, no border is found, the bbox is empty and every layer comes back zero.
+        // iso set, no border is found, the bbox is empty and every layer comes back zero. The iso-less
+        // federal districts contribute no codes to any layer, so they are not Members.
         GeofabrikEntry[] index =
         [
             new("russia", null, "Russia", ["RU"], "shp"),
@@ -114,14 +115,35 @@ public class RegionsTests
         var regions = Regions.Build(index);
         var russia = regions.Single(_ => _.Id == "russia");
         var members = Regions.Members(russia, regions);
-        var memberIds = members.Select(_ => _.Id).OrderBy(_ => _).ToList();
-        var iso = members.SelectMany(_ => _.Iso).ToList();
-        await Assert.That(memberIds)
-            .IsEquivalentTo(
+        await Assert.That(members.Select(_ => _.Id)).IsEquivalentTo(["russia"]);
+        await Assert.That(members.SelectMany(_ => _.Iso)).Contains("RU");
+    }
+
+    [Test]
+    public async Task Country_without_shp_url_is_still_a_member()
+    {
+        // Regression for the missing-big-countries bug: Geofabrik's index does NOT ship per-region shp
+        // extracts for large countries (US, Canada, Brazil, France, Germany, Italy, Japan, Poland, UK,
+        // Russia). The earlier code filtered Members by ShpUrl, which silently dropped every one of
+        // those from their continent's iso set — World/borders.fgb came back with 180 countries instead
+        // of ~190 and North America/borders.fgb held only Mexico, Greenland, PR and VI.
+        GeofabrikEntry[] index =
         [
-            "russia", "russia/central-fed-district", "russia/siberian-fed-district",
-        ]);
-        await Assert.That(iso).Contains("RU");
+            new("north-america", null, "North America", [], null),
+            new("us", "north-america", "United States", ["US"], ShpUrl: null),
+            new("canada", "north-america", "Canada", ["CA"], ShpUrl: null),
+            new("mexico", "north-america", "Mexico", ["MX"], "https://..."),
+        ];
+        var regions = Regions.Build(index);
+        var northAmerica = regions.Single(_ => _.Id == "north-america");
+        var members = Regions.Members(northAmerica, regions);
+        await Assert.That(members.Select(_ => _.Id)).IsEquivalentTo(["us", "canada", "mexico"]);
+        await Assert.That(members.SelectMany(_ => _.Iso).OrderBy(_ => _))
+            .IsEquivalentTo(["CA", "MX", "US"]);
+
+        var worldMembers = Regions.Members(Regions.World, regions);
+        await Assert.That(worldMembers.SelectMany(_ => _.Iso).OrderBy(_ => _))
+            .IsEquivalentTo(["CA", "MX", "US"]);
     }
 
     [Test]

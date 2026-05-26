@@ -13,8 +13,8 @@ public sealed class CountryLevels
     const string bordersUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_high.tgz";
     const string subdivisionsUrl = "https://github.com/hyperknot/country-levels/releases/download/v2.2.0/export_medium.tgz";
 
-    readonly Dictionary<string, Feature> borders;
-    readonly Dictionary<string, List<Feature>> subdivisions;
+    Dictionary<string, Feature> borders;
+    Dictionary<string, List<Feature>> subdivisions;
 
     CountryLevels(Dictionary<string, Feature> borders, Dictionary<string, List<Feature>> subdivisions)
     {
@@ -40,7 +40,7 @@ public sealed class CountryLevels
 
         var subdivisions = Read(Folder(medium, "iso2"))
             .GroupBy(_ => Country(_.Key))
-            .ToDictionary(_ => _.Key, _ => _.Select(item => item.Feature).ToList());
+            .ToDictionary(_ => _.Key, _ => _.Select(_ => _.Feature).ToList());
 
         return new(borders, subdivisions);
     }

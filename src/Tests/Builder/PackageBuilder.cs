@@ -20,18 +20,20 @@ public class PackageBuilder
     static string[] SliceIds()
     {
         var value = Environment.GetEnvironmentVariable("MAPBUNDLE_SLICE");
-        return string.IsNullOrWhiteSpace(value)
-            ? ["monaco"]
-            : [.. value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return ["monaco"];
+        }
+
+        return [.. value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
     }
 
     const string version = "0.1.0";
     const string projectUrl = "https://github.com/SimonCropp/MapBundle";
     const string tags = "map maps geo geospatial openstreetmap osm flatgeobuf borders cities rivers offline";
 
-    public const string Attribution =
-        "© OpenStreetMap contributors, ODbL (boundaries via country-levels, land/ocean via " +
-        "osmdata.openstreetmap.de); cities, rivers and lakes made with Natural Earth (public domain).";
+    const string attribution =
+        "© OpenStreetMap contributors, ODbL (boundaries via country-levels, land/ocean via osmdata.openstreetmap.de); cities, rivers and lakes made with Natural Earth (public domain).";
 
     static readonly string root = FindRoot();
     static string OutputDirectory => Path.Combine(root, "nugets");
@@ -249,7 +251,7 @@ public class PackageBuilder
           "region": "{{region.Key}}",
           "name": "{{region.Name}}",
           "source": "OpenStreetMap",
-          "attribution": "{{Attribution}}",
+          "attribution": "{{attribution}}",
           "layers": {
         {{layers}}
           }

@@ -28,35 +28,27 @@ public static class Regions
 
     /// <summary>
     /// The regions whose ISO codes describe a region (used to look up borders, states and cities).
-    /// World merges every extract. A continent with child entries merges those children — plus the
-    /// continent itself when it is also a country (Russia has its own ISO "RU" alongside child federal
-    /// districts that carry no ISO of their own; without including Russia in its own members, RU would
-    /// drop out of the iso set and Russia would come back with no borders, bounds or layers). A country
-    /// or a childless continent is its own sole member.
+    /// World merges every region with ISO codes. A continent merges its ISO-carrying children — plus
+    /// the continent itself when it is also a country (Russia has its own ISO "RU" alongside child
+    /// federal districts that carry no ISO of their own; without including Russia in its own members,
+    /// RU would drop out of the iso set and Russia would come back with no borders, bounds or layers).
+    /// A country (or a continent that is just a country, like Antarctica) is its own sole member.
+    /// Iso-less children of a continent (US states under <c>north-america</c>, Russian federal districts
+    /// under <c>russia</c>) are filtered out: they carry no ISO so they contribute nothing to any layer.
     /// </summary>
     public static IReadOnlyList<Region> Members(Region region, IReadOnlyList<Region> regions)
     {
-        var parents = regions
-            .Select(_ => _.Parent)
-            .OfType<string>()
-            .ToHashSet();
-
         if (region.IsWorld)
         {
-            return [.. regions.Where(_ => IsExtract(_, parents))];
+            return [.. regions.Where(_ => _.Iso.Length > 0)];
         }
 
-        if (region.IsContinent && parents.Contains(region.Id))
+        if (region.IsContinent)
         {
-            var children = regions.Where(_ => _.Parent == region.Id && IsExtract(_, parents));
+            var children = regions.Where(_ => _.Parent == region.Id && _.Iso.Length > 0);
             return region.Iso.Length > 0 ? [region, .. children] : [.. children];
         }
 
-        return IsExtract(region, parents) ? [region] : [];
+        return region.Iso.Length > 0 ? [region] : [];
     }
-
-    // A region we actually download a Geofabrik extract for: a country, or a continent with no countries.
-    static bool IsExtract(Region region, HashSet<string> parents) =>
-        region.ShpUrl is not null &&
-        (region.Parent is not null || (region.IsContinent && !parents.Contains(region.Id)));
 }
