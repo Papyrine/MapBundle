@@ -20,11 +20,17 @@ public class RegionsTests
         var builder = new StringBuilder();
         foreach (var region in regions)
         {
-            builder.AppendLine(region.Key);
-            builder.AppendLine($"  id: {region.Id}");
-            builder.AppendLine($"  parent: {region.Parent ?? "(none)"}");
-            builder.AppendLine($"  iso: {(region.Iso.Length == 0 ? "(none)" : string.Join(", ", region.Iso))}");
-            builder.AppendLine($"  shp: {(region.ShpUrl is null ? "no" : "yes")}");
+            var iso = region.Iso.Length == 0 ? "(none)" : string.Join(", ", region.Iso);
+            var shp = region.ShpUrl is null ? "no" : "yes";
+            builder.Append(
+                $"""
+                {region.Key}
+                  id: {region.Id}
+                  parent: {region.Parent ?? "(none)"}
+                  iso: {iso}
+                  shp: {shp}
+
+                """);
         }
 
         return builder.ToString();
@@ -56,19 +62,15 @@ public class RegionsTests
     }
 
     [Test]
-    public async Task Country_and_sub_continent_are_distinguished_by_iso()
+    public async Task Country_requires_iso_codes_under_a_continent()
     {
         var monaco = new Region("monaco", "europe", "Monaco", ["MC"], null);
         var alps = new Region("alps", "europe", "Alps", [], null);
         var europe = new Region("europe", null, "Europe", [], null);
         await Assert.That(monaco.IsCountry).IsTrue();
-        await Assert.That(monaco.IsSubContinent).IsFalse();
-        await Assert.That(alps.IsSubContinent).IsTrue();
         await Assert.That(alps.IsCountry).IsFalse();
         await Assert.That(europe.IsCountry).IsFalse();
-        await Assert.That(europe.IsSubContinent).IsFalse();
         await Assert.That(Regions.World.IsCountry).IsFalse();
-        await Assert.That(Regions.World.IsSubContinent).IsFalse();
     }
 
     [Test]

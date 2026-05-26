@@ -80,9 +80,9 @@ public class PackageBuilder
                 try
                 {
                     var (directory, counts) = BuildRegion(region, context, staging);
-                    // Don't ship empty stubs: a region with no layer data (typically a sub-continent grouping
-                    // with no ISO codes — Alps, GccStates, Russian federal districts…) has nothing useful to
-                    // package. Skip it; it won't appear in nugets/ or in the bundles index.
+                    // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
+                    // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
+                    // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
                     if (counts.Count == 0)
                     {
                         Console.WriteLine($"  skipped {region.Id} (no layer data)");
@@ -247,9 +247,9 @@ public class PackageBuilder
     }
 
     /// <summary>
-    /// Writes <c>src/bundles.include.md</c> as one table per region kind — World, Continents,
-    /// Sub-continents, Countries — each ordered alphabetically by name. The kind is now implicit in the
-    /// section heading, so the row has no Type column.
+    /// Writes <c>src/bundles.include.md</c> as one table per region kind — World, Continents, Countries —
+    /// each ordered alphabetically by name. The kind is implicit in the section heading, so the row has
+    /// no Type column. Empty sections are skipped.
     /// </summary>
     static void WriteBundlesIndex(IReadOnlyList<Bundle> bundles)
     {
@@ -257,18 +257,29 @@ public class PackageBuilder
         [
             ("World", _ => _.Region.IsWorld),
             ("Continents", _ => _.Region.IsContinent),
-            ("Sub-continents", _ => _.Region.IsSubContinent),
             ("Countries", _ => _.Region.IsCountry),
         ];
 
         var builder = new StringBuilder();
+        builder.AppendLine("Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰️ Rivers · 💧 Lakes · 🏖️ Coastline · 🟩 Land · 🌊 Ocean");
+        builder.AppendLine();
         foreach (var (heading, match) in sections)
         {
-            builder.AppendLine($"## {heading}");
-            builder.AppendLine();
-            builder.AppendLine("| Bundle | NuGet | Data | Layers | Features |");
-            builder.AppendLine("| --- | --: | --: | --: | --: |");
-            foreach (var bundle in bundles.Where(match).OrderBy(_ => _.Region.Name, StringComparer.Ordinal))
+            var rows = bundles.Where(match).OrderBy(_ => _.Region.Name, StringComparer.Ordinal).ToList();
+            if (rows.Count == 0)
+            {
+                continue;
+            }
+
+            builder.Append(
+                $"""
+                ## {heading}
+
+                | Bundle | NuGet | Data | Layers | Features |
+                | --- | --: | --: | --: | --: |
+
+                """);
+            foreach (var bundle in rows)
             {
                 builder.AppendLine(Row(bundle));
             }
@@ -286,10 +297,24 @@ public class PackageBuilder
         var id = bundle.Region.PackageId;
         var nuget = Size(new FileInfo(bundle.Package).Length);
         var data = Size(Directory.GetFiles(bundle.Staging, "*.fgb").Sum(_ => new FileInfo(_).Length));
-        var layers = string.Join(" ", bundle.Counts.Keys.OrderBy(_ => _).Select(_ => _.ToString()));
+        var layers = string.Join(" ", bundle.Counts.Keys.OrderBy(_ => _).Select(LayerIcon));
         var features = bundle.Counts.Values.Sum();
         return $"| [{id}](https://www.nuget.org/packages/{id}) | {nuget} | {data} | {layers} | {features:N0} |";
     }
+
+    static string LayerIcon(MapLayer layer) =>
+        layer switch
+        {
+            MapLayer.Borders => "🗺️",
+            MapLayer.StatesProvinces => "🏛️",
+            MapLayer.Cities => "🏙️",
+            MapLayer.Rivers => "〰️",
+            MapLayer.Lakes => "💧",
+            MapLayer.Coastline => "🏖️",
+            MapLayer.Land => "🟩",
+            MapLayer.Ocean => "🌊",
+            _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
+        };
 
     static string Size(long bytes) =>
         bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024:F1} MB" :
