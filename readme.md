@@ -6,6 +6,7 @@ Bundled, offline map data for .NET apps — borders, cities, waterways and base 
 [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/); the cities, rivers and lakes
 layers come from [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 
+
 ## Packages
 
 | Package | Contents |
@@ -23,6 +24,7 @@ dotnet add package MapBundle.Monaco
 A data package copies its FlatGeobuf files into a `maps/<Region>` folder beside the application at
 build time; the `MapBundle` core reads them from there.
 
+
 ## Usage
 
 ```csharp
@@ -38,6 +40,7 @@ var rivers = map.Rivers;          // rivers
 Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coordinates are WGS84
 longitude/latitude).
 
+
 ## Layers
 
 The `MapLayer` enum (a layer is omitted from a package when the source has nothing for that region):
@@ -52,6 +55,7 @@ The `MapLayer` enum (a layer is omitted from a package when the source has nothi
 
 Roads, railways, buildings, land use and terrain are intentionally excluded.
 
+
 ## Data sources
 
 - **Borders** and **StatesProvinces** come from
@@ -65,11 +69,13 @@ Roads, railways, buildings, land use and terrain are intentionally excluded.
   [osmdata.openstreetmap.de](https://osmdata.openstreetmap.de/); **Coastline** is derived from the land
   polygons.
 
+
 ## Regions
 
 The region tree follows [Geofabrik's download index](https://download.geofabrik.de/index-v1.json):
 the continents and their countries. `MapBundle.World` merges every continent. Sub-country levels (US
 states, German Bundesländer) are not published. See `src/Tests/Builder/Regions.cs`.
+
 
 ## Building the data packages
 
@@ -90,6 +96,7 @@ MAPBUNDLE_SLICE=monaco src/Tests/bin/Debug/net10.0/Tests --treenode-filter "/*/*
 Geometry simplification and EPSG:3857→4326 reprojection use
 [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite), a **build-only** dependency;
 the shipped `MapBundle` core depends only on GeoConvert.
+
 
 ## License
 
