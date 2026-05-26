@@ -152,12 +152,18 @@ public class PackageBuilder
         var members = context.Members(region);
         var iso = members.SelectMany(_ => _.Iso).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        // Run polygon layers through Geo.MakeValid: country-levels' simplification leaves
+        // self-intersecting rings on heavily-indented coastlines (Greenland, the Canadian arctic, …)
+        // that triangulating GPU renderers (Mapbox-GL / MapLibre-GL via earcut, behind tools like
+        // geojson.io) can't fill, producing fan-shaped artifacts across each invalid country.
         var borders = iso
             .Select(context.CountryLevels.Border)
             .OfType<Feature>()
+            .Select(Repair)
             .ToList();
         var states = iso
             .SelectMany(context.CountryLevels.Subdivisions)
+            .Select(Repair)
             .ToList();
         var bounds = new FeatureCollection(borders).GetBounds();
 
@@ -169,12 +175,24 @@ public class PackageBuilder
         Write(directory, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), counts);
         Write(directory, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds), counts);
 
-        Write(directory, MapLayer.Land, context.OsmData.Land(bounds), counts);
-        Write(directory, MapLayer.Ocean, context.OsmData.Ocean(bounds), counts);
+        Write(directory, MapLayer.Land, context.OsmData.Land(bounds).Select(Repair).ToList(), counts);
+        Write(directory, MapLayer.Ocean, context.OsmData.Ocean(bounds).Select(Repair).ToList(), counts);
         Write(directory, MapLayer.Coastline, context.OsmData.Coastline(bounds), counts);
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, counts));
         return (directory, counts);
+    }
+
+    // Returns a feature with its geometry repaired in-place if it was self-intersecting; otherwise the
+    // input. Features with no geometry pass through unchanged.
+    static Feature Repair(Feature feature)
+    {
+        if (feature.Geometry is { } geometry)
+        {
+            feature.Geometry = Geo.MakeValid(geometry);
+        }
+
+        return feature;
     }
 
     static void Write(string directory, MapLayer layer, IReadOnlyList<Feature> features, Dictionary<MapLayer, int> counts)
