@@ -43,14 +43,13 @@ static class Geo
         };
 
     /// <summary>
-    /// Repairs a geometry for web rendering: fixes self-intersecting rings via the buffer-zero idiom and
-    /// orients every polygon to GeoJSON RFC 7946's right-hand rule (exterior CCW, holes CW). country-
-    /// levels' simplification introduces self-intersections in heavily-indented coastlines (Greenland,
-    /// the Canadian arctic, …) AND ships rings in OGC/Shapefile winding (CW exterior); both are accepted
-    /// by GDAL and matplotlib but Mapbox-GL / MapLibre-GL (geojson.io, etc.) interpret a CW exterior as
-    /// "the world minus this shape", triangulating an inside-out polygon and drawing fan-shaped
-    /// artifacts across each part. An irrecoverable geometry is returned unchanged (still wrong-winded,
-    /// but at least the integration build doesn't crash).
+    /// Repairs a geometry for web rendering by fixing self-intersecting rings via the buffer-zero idiom.
+    /// country-levels' Douglas-Peucker simplification introduces self-intersections in heavily-indented
+    /// coastlines (Greenland, the Canadian arctic, …); the bytes parse fine through strict FlatBuffers
+    /// verifiers but triangulating GPU renderers (Mapbox-GL / MapLibre-GL via earcut) draw fan-shaped
+    /// artifacts across each invalid part. Returns the input unchanged when it is already valid or when
+    /// NTS rejects the geometry. Ring winding (CCW exterior / CW holes per GeoJSON RFC 7946) is no
+    /// longer enforced here — that lives in GeoConvert's FlatGeobuf writer now.
     /// </summary>
     public static Geometry MakeValid(Geometry geometry)
     {
@@ -64,41 +63,20 @@ static class Geo
             return geometry;
         }
 
-        if (!nts.IsValid)
+        if (nts.IsValid)
         {
-            try
-            {
-                var repaired = nts.Buffer(0);
-                if (!repaired.IsEmpty)
-                {
-                    nts = repaired;
-                }
-            }
-            catch (Exception exception) when (exception is Nts.TopologyException or ArgumentException)
-            {
-                // leave nts as the original; orientation still applies below
-            }
+            return geometry;
         }
 
-        return ToGeo(Orient(nts));
-    }
-
-    static Nts.Geometry Orient(Nts.Geometry geometry) =>
-        geometry switch
+        try
         {
-            Nts.Polygon polygon => OrientPolygon(polygon),
-            Nts.MultiPolygon multi => factory.CreateMultiPolygon([.. Parts(multi).Cast<Nts.Polygon>().Select(OrientPolygon)]),
-            Nts.GeometryCollection collection => factory.CreateGeometryCollection([.. Parts(collection).Select(Orient)]),
-            _ => geometry,
-        };
-
-    static Nts.Polygon OrientPolygon(Nts.Polygon polygon)
-    {
-        var shell = polygon.Shell.IsCCW ? polygon.Shell : (Nts.LinearRing) polygon.Shell.Reverse();
-        var holes = polygon.Holes
-            .Select(ring => ring.IsCCW ? (Nts.LinearRing) ring.Reverse() : ring)
-            .ToArray();
-        return factory.CreatePolygon(shell, holes);
+            var repaired = nts.Buffer(0);
+            return repaired.IsEmpty ? geometry : ToGeo(repaired);
+        }
+        catch (Exception exception) when (exception is Nts.TopologyException or ArgumentException)
+        {
+            return geometry;
+        }
     }
 
     /// <summary>

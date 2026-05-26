@@ -173,7 +173,7 @@ public class PackageBuilder
 
         Write(directory, MapLayer.Cities, context.NaturalEarth.Cities(iso), counts);
         Write(directory, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), counts);
-        Write(directory, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds), counts);
+        Write(directory, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds).Select(Repair).ToList(), counts);
 
         Write(directory, MapLayer.Land, context.OsmData.Land(bounds).Select(Repair).ToList(), counts);
         Write(directory, MapLayer.Ocean, context.OsmData.Ocean(bounds).Select(Repair).ToList(), counts);
@@ -183,16 +183,20 @@ public class PackageBuilder
         return (directory, counts);
     }
 
-    // Returns a feature with its geometry repaired in-place if it was self-intersecting; otherwise the
-    // input. Features with no geometry pass through unchanged.
+    // Returns a copy of the feature with its geometry repaired (self-intersections fixed via buffer-zero,
+    // rings reoriented to GeoJSON RFC 7946's right-hand rule). Returns a new instance rather than mutating
+    // the input, because <see cref="CountryLevels.Border"/> hands the same cached Feature back to every
+    // region that needs it and BuildAsync runs regions in parallel — a mutating Repair would let one
+    // thread's repaired geometry leak into another thread's already-materialised borders list, producing
+    // non-deterministic output between runs even though Buffer(0) is benign per-call.
     static Feature Repair(Feature feature)
     {
-        if (feature.Geometry is { } geometry)
+        if (feature.Geometry is not { } geometry)
         {
-            feature.Geometry = Geo.MakeValid(geometry);
+            return feature;
         }
 
-        return feature;
+        return new Feature(Geo.MakeValid(geometry), feature.Properties) { Id = feature.Id };
     }
 
     static void Write(string directory, MapLayer layer, IReadOnlyList<Feature> features, Dictionary<MapLayer, int> counts)

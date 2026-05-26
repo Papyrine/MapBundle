@@ -12,7 +12,9 @@ public sealed class OsmData
     readonly FeatureCollection land;
     readonly FeatureCollection ocean;
 
-    OsmData(FeatureCollection land, FeatureCollection ocean)
+    // internal so tests can construct an OsmData from synthetic FeatureCollections without
+    // hitting the network.
+    internal OsmData(FeatureCollection land, FeatureCollection ocean)
     {
         this.land = land;
         this.ocean = ocean;

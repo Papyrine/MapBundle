@@ -23,7 +23,9 @@ public sealed class NaturalEarth
     readonly FeatureCollection rivers;
     readonly FeatureCollection lakes;
 
-    NaturalEarth(FeatureCollection places, FeatureCollection rivers, FeatureCollection lakes)
+    // internal so tests can construct a NaturalEarth from synthetic FeatureCollections without
+    // hitting the network.
+    internal NaturalEarth(FeatureCollection places, FeatureCollection rivers, FeatureCollection lakes)
     {
         this.places = places;
         this.rivers = rivers;

@@ -52,14 +52,12 @@ public class GeoTests
     }
 
     [Test]
-    public async Task MakeValid_leaves_a_correctly_oriented_polygon_valid()
+    public async Task MakeValid_passes_a_valid_polygon_through()
     {
-        // A CCW square is GeoJSON RFC 7946 — MakeValid should leave it valid (and still CCW).
-        var input = new Polygon([[new(0, 0), new(1, 0), new(1, 1), new(0, 1), new(0, 0)]]);
+        var input = UnitSquare();
         var output = Geo.MakeValid(input);
-        var nts = (NetTopologySuite.Geometries.Polygon) Geo.ToNts(output);
-        await Assert.That(nts.IsValid).IsTrue();
-        await Assert.That(nts.Shell.IsCCW).IsTrue();
+        // Already valid → returned as-is (same instance), no needless allocation.
+        await Assert.That(ReferenceEquals(input, output)).IsTrue();
     }
 
     [Test]
@@ -70,31 +68,6 @@ public class GeoTests
         var bowtie = new Polygon([[new(0, 0), new(1, 1), new(1, 0), new(0, 1), new(0, 0)]]);
         var repaired = Geo.MakeValid(bowtie);
         await Assert.That(Geo.ToNts(repaired).IsValid).IsTrue();
-    }
-
-    [Test]
-    public async Task MakeValid_reorients_cw_exterior_to_ccw_for_geojson_rfc()
-    {
-        // country-levels ships rings in OGC/Shapefile winding (CW exterior). Mapbox-GL/MapLibre-GL
-        // (geojson.io) interprets a CW outer ring as a hole-in-the-world and triangulates an inside-out
-        // polygon — the fan artifacts. MakeValid must enforce GeoJSON RFC 7946's right-hand rule.
-        var cwSquare = new Polygon([[new(0, 0), new(0, 1), new(1, 1), new(1, 0), new(0, 0)]]);
-        var oriented = (Polygon) Geo.MakeValid(cwSquare);
-        var nts = (NetTopologySuite.Geometries.Polygon) Geo.ToNts(oriented);
-        await Assert.That(nts.Shell.IsCCW).IsTrue();
-    }
-
-    [Test]
-    public async Task MakeValid_orients_holes_clockwise()
-    {
-        // RFC 7946: holes are CW (negative signed area), opposite to the CCW exterior.
-        var cwOuter = new[] { new Position(0d, 0), new(0, 10), new(10, 10), new(10, 0), new(0, 0) };
-        var cwHole = new[] { new Position(2d, 2), new(2, 4), new(4, 4), new(4, 2), new(2, 2) };
-        var polygon = new Polygon([cwOuter, cwHole]);
-        var oriented = (Polygon) Geo.MakeValid(polygon);
-        var nts = (NetTopologySuite.Geometries.Polygon) Geo.ToNts(oriented);
-        await Assert.That(nts.Shell.IsCCW).IsTrue();
-        await Assert.That(nts.Holes[0].IsCCW).IsFalse();
     }
 
     [Test]

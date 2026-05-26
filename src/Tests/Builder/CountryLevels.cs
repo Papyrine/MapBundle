@@ -16,7 +16,9 @@ public sealed class CountryLevels
     Dictionary<string, Feature> borders;
     Dictionary<string, List<Feature>> subdivisions;
 
-    CountryLevels(Dictionary<string, Feature> borders, Dictionary<string, List<Feature>> subdivisions)
+    // internal so tests can construct a CountryLevels from synthetic dictionaries without
+    // hitting the network or unpacking the country-levels release.
+    internal CountryLevels(Dictionary<string, Feature> borders, Dictionary<string, List<Feature>> subdivisions)
     {
         this.borders = borders;
         this.subdivisions = subdivisions;
