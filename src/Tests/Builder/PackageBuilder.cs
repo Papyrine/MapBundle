@@ -80,6 +80,15 @@ public class PackageBuilder
                 try
                 {
                     var (directory, counts) = BuildRegion(region, context, staging);
+                    // Don't ship empty stubs: a region with no layer data (typically a sub-continent grouping
+                    // with no ISO codes — Alps, GccStates, Russian federal districts…) has nothing useful to
+                    // package. Skip it; it won't appear in nugets/ or in the bundles index.
+                    if (counts.Count == 0)
+                    {
+                        Console.WriteLine($"  skipped {region.Id} (no layer data)");
+                        return;
+                    }
+
                     var package = Pack(region, directory);
                     bundles.Add(new(region, package, directory, counts));
                     Console.WriteLine($"  {Path.GetFileName(package)}");

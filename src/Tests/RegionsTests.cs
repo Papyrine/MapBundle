@@ -2,7 +2,7 @@ public class RegionsTests
 {
     // A miniature Geofabrik index: a continent with countries, a sub-country level (excluded), and a
     // continent-sized leaf (Russia) with no children.
-    static readonly GeofabrikEntry[] SampleIndex =
+    static readonly GeofabrikEntry[] sampleIndex =
     [
         new("europe", null, "Europe", [], null),
         new("monaco", "europe", "Monaco", ["MC"], "https://download.geofabrik.de/europe/monaco-latest-free.shp.zip"),
@@ -13,7 +13,7 @@ public class RegionsTests
 
     [Test]
     public Task Region_table() =>
-        Verify(Describe(Regions.Build(SampleIndex)));
+        Verify(Describe(Regions.Build(sampleIndex)));
 
     static string Describe(IReadOnlyList<Region> regions)
     {
@@ -33,7 +33,7 @@ public class RegionsTests
     [Test]
     public async Task Includes_continents_and_countries_but_not_subcountry()
     {
-        var ids = Regions.Build(SampleIndex).Select(_ => _.Id).ToList();
+        var ids = Regions.Build(sampleIndex).Select(_ => _.Id).ToList();
         await Assert.That(ids).Contains("europe");
         await Assert.That(ids).Contains("monaco");
         await Assert.That(ids).Contains("russia");
@@ -43,7 +43,7 @@ public class RegionsTests
     [Test]
     public async Task World_is_synthetic_and_first()
     {
-        var regions = Regions.Build(SampleIndex);
+        var regions = Regions.Build(sampleIndex);
         await Assert.That(regions[0].IsWorld).IsTrue();
         await Assert.That(regions[0].Key).IsEqualTo("World");
     }
@@ -51,7 +51,7 @@ public class RegionsTests
     [Test]
     public async Task Continent_has_no_parent()
     {
-        var europe = Regions.Build(SampleIndex).Single(_ => _.Id == "europe");
+        var europe = Regions.Build(sampleIndex).Single(_ => _.Id == "europe");
         await Assert.That(europe.IsContinent).IsTrue();
     }
 
@@ -80,7 +80,7 @@ public class RegionsTests
 
     static IReadOnlyList<string> MemberIds(string id)
     {
-        var regions = Regions.Build(SampleIndex);
+        var regions = Regions.Build(sampleIndex);
         var region = id == "world" ? Regions.World : regions.Single(_ => _.Id == id);
         return Regions.Members(region, regions).Select(_ => _.Id).OrderBy(_ => _).ToList();
     }
