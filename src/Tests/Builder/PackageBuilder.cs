@@ -52,12 +52,23 @@ public class PackageBuilder
 
     static async Task BuildAsync(Func<Region, bool> selected, bool writeIndex)
     {
+        // Full builds (writeIndex==true) replace every region in one pass, so wipe nugets/ first to
+        // avoid stale packages from removed/renamed regions or earlier skipped-on-failure regions
+        // lingering. Slice builds touch only a subset, so leave the rest in place.
+        if (writeIndex && Directory.Exists(OutputDirectory))
+        {
+            Directory.Delete(OutputDirectory, recursive: true);
+        }
+
         Directory.CreateDirectory(OutputDirectory);
         var httpDirectory = Path.Combine(CacheDirectory, "http");
         Directory.CreateDirectory(httpDirectory);
         // The OSM servers throttle, and large country extracts over a shared connection can take a long
         // time, so give each request a generous timeout (well past HttpClient's 100s default).
-        var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+        using var httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(30)
+        };
         await using var httpCache = new HttpCache(httpDirectory, httpClient, maxRetries: 3);
 
         var regions = await Regions.Load(httpCache, Path.Combine(CacheDirectory, "geofabrik"));
