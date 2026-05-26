@@ -5,17 +5,13 @@ public sealed record GeofabrikEntry(string Id, string? Parent, string Name, stri
 
 /// <summary>
 /// Reads Geofabrik's machine-readable download index (<c>index-v1-nogeom.json</c>), which lists every
-/// downloadable region with its parent, ISO 3166-1 codes and per-region shapefile URL. The region tree
-/// (continents and countries) and the per-region OSM extracts are both driven from it.
+/// downloadable region with its parent and ISO 3166-1 codes. This drives the region tree (continents and
+/// countries); the per-region shapefile URL is retained on each entry but the bulk extracts are no longer
+/// downloaded (cities/rivers/lakes now come from the global Natural Earth layers — see <see cref="NaturalEarth"/>).
 /// </summary>
 public static class Geofabrik
 {
     const string indexUrl = "https://download.geofabrik.de/index-v1-nogeom.json";
-
-    // Layer shapefile base names inside a "<region>-latest-free.shp.zip".
-    public const string PlacesLayer = "gis_osm_places_free_1";
-    public const string WaterwaysLayer = "gis_osm_waterways_free_1";
-    public const string WaterLayer = "gis_osm_water_a_free_1";
 
     public static async Task<IReadOnlyList<GeofabrikEntry>> Index(HttpCache httpCache, string directory)
     {

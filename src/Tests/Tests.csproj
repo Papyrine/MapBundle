@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- The data-package builder lives under Builder/ in this project (run via the gated
-         PackageGeneration test); it is not shipped. -->
+    <!-- The data-package builder lives under Builder/ in this project (run via the explicit
+         PackageBuilder.Generate test); it is not shipped. -->
     <PackageReference Include="GeoConvert" />
     <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="Replicant" />

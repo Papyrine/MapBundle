@@ -56,6 +56,22 @@ public class RegionsTests
     }
 
     [Test]
+    public async Task Country_and_sub_continent_are_distinguished_by_iso()
+    {
+        var monaco = new Region("monaco", "europe", "Monaco", ["MC"], null);
+        var alps = new Region("alps", "europe", "Alps", [], null);
+        var europe = new Region("europe", null, "Europe", [], null);
+        await Assert.That(monaco.IsCountry).IsTrue();
+        await Assert.That(monaco.IsSubContinent).IsFalse();
+        await Assert.That(alps.IsSubContinent).IsTrue();
+        await Assert.That(alps.IsCountry).IsFalse();
+        await Assert.That(europe.IsCountry).IsFalse();
+        await Assert.That(europe.IsSubContinent).IsFalse();
+        await Assert.That(Regions.World.IsCountry).IsFalse();
+        await Assert.That(Regions.World.IsSubContinent).IsFalse();
+    }
+
+    [Test]
     public async Task Key_is_pascal_cased()
     {
         var region = new Region("north-america", null, "North America", [], null);

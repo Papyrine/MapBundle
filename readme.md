@@ -1,9 +1,10 @@
 # MapBundle
 
 Bundled, offline map data for .NET apps — borders, cities, waterways and base layers — shipped as
-[FlatGeobuf](https://flatgeobuf.org/) inside NuGet packages. Data is derived from
-[OpenStreetMap](https://www.openstreetmap.org/) and is available under the
-[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
+[FlatGeobuf](https://flatgeobuf.org/) inside NuGet packages. Most data is derived from
+[OpenStreetMap](https://www.openstreetmap.org/) under the
+[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/); the cities, rivers and lakes
+layers come from [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 
 ## Packages
 
@@ -56,8 +57,10 @@ Roads, railways, buildings, land use and terrain are intentionally excluded.
 - **Borders** and **StatesProvinces** come from
   [country-levels](https://github.com/hyperknot/country-levels) — OSM-derived, pre-simplified WGS84
   boundaries keyed by ISO code.
-- **Cities**, **Rivers** and **Lakes** come from per-region
-  [Geofabrik](https://download.geofabrik.de/) shapefile extracts of OpenStreetMap.
+- **Cities**, **Rivers** and **Lakes** come from [Natural Earth](https://www.naturalearthdata.com/)
+  (public domain, 1:10m) via the [nvkelso/natural-earth-vector](https://github.com/nvkelso/natural-earth-vector)
+  mirror. Cities are selected per region by ISO code; rivers and lakes are clipped to the region's
+  bounding box.
 - **Land** and **Ocean** come from
   [osmdata.openstreetmap.de](https://osmdata.openstreetmap.de/); **Coastline** is derived from the land
   polygons.
@@ -70,18 +73,18 @@ states, German Bundesländer) are not published. See `src/Tests/Builder/Regions.
 
 ## Building the data packages
 
-The builder lives in the test project (`src/Tests/Builder/`) and runs as a gated test. It downloads
-the OSM sources (cached locally by [Replicant](https://github.com/SimonCropp/Replicant)), filters and
+The builder lives in the test project (`src/Tests/Builder/`) and runs as an explicit test. It downloads
+the source data (cached locally by [Replicant](https://github.com/SimonCropp/Replicant)), filters and
 simplifies each region, exports FlatGeobuf and writes the `.nupkg` files into `nugets/`:
 
 ```
-MAPBUNDLE_BUILD=1 src/Tests/bin/Release/net10.0/Tests --treenode-filter "/*/*/PackageGeneration/Generate"
+src/Tests/bin/Release/net10.0/Tests --treenode-filter "/*/*/PackageBuilder/Generate"
 ```
 
 To validate the pipeline on a single region (default `monaco`) without building the whole tree:
 
 ```
-MAPBUNDLE_SLICE=monaco src/Tests/bin/Debug/net10.0/Tests --treenode-filter "/*/*/PackageGeneration/Slice"
+MAPBUNDLE_SLICE=monaco src/Tests/bin/Debug/net10.0/Tests --treenode-filter "/*/*/PackageBuilder/Slice"
 ```
 
 Geometry simplification and EPSG:3857→4326 reprojection use
