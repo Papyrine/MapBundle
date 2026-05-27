@@ -35,8 +35,9 @@ public class PackageBuilder
     const string attribution =
         "© OpenStreetMap contributors, ODbL (boundaries via country-levels, land/ocean via osmdata.openstreetmap.de); cities, rivers and lakes made with Natural Earth (public domain).";
 
-    static readonly string root = FindRoot();
+    static readonly string root = Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "../"));
     static string OutputDirectory => Path.Combine(root, "nugets");
+    static string MapsDirectory => Path.Combine(root, "maps");
     static string CacheDirectory => Path.Combine(root, ".cache");
     static string IconPath => Path.Combine(root, "src", "icon.png");
     static string ReadmePath => Path.Combine(root, "readme.md");
@@ -57,12 +58,20 @@ public class PackageBuilder
         // Full builds (writeIndex==true) replace every region in one pass, so wipe nugets/ first to
         // avoid stale packages from removed/renamed regions or earlier skipped-on-failure regions
         // lingering. Slice builds touch only a subset, so leave the rest in place.
-        if (writeIndex && Directory.Exists(OutputDirectory))
+        if (writeIndex)
         {
-            Directory.Delete(OutputDirectory, recursive: true);
+            if (Directory.Exists(OutputDirectory))
+            {
+                Directory.Delete(OutputDirectory, recursive: true);
+            }
+            if (Directory.Exists(MapsDirectory))
+            {
+                Directory.Delete(MapsDirectory, recursive: true);
+            }
         }
 
         Directory.CreateDirectory(OutputDirectory);
+        Directory.CreateDirectory(MapsDirectory);
         var httpDirectory = Path.Combine(CacheDirectory, "http");
         Directory.CreateDirectory(httpDirectory);
         // The OSM servers throttle, and large country extracts over a shared connection can take a long
@@ -212,8 +221,16 @@ public class PackageBuilder
 
         // Per-layer preview PNG dropped next to the .nupkg under nugets/ — same region bounds across
         // every layer so the images overlay cleanly when viewed side-by-side.
-        var pngPath = Path.Combine(OutputDirectory, $"{region.PackageId}.{layer}.png");
-        MapRenderer.RenderPng(collection, pngPath, new() { Bounds = bounds, Width = 1024 });
+        var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
+        MapRenderer.RenderPng(
+            collection,
+            pngPath,
+            new()
+            {
+                Bounds = bounds,
+                Width = 2000,
+                Compression = CompressionLevel.SmallestSize
+            });
     }
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>
@@ -237,7 +254,7 @@ public class PackageBuilder
             files["readme.md"] = File.ReadAllBytes(ReadmePath);
         }
 
-        var packagePath = Path.Combine(OutputDirectory, $"{region.PackageId}.{version}.nupkg");
+        var packagePath = Path.Combine(OutputDirectory, $"{region.Key}.{version}.nupkg");
         NuPkgWriter.Write(
             packagePath,
             region.PackageId,
