@@ -323,7 +323,9 @@ public class PackageBuilder
         builder.AppendLine();
         foreach (var (heading, match) in sections)
         {
-            var rows = bundles.Where(match).OrderBy(_ => _.Region.Name, StringComparer.Ordinal).ToList();
+            var rows = bundles.Where(match)
+                .OrderBy(_ => _.Region.Name, StringComparer.Ordinal)
+                .ToList();
             if (rows.Count == 0)
             {
                 continue;
@@ -331,7 +333,7 @@ public class PackageBuilder
 
             builder.Append(
                 $"""
-                ## {heading}
+                ### {heading}
 
                 | Bundle | NuGet | Data | Layers | Features |
                 | --- | --: | --: | --: | --: |
