@@ -4,18 +4,31 @@
 public class CountryLevelsTests
 {
     static Feature Polygon(string name, IDictionary<string, object?> props) =>
-        new(new Polygon([new Position[]
+        new(
+            new Polygon(
+            [
+                [
+                    new(0, 0), new(1, 0), new(1, 1), new(0, 1), new(0, 0)
+                ]
+            ]),
+            props)
         {
-            new(0, 0), new(1, 0), new(1, 1), new(0, 1), new(0, 0),
-        }]), props) { Id = name };
+            Id = name
+        };
 
     [Test]
     public async Task Border_finds_a_country_by_alpha2_code()
     {
         var borders = new Dictionary<string, Feature>
         {
-            ["MC"] = Polygon("Monaco", new Dictionary<string, object?> { ["iso1"] = "MC" }),
-            ["FR"] = Polygon("France", new Dictionary<string, object?> { ["iso1"] = "FR" }),
+            ["MC"] = Polygon("Monaco", new Dictionary<string, object?>
+            {
+                ["iso1"] = "MC"
+            }),
+            ["FR"] = Polygon("France", new Dictionary<string, object?>
+            {
+                ["iso1"] = "FR"
+            }),
         };
         var levels = new CountryLevels(borders, []);
 
@@ -50,9 +63,10 @@ public class CountryLevelsTests
     {
         var subdivisions = new Dictionary<string, List<Feature>>
         {
-            ["US"] = [
+            ["US"] =
+            [
                 Polygon("California", new Dictionary<string, object?>()),
-                Polygon("Texas",       new Dictionary<string, object?>()),
+                Polygon("Texas", new Dictionary<string, object?>()),
             ],
         };
         var levels = new CountryLevels([], subdivisions);

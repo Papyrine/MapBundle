@@ -168,16 +168,16 @@ public class PackageBuilder
         var bounds = new FeatureCollection(borders).GetBounds();
 
         var counts = new Dictionary<MapLayer, int>();
-        Write(directory, MapLayer.Borders, borders, counts);
-        Write(directory, MapLayer.StatesProvinces, states, counts);
+        Write(directory, region, MapLayer.Borders, borders, bounds, counts);
+        Write(directory, region, MapLayer.StatesProvinces, states, bounds, counts);
 
-        Write(directory, MapLayer.Cities, context.NaturalEarth.Cities(iso), counts);
-        Write(directory, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), counts);
-        Write(directory, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds).Select(Repair).ToList(), counts);
+        Write(directory, region, MapLayer.Cities, context.NaturalEarth.Cities(iso), bounds, counts);
+        Write(directory, region, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), bounds, counts);
+        Write(directory, region, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds).Select(Repair).ToList(), bounds, counts);
 
-        Write(directory, MapLayer.Land, context.OsmData.Land(bounds).Select(Repair).ToList(), counts);
-        Write(directory, MapLayer.Ocean, context.OsmData.Ocean(bounds).Select(Repair).ToList(), counts);
-        Write(directory, MapLayer.Coastline, context.OsmData.Coastline(bounds), counts);
+        Write(directory, region, MapLayer.Land, context.OsmData.Land(bounds).Select(Repair).ToList(), bounds, counts);
+        Write(directory, region, MapLayer.Ocean, context.OsmData.Ocean(bounds).Select(Repair).ToList(), bounds, counts);
+        Write(directory, region, MapLayer.Coastline, context.OsmData.Coastline(bounds), bounds, counts);
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, counts));
         return (directory, counts);
@@ -196,18 +196,24 @@ public class PackageBuilder
             return feature;
         }
 
-        return new Feature(Geo.MakeValid(geometry), feature.Properties) { Id = feature.Id };
+        return new(Geo.MakeValid(geometry), feature.Properties) { Id = feature.Id };
     }
 
-    static void Write(string directory, MapLayer layer, IReadOnlyList<Feature> features, Dictionary<MapLayer, int> counts)
+    static void Write(string directory, Region region, MapLayer layer, IReadOnlyList<Feature> features, Envelope bounds, Dictionary<MapLayer, int> counts)
     {
         if (features.Count == 0)
         {
             return;
         }
 
-        GeoConverter.Write(new(features), Path.Combine(directory, Map.FileName(layer)), GeoFormat.FlatGeobuf);
+        var collection = new FeatureCollection(features);
+        GeoConverter.Write(collection, Path.Combine(directory, Map.FileName(layer)), GeoFormat.FlatGeobuf);
         counts[layer] = features.Count;
+
+        // Per-layer preview PNG dropped next to the .nupkg under nugets/ — same region bounds across
+        // every layer so the images overlay cleanly when viewed side-by-side.
+        var pngPath = Path.Combine(OutputDirectory, $"{region.PackageId}.{layer}.png");
+        MapRenderer.RenderPng(collection, pngPath, new() { Bounds = bounds, Width = 1024 });
     }
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>

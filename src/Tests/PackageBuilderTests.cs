@@ -9,7 +9,7 @@ public class PackageBuilderTests
 
     static Feature Repair(Feature feature) =>
         (Feature) typeof(PackageBuilder)
-            .GetMethod("Repair", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
+            .GetMethod("Repair", BindingFlags.Static | BindingFlags.NonPublic)!
             .Invoke(null, [feature])!;
 
     [Test]
