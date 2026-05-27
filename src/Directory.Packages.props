@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- 0.1.3 = FlatGeobuf writer fix (large features) + UTF-8 .dbf decoding (.cpg code page). -->
-    <PackageVersion Include="GeoConvert" Version="0.1.9" />
+    <PackageVersion Include="GeoConvert" Version="0.2.0" />
     <!-- Test/builder only: simplify + geometry ops while preparing OSM data. Not a shipped dependency. -->
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />

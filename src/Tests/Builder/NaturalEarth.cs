@@ -19,9 +19,9 @@ public sealed class NaturalEarth
     // 1:10m geometry is already generalized; a light simplify trims size with no visible change. ~0.0005° ≈ 50 m.
     const double tolerance = 0.0005;
 
-    readonly FeatureCollection places;
-    readonly FeatureCollection rivers;
-    readonly FeatureCollection lakes;
+    FeatureCollection places;
+    FeatureCollection rivers;
+    FeatureCollection lakes;
 
     // internal so tests can construct a NaturalEarth from synthetic FeatureCollections without
     // hitting the network.

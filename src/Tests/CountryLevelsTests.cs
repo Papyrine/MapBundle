@@ -21,14 +21,18 @@ public class CountryLevelsTests
     {
         var borders = new Dictionary<string, Feature>
         {
-            ["MC"] = Polygon("Monaco", new Dictionary<string, object?>
-            {
-                ["iso1"] = "MC"
-            }),
-            ["FR"] = Polygon("France", new Dictionary<string, object?>
-            {
-                ["iso1"] = "FR"
-            }),
+            ["MC"] = Polygon(
+                "Monaco",
+                new Dictionary<string, object?>
+                {
+                    ["iso1"] = "MC"
+                }),
+            ["FR"] = Polygon(
+                "France",
+                new Dictionary<string, object?>
+                {
+                    ["iso1"] = "FR"
+                }),
         };
         var levels = new CountryLevels(borders, []);
 

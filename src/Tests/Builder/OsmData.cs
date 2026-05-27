@@ -9,8 +9,8 @@ public sealed class OsmData
     const string landUrl = "https://osmdata.openstreetmap.de/download/simplified-land-polygons-complete-3857.zip";
     const string oceanUrl = "https://osmdata.openstreetmap.de/download/simplified-water-polygons-split-3857.zip";
 
-    readonly FeatureCollection land;
-    readonly FeatureCollection ocean;
+    FeatureCollection land;
+    FeatureCollection ocean;
 
     // internal so tests can construct an OsmData from synthetic FeatureCollections without
     // hitting the network.

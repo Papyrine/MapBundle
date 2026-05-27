@@ -3,7 +3,7 @@ namespace MapBundle;
 /// <summary>A single region's map data. Layers are read from FlatGeobuf on demand.</summary>
 public sealed class Map
 {
-    readonly string directory;
+    string directory;
 
     internal Map(string region, string directory)
     {

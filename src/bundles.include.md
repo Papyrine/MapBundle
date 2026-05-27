@@ -11,7 +11,6 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | Bundle | NuGet | Data | Layers | Features |
 | --- | --: | --: | --: | --: |
 | [MapBundle.Africa](https://www.nuget.org/packages/MapBundle.Africa) | 4.7 MB | 9.8 MB | 🗺️ 🏙️ 〰️ 💧 🏖️ 🟩 🌊 | 5,907 |
-| [MapBundle.Antarctica](https://www.nuget.org/packages/MapBundle.Antarctica) | 19 KB | 5 KB | 🏙️ | 40 |
 | [MapBundle.Asia](https://www.nuget.org/packages/MapBundle.Asia) | 14.1 MB | 26.2 MB | 🗺️ 🏙️ 〰️ 💧 🏖️ 🟩 🌊 | 22,226 |
 | [MapBundle.AustraliaOceania](https://www.nuget.org/packages/MapBundle.AustraliaOceania) | 16.6 MB | 24.6 MB | 🗺️ 🏙️ 〰️ 💧 🏖️ 🟩 🌊 | 32,658 |
 | [MapBundle.CentralAmerica](https://www.nuget.org/packages/MapBundle.CentralAmerica) | 2.5 MB | 4.1 MB | 🗺️ 🏙️ 〰️ 💧 🏖️ 🟩 🌊 | 4,561 |
