@@ -12,7 +12,7 @@ environment:
 cache:
   # Replicant's HTTP cache (the expensive part). The extracted archives are rewritten from it each
   # build, so there's no point caching them too. Keyed on the files that hold the source URLs.
-  - .cache/http -> src/Tests/Builder/NaturalEarth.cs src/Tests/Builder/CountryLevels.cs src/Tests/Builder/OsmData.cs src/Tests/Builder/Geofabrik.cs
+  - .cache/http -> src/Tests/Builder/NaturalEarth.cs, src/Tests/Builder/CountryLevels.cs, src/Tests/Builder/OsmData.cs, src/Tests/Builder/Geofabrik.cs
 build_script:
 - sh: |
     set -e
