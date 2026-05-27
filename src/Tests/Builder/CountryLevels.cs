@@ -57,7 +57,7 @@ public sealed class CountryLevels
     // Thousands of files, so read them in parallel (each parse is independent and CPU-bound).
     static List<(string Key, Feature Feature)> Read(string directory) =>
     [
-        .. Directory.EnumerateFiles(directory, "*.geojson")
+        .. Directory.EnumerateFiles(directory, "*.geojson", SearchOption.AllDirectories)
             .AsParallel()
             .Select(path => (Key: Path.GetFileNameWithoutExtension(path), Feature: ReadFeature(path)))
             .Where(_ => _.Feature is not null)
