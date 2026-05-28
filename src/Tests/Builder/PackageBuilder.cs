@@ -220,18 +220,97 @@ public class PackageBuilder
         counts[layer] = features.Count;
 
         // Per-layer preview PNG dropped next to the .nupkg under nugets/ — same region bounds across
-        // every layer so the images overlay cleanly when viewed side-by-side.
+        // every layer so the images overlay cleanly when viewed side-by-side. For StatesProvinces we
+        // render only the topmost admin level per country: country-levels' iso2 set mixes levels for
+        // some countries (Bangladesh ships admin_level 4 divisions and admin_level 6 districts that
+        // sit inside them; India, Russia, France, the UK are similar), and stacking the overlapping
+        // semi-transparent fills produced darker blotches in the preview. The .fgb keeps every level
+        // — admin_level is preserved as a property so consumers can filter as they need.
+        var previewFeatures = layer == MapLayer.StatesProvinces ? TopLevelSubdivisions(features) : features;
+        if (previewFeatures.Count == 0)
+        {
+            return;
+        }
+
+        var preview = ReferenceEquals(previewFeatures, features) ? collection : new(previewFeatures);
         var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
         MapRenderer.RenderPng(
-            collection,
+            preview,
             pngPath,
             new()
             {
                 Bounds = bounds,
                 Width = 2000,
-                Compression = CompressionLevel.SmallestSize
+                Compression = CompressionLevel.SmallestSize,
+                Label = HasNames(layer) ? NameLabel : null,
             });
     }
+
+    // Keeps only the lowest (broadest) admin_level per country — OSM numbers smaller = higher up the
+    // hierarchy, so a country shipping levels 4 and 6 keeps the level-4 features. Features missing
+    // an iso1 or admin_level are kept as-is so nothing silently disappears from the preview.
+    static IReadOnlyList<Feature> TopLevelSubdivisions(IReadOnlyList<Feature> features)
+    {
+        var topLevel = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var feature in features)
+        {
+            var country = CountryOf(feature);
+            if (country is null || AdminLevel(feature) is not { } level)
+            {
+                continue;
+            }
+
+            if (!topLevel.TryGetValue(country, out var current) || level < current)
+            {
+                topLevel[country] = level;
+            }
+        }
+
+        return [.. features.Where(_ =>
+        {
+            var country = CountryOf(_);
+            if (country is null || AdminLevel(_) is not { } level)
+            {
+                return true;
+            }
+
+            return !topLevel.TryGetValue(country, out var top) || level == top;
+        })];
+    }
+
+    // country-levels' iso2 files carry only the iso2 code (e.g. "BD-A"), not a separate iso1. Derive
+    // the country from the leading segment, matching CountryLevels.Country's own split-on-hyphen.
+    static string? CountryOf(Feature feature)
+    {
+        var iso2 = Props.Text(feature, "iso2");
+        if (iso2.Length == 0)
+        {
+            return null;
+        }
+
+        var dash = iso2.IndexOf('-');
+        return dash < 0 ? iso2 : iso2[..dash];
+    }
+
+    static int? AdminLevel(Feature feature)
+    {
+        var text = Props.Text(feature, "admin_level");
+        return int.TryParse(text, out var value) ? value : null;
+    }
+
+    // Layers whose features carry a "name" property worth rendering as a label: country-levels supplies
+    // names for Borders and StatesProvinces; Natural Earth supplies names for Cities, Rivers and Lakes
+    // (and rivers/lakes are already filtered to named features only). Coastline/Land/Ocean come from
+    // osmdata polygons with no name attribute, so labels would be empty noise.
+    static bool HasNames(MapLayer layer) =>
+        layer is MapLayer.Borders
+            or MapLayer.StatesProvinces
+            or MapLayer.Cities
+            or MapLayer.Rivers
+            or MapLayer.Lakes;
+
+    static string? NameLabel(Feature feature) =>
+        feature.Properties.TryGetValue("name", out var value) ? value as string : null;
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>
     static string Pack(Region region, string stagingDirectory)
