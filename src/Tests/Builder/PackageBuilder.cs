@@ -184,8 +184,18 @@ public class PackageBuilder
         Write(directory, region, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), bounds, counts);
         Write(directory, region, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds).Select(Repair).ToList(), bounds, counts);
 
-        Write(directory, region, MapLayer.Land, context.OsmData.Land(bounds).Select(Repair).ToList(), bounds, counts);
-        Write(directory, region, MapLayer.Ocean, context.OsmData.Ocean(bounds).Select(Repair).ToList(), bounds, counts);
+        // Skip Land for landlocked regions: with no ocean intersecting the bbox there's no
+        // coastline either, so the Land layer collapses to a single rectangle covering the whole
+        // bounds — redundant noise that just bloats the package. "No ocean in bounds" is the
+        // robust test (works for Switzerland and Liechtenstein, and also for inland-sea-only
+        // countries like Kazakhstan, since osmdata's water polygons are ocean-only).
+        var ocean = context.OsmData.Ocean(bounds).Select(Repair).ToList();
+        List<Feature> land = ocean.Count == 0
+            ? []
+            : [.. context.OsmData.Land(bounds).Select(Repair)];
+
+        Write(directory, region, MapLayer.Land, land, bounds, counts);
+        Write(directory, region, MapLayer.Ocean, ocean, bounds, counts);
         Write(directory, region, MapLayer.Coastline, context.OsmData.Coastline(bounds), bounds, counts);
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, counts));
