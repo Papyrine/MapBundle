@@ -92,54 +92,35 @@ public class PackageBuilder
 
         var chosen = regions.Where(selected).ToList();
         var bundles = new ConcurrentBag<Bundle>();
-        var failures = new ConcurrentBag<string>();
 
         // Network blips on a single region must not sink the whole build: retry a few times, then skip it.
-        async Task Build(Region region)
+        void Build(Region region)
         {
-            for (var attempt = 1; ; attempt++)
+            var (directory, counts) = BuildRegion(region, context, staging);
+            // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
+            // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
+            // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
+            if (counts.Count == 0)
             {
-                try
-                {
-                    var (directory, counts) = BuildRegion(region, context, staging);
-                    // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
-                    // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
-                    // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
-                    if (counts.Count == 0)
-                    {
-                        Console.WriteLine($"  skipped {region.Id} (no layer data)");
-                        return;
-                    }
-
-                    var package = Pack(region, directory);
-                    bundles.Add(new(region, package, directory, counts));
-                    Console.WriteLine($"  {Path.GetFileName(package)}");
-                    return;
-                }
-                catch (Exception exception) when (attempt < 4)
-                {
-                    Console.WriteLine($"  retry {region.Id} (attempt {attempt}): {exception.Message}");
-                    await Task.Delay(TimeSpan.FromSeconds(5));
-                }
-                catch (Exception exception)
-                {
-                    failures.Add(region.Id);
-                    Console.WriteLine($"  FAILED {region.Id}: {exception.Message}");
-                    return;
-                }
+                Console.WriteLine($"  skipped {region.Id} (no layer data)");
+                return;
             }
+
+            var package = Pack(region, directory);
+            bundles.Add(new(region, package, directory, counts));
+            Console.WriteLine($"  {Path.GetFileName(package)}");
         }
 
         // Every region is independent now: borders come from country-levels, and cities/rivers/lakes/land/
         // ocean are clipped from the already-downloaded global Natural Earth and osmdata layers. So build
         // them all in one parallel pass, at a modest degree to keep memory and CPU in check.
-        var options = new ParallelOptions { MaxDegreeOfParallelism = 3 };
-        await Parallel.ForEachAsync(chosen, options, async (region, _) => await Build(region));
-
-        if (!failures.IsEmpty)
+        // 80% of the cores: parallel region builds are CPU-bound (NTS topology ops + PNG rasterising),
+        // but leave headroom so the box stays responsive and the OS/disk aren't fully saturated.
+        var options = new ParallelOptions
         {
-            Console.WriteLine($"Skipped {failures.Count} region(s) after retries: {string.Join(", ", failures.OrderBy(_ => _))}");
-        }
+            MaxDegreeOfParallelism = Math.Max(1, (int)(Environment.ProcessorCount * 0.8))
+        };
+        Parallel.ForEach(chosen, options,  (region, _) => Build(region));
 
         if (writeIndex)
         {
@@ -250,7 +231,7 @@ public class PackageBuilder
             new()
             {
                 Bounds = bounds,
-                Width = 2000,
+                Width = 1024,
                 Compression = CompressionLevel.SmallestSize,
                 Label = HasNames(layer) ? NameLabel : null,
             });
