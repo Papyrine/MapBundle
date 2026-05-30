@@ -1,3 +1,4 @@
+global using System.Diagnostics;
 global using System.IO.Compression;
 global using System.Net.Http;
 global using System.Runtime.CompilerServices;

@@ -13,14 +13,22 @@ public sealed class MapCatalog
     public string Directory => root;
 
     /// <summary>The regions with data present, ordered by name.</summary>
-    public IReadOnlyList<string> Regions =>
-        System.IO.Directory.Exists(root)
-            ? System.IO.Directory.GetDirectories(root)
-                .Select(Path.GetFileName)
-                .OfType<string>()
-                .OrderBy(_ => _, StringComparer.Ordinal)
-                .ToList()
-            : [];
+    public IReadOnlyList<string> Regions
+    {
+        get
+        {
+            if (System.IO.Directory.Exists(root))
+            {
+                return System.IO.Directory.GetDirectories(root)
+                    .Select(Path.GetFileName)
+                    .OfType<string>()
+                    .OrderBy(_ => _, StringComparer.Ordinal)
+                    .ToList();
+            }
+
+            return (List<string>) [];
+        }
+    }
 
     /// <summary>Whether data for <paramref name="region"/> is present.</summary>
     public bool Contains(string region) =>

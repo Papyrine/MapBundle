@@ -4,14 +4,14 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="GeoConvert" Version="0.5.0" />
+    <PackageVersion Include="GeoConvert" Version="0.6.0" />
     <!-- Test/builder only: simplify + geometry ops while preparing OSM data. Not a shipped dependency. -->
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
     <PackageVersion Include="Polyfill" Version="10.7.0" />
     <PackageVersion Include="Replicant" Version="3.3.0" />
     <PackageVersion Include="ProjectFiles" Version="1.2.0" />
-    <PackageVersion Include="TUnit" Version="1.46.0" />
+    <PackageVersion Include="TUnit" Version="1.47.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.3.0" />
     <PackageVersion Include="Verify" Version="31.18.0" />
     <PackageVersion Include="Verify.TUnit" Version="31.18.0" />

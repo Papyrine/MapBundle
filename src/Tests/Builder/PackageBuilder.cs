@@ -91,36 +91,41 @@ public class PackageBuilder
         var staging = Path.Combine(OutputDirectory, ".staging");
 
         var chosen = regions.Where(selected).ToList();
-        var bundles = new ConcurrentBag<Bundle>();
-
-        // Network blips on a single region must not sink the whole build: retry a few times, then skip it.
-        void Build(Region region)
+        var bundles = new List<Bundle>();
+        var failures = new List<string>();
+        foreach (var region in chosen)
         {
-            var (directory, counts) = BuildRegion(region, context, staging);
-            // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
-            // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
-            // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
-            if (counts.Count == 0)
+            var watch = Stopwatch.StartNew();
+            Console.WriteLine($"  start  {region.Id}");
+            try
             {
-                Console.WriteLine($"  skipped {region.Id} (no layer data)");
-                return;
-            }
+                var (directory, counts) = BuildRegion(region, context, staging);
+                // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
+                // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
+                // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
+                if (counts.Count == 0)
+                {
+                    Console.WriteLine($"  skip   {region.Id} (no layer data, {watch.Elapsed.TotalSeconds:F1}s)");
+                    continue;
+                }
 
-            var package = Pack(region, directory);
-            bundles.Add(new(region, package, directory, counts));
-            Console.WriteLine($"  {Path.GetFileName(package)}");
+                var package = Pack(region, directory);
+                bundles.Add(new(region, package, directory, counts));
+                Console.WriteLine($"  done   {Path.GetFileName(package)} ({watch.Elapsed.TotalSeconds:F1}s)");
+            }
+            catch (Exception exception)
+            {
+                // Log and keep going — one bad region must not sink the whole run. Failures are
+                // listed at the end so they're easy to spot in a long log.
+                failures.Add(region.Id);
+                Console.WriteLine($"  FAIL   {region.Id} ({watch.Elapsed.TotalSeconds:F1}s): {exception.GetType().Name}: {exception.Message}");
+            }
         }
 
-        // Every region is independent now: borders come from country-levels, and cities/rivers/lakes/land/
-        // ocean are clipped from the already-downloaded global Natural Earth and osmdata layers. So build
-        // them all in one parallel pass, at a modest degree to keep memory and CPU in check.
-        // 80% of the cores: parallel region builds are CPU-bound (NTS topology ops + PNG rasterising),
-        // but leave headroom so the box stays responsive and the OS/disk aren't fully saturated.
-        var options = new ParallelOptions
+        if (failures.Count > 0)
         {
-            MaxDegreeOfParallelism = Math.Max(1, (int)(Environment.ProcessorCount * 0.8))
-        };
-        Parallel.ForEach(chosen, options,  (region, _) => Build(region));
+            Console.WriteLine($"Skipped {failures.Count} region(s) after failures: {string.Join(", ", failures.OrderBy(_ => _))}");
+        }
 
         if (writeIndex)
         {
@@ -196,7 +201,12 @@ public class PackageBuilder
             return feature;
         }
 
-        return new(Geo.MakeValid(geometry), feature.Properties) { Id = feature.Id };
+        return new(
+            Geo.MakeValid(geometry),
+            feature.Properties)
+        {
+            Id = feature.Id
+        };
     }
 
     static void Write(string directory, Region region, MapLayer layer, IReadOnlyList<Feature> features, Envelope bounds, Dictionary<MapLayer, int> counts)
@@ -209,6 +219,16 @@ public class PackageBuilder
         var collection = new FeatureCollection(features);
         GeoConverter.Write(collection, Path.Combine(directory, Map.FileName(layer)), GeoFormat.FlatGeobuf);
         counts[layer] = features.Count;
+
+        // A preview needs a bounding box. `bounds` is computed from country-levels borders, so when
+        // country-levels has no entry for a region's ISO code (Antarctica is the canonical case —
+        // AQ has no iso1 border, but Natural Earth still tags its research bases with ISO_A2='AQ')
+        // bounds is empty and MapRenderer.Validate rejects the call. Skip the preview; the FGB
+        // file already shipped above, so the layer's data is still in the package.
+        if (bounds.IsEmpty)
+        {
+            return;
+        }
 
         // Per-layer preview PNG dropped next to the .nupkg under nugets/ — same region bounds across
         // every layer so the images overlay cleanly when viewed side-by-side. For StatesProvinces we
@@ -232,7 +252,7 @@ public class PackageBuilder
             {
                 Bounds = bounds,
                 Width = 1024,
-                Compression = CompressionLevel.SmallestSize,
+                Compression = CompressionLevel.Fastest,
                 Label = HasNames(layer) ? NameLabel : null,
             });
     }
@@ -246,12 +266,14 @@ public class PackageBuilder
         foreach (var feature in features)
         {
             var country = CountryOf(feature);
-            if (country is null || AdminLevel(feature) is not { } level)
+            if (country is null ||
+                AdminLevel(feature) is not { } level)
             {
                 continue;
             }
 
-            if (!topLevel.TryGetValue(country, out var current) || level < current)
+            if (!topLevel.TryGetValue(country, out var current) ||
+                level < current)
             {
                 topLevel[country] = level;
             }
@@ -260,12 +282,14 @@ public class PackageBuilder
         return [.. features.Where(_ =>
         {
             var country = CountryOf(_);
-            if (country is null || AdminLevel(_) is not { } level)
+            if (country is null ||
+                AdminLevel(_) is not { } level)
             {
                 return true;
             }
 
-            return !topLevel.TryGetValue(country, out var top) || level == top;
+            return !topLevel.TryGetValue(country, out var top) ||
+                   level == top;
         })];
     }
 
@@ -280,13 +304,23 @@ public class PackageBuilder
         }
 
         var dash = iso2.IndexOf('-');
-        return dash < 0 ? iso2 : iso2[..dash];
+        if (dash < 0)
+        {
+            return iso2;
+        }
+
+        return iso2[..dash];
     }
 
     static int? AdminLevel(Feature feature)
     {
         var text = Props.Text(feature, "admin_level");
-        return int.TryParse(text, out var value) ? value : null;
+        if (int.TryParse(text, out var value))
+        {
+            return value;
+        }
+
+        return null;
     }
 
     // Layers whose features carry a "name" property worth rendering as a label: country-levels supplies
@@ -450,22 +484,6 @@ public class PackageBuilder
         bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024:F1} MB" :
         bytes >= 1024 ? $"{bytes / 1024d:F0} KB" :
         $"{bytes} B";
-
-    static string FindRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "global.json")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new MapBundleException("Could not locate the repository root (no global.json above the test binary).");
-    }
 
     /// <summary>A built package: its region, the written <c>.nupkg</c> path, its staging folder and layer feature counts.</summary>
     sealed record Bundle(Region Region, string Package, string Staging, Dictionary<MapLayer, int> Counts);
