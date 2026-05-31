@@ -3,9 +3,9 @@
 /// from the OSM coastline. The source ships only in EPSG:3857, so features are reprojected to WGS84 and
 /// run through <see cref="Geo.MakeValid"/> (NTS <c>Buffer(0)</c>) eagerly at construction time. Each
 /// per-region <see cref="Land"/> / <see cref="Ocean"/> / <see cref="Coastline"/> call is then just a
-/// bbox intersect + optional clip against the prepared list — previously this reproject + repair pass
-/// was redone for every region, which was ~92% of World's 7-minute build (and most of the cost of
-/// every other heavy region: NorthAmerica, Europe, Russia all re-walked nearly the whole global set).
+/// bbox intersect + optional clip against the prepared list — an STRtree spatial index over these
+/// features was tried and removed: world-scale region bbounds cover most of the global set so the
+/// tree returned ~the same candidates a linear scan would have, while adding traversal overhead.
 /// </summary>
 public sealed class OsmData
 {
