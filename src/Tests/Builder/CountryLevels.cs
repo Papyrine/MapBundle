@@ -66,6 +66,13 @@ public sealed class CountryLevels
 
     // country-levels Features carry a huge "osm_data" blob (and nested objects GeoConvert won't model).
     // Re-emit a minimal Feature with just the geometry and the handful of attributes we keep, then parse.
+    // Eager Geo.MakeValid here too: country-levels' Douglas-Peucker simplification leaves self-
+    // intersecting rings on heavily-indented coastlines (Greenland, Canadian arctic, …) that need
+    // NTS Buffer(0) to repair. Previously every region called Repair per feature — for World that
+    // was ~97% of BuildRegion's wall-clock (357 s on 190 country borders, averaging ~1.9 s each
+    // and topping out at tens of seconds for Russia / Canada / USA). Doing it once at parse time
+    // via the parallel AsParallel pipeline amortises the cost across CPU cores and across every
+    // BuildRegion call that follows.
     static Feature? ReadFeature(string path)
     {
         var node = JsonNode.Parse(File.ReadAllText(path));
@@ -100,6 +107,12 @@ public sealed class CountryLevels
         };
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(collection.ToJsonString()));
-        return GeoConverter.Read(stream, GeoFormat.GeoJson).Features.FirstOrDefault();
+        var feature = GeoConverter.Read(stream, GeoFormat.GeoJson).Features.FirstOrDefault();
+        if (feature?.Geometry is { } parsed)
+        {
+            feature = new(Geo.MakeValid(parsed), feature.Properties) { Id = feature.Id };
+        }
+
+        return feature;
     }
 }

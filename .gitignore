@@ -40,3 +40,5 @@ Thumbs.db
 .verify/
 build-10m-full.log
 generate.log
+heavy.log
+build.log

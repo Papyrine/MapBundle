@@ -1,30 +1,35 @@
 /// <summary>
 /// The global physical layers from osmdata.openstreetmap.de: simplified land and ocean polygons derived
-/// from the OSM coastline. They ship only in EPSG:3857, so features are clipped to a region (by lon/lat
-/// bounding box) and reprojected to WGS84 on demand. Coastline is the land outlines, clipped as lines so
-/// the region's bounding-box edges don't become fake shoreline.
+/// from the OSM coastline. The source ships only in EPSG:3857, so features are reprojected to WGS84 and
+/// run through <see cref="Geo.MakeValid"/> (NTS <c>Buffer(0)</c>) eagerly at construction time. Each
+/// per-region <see cref="Land"/> / <see cref="Ocean"/> / <see cref="Coastline"/> call is then just a
+/// bbox intersect + optional clip against the prepared list — previously this reproject + repair pass
+/// was redone for every region, which was ~92% of World's 7-minute build (and most of the cost of
+/// every other heavy region: NorthAmerica, Europe, Russia all re-walked nearly the whole global set).
 /// </summary>
 public sealed class OsmData
 {
     const string landUrl = "https://osmdata.openstreetmap.de/download/simplified-land-polygons-complete-3857.zip";
     const string oceanUrl = "https://osmdata.openstreetmap.de/download/simplified-water-polygons-split-3857.zip";
 
-    FeatureCollection land;
-    FeatureCollection ocean;
+    IReadOnlyList<Prepared> land;
+    IReadOnlyList<Prepared> ocean;
 
     // internal so tests can construct an OsmData from synthetic FeatureCollections without
-    // hitting the network.
+    // hitting the network. Synthetic data is tiny so the eager Prepare pass is instant; the heavy
+    // real-world reproject + Buffer(0) pass on ~77k global features is the production cost we're
+    // amortising over every region build that follows.
     internal OsmData(FeatureCollection land, FeatureCollection ocean)
     {
-        this.land = land;
-        this.ocean = ocean;
+        this.land = Prepare(land);
+        this.ocean = Prepare(ocean);
     }
 
-    /// <summary>Land polygons within <paramref name="bounds"/> (reprojected to WGS84; overflow clipped to the box).</summary>
+    /// <summary>Land polygons within <paramref name="bounds"/> (overflow clipped to the box).</summary>
     public IReadOnlyList<Feature> Land(Envelope bounds) =>
         Polygons(land, bounds);
 
-    /// <summary>Ocean polygons within <paramref name="bounds"/> (reprojected to WGS84; overflow clipped to the box).</summary>
+    /// <summary>Ocean polygons within <paramref name="bounds"/> (overflow clipped to the box).</summary>
     public IReadOnlyList<Feature> Ocean(Envelope bounds) =>
         Polygons(ocean, bounds);
 
@@ -47,30 +52,72 @@ public sealed class OsmData
         return GeoConverter.Read(shapefile, GeoFormat.Shapefile);
     }
 
-    static List<Feature> Polygons(FeatureCollection source, Envelope bounds)
+    // Reproject EPSG:3857 → WGS84 and validate every feature once at load time. The WGS84 bounds
+    // are cached so per-region queries are a cheap envelope intersect; the heavy NTS Buffer(0)
+    // pass over ~77k global features happens here, not on every BuildRegion call.
+    static List<Prepared> Prepare(FeatureCollection source)
+    {
+        var prepared = new List<Prepared>(source.Features.Count);
+        foreach (var feature in source)
+        {
+            if (feature.Geometry is not { } geometry)
+            {
+                continue;
+            }
+
+            var projected = Geo.MercatorToWgs84(geometry);
+            var repaired = Geo.MakeValid(projected);
+            prepared.Add(new(feature.Id, repaired, repaired.GetBounds()));
+        }
+
+        return prepared;
+    }
+
+    static List<Feature> Polygons(IReadOnlyList<Prepared> source, Envelope bounds)
     {
         var result = new List<Feature>();
-        foreach (var (feature, projected, contained) in Reproject(source, bounds))
+        if (bounds.IsEmpty)
         {
-            if (contained)
+            return result;
+        }
+
+        foreach (var item in source)
+        {
+            if (!Geo.Intersects(bounds, item.Bounds))
             {
-                result.Add(new(projected) { Id = feature.Id });
+                continue;
             }
-            else if (Geo.Clip(projected, bounds) is { } clipped)
+
+            if (Geo.Contains(bounds, item.Bounds))
             {
-                result.Add(new(clipped) { Id = feature.Id });
+                result.Add(new(item.Geometry) { Id = item.Id });
+            }
+            else if (Geo.Clip(item.Geometry, bounds) is { } clipped)
+            {
+                result.Add(new(clipped) { Id = item.Id });
             }
         }
 
         return result;
     }
 
-    static List<Feature> Lines(FeatureCollection source, Envelope bounds)
+    static List<Feature> Lines(IReadOnlyList<Prepared> source, Envelope bounds)
     {
         var result = new List<Feature>();
-        foreach (var (_, projected, contained) in Reproject(source, bounds))
+        if (bounds.IsEmpty)
         {
-            foreach (var line in Geo.Outlines(projected))
+            return result;
+        }
+
+        foreach (var item in source)
+        {
+            if (!Geo.Intersects(bounds, item.Bounds))
+            {
+                continue;
+            }
+
+            var contained = Geo.Contains(bounds, item.Bounds);
+            foreach (var line in Geo.Outlines(item.Geometry))
             {
                 if (contained)
                 {
@@ -86,27 +133,6 @@ public sealed class OsmData
         return result;
     }
 
-    // Source is EPSG:3857. Test each feature's (cheap) Mercator bounds against the region in WGS84, then
-    // reproject only the survivors, noting whether each falls wholly inside the region.
-    static IEnumerable<(Feature Feature, Geometry Projected, bool Contained)> Reproject(FeatureCollection source, Envelope bounds)
-    {
-        if (bounds.IsEmpty)
-        {
-            yield break;
-        }
-
-        foreach (var feature in source)
-        {
-            if (feature.Geometry is not { } geometry)
-            {
-                continue;
-            }
-
-            var featureBounds = Geo.MercatorToWgs84(geometry.GetBounds());
-            if (Geo.Intersects(bounds, featureBounds))
-            {
-                yield return (feature, Geo.MercatorToWgs84(geometry), Geo.Contains(bounds, featureBounds));
-            }
-        }
-    }
+    /// <summary>A source feature after one-shot reproject + validate, with its WGS84 bbox cached for cheap per-region culling.</summary>
+    sealed record Prepared(object? Id, Geometry Geometry, Envelope Bounds);
 }

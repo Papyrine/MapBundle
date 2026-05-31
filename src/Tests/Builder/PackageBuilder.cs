@@ -16,6 +16,18 @@ public class PackageBuilder
     public Task Slice() =>
         BuildAsync(SliceIds());
 
+    /// <summary>
+    /// Builds only the slow regions — World plus every continent — so per-layer timing changes can
+    /// be iterated on without running the ~200 small country packs that come along in
+    /// <see cref="Generate"/>. World dominates the wall-clock either way (its global Land/Ocean/
+    /// Borders renders are the headline cost); the continents are kept so each continent's per-layer
+    /// timing prints alongside World's for comparison.
+    /// </summary>
+    [Test]
+    [Explicit]
+    public Task Heavy() =>
+        BuildAsync(_ => _.IsWorld || _.IsContinent, writeIndex: false);
+
     // The regions the Slice test builds: MAPBUNDLE_SLICE (comma-separated ids), or Monaco by default.
     static string[] SliceIds()
     {
@@ -41,6 +53,15 @@ public class PackageBuilder
     static string CacheDirectory => Path.Combine(root, ".cache");
     static string IconPath => Path.Combine(root, "src", "icon.png");
     static string ReadmePath => Path.Combine(root, "readme.md");
+    // Build progress + per-layer timing both Console.WriteLine *and* append here, so MTP — which
+    // discards stdout from passing tests — doesn't swallow the diagnostic output we need.
+    static string LogPath => Path.Combine(root, "build.log");
+
+    static void Log(string message)
+    {
+        Console.WriteLine(message);
+        File.AppendAllText(LogPath, message + Environment.NewLine);
+    }
 
     /// <summary>Builds and packs every region package (continents, countries and the merged World).</summary>
     public static Task RunAsync() =>
@@ -72,6 +93,8 @@ public class PackageBuilder
 
         Directory.CreateDirectory(OutputDirectory);
         Directory.CreateDirectory(MapsDirectory);
+        // Start a fresh log per build so each run's lines aren't mixed with a previous run's.
+        File.WriteAllText(LogPath, string.Empty);
         var httpDirectory = Path.Combine(CacheDirectory, "http");
         Directory.CreateDirectory(httpDirectory);
         // The OSM servers throttle, and large country extracts over a shared connection can take a long
@@ -96,7 +119,7 @@ public class PackageBuilder
         foreach (var region in chosen)
         {
             var watch = Stopwatch.StartNew();
-            Console.WriteLine($"  start  {region.Id}");
+            Log($"  start  {region.Id}");
             try
             {
                 var (directory, counts) = BuildRegion(region, context, staging);
@@ -105,26 +128,26 @@ public class PackageBuilder
                 // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
                 if (counts.Count == 0)
                 {
-                    Console.WriteLine($"  skip   {region.Id} (no layer data, {watch.Elapsed.TotalSeconds:F1}s)");
+                    Log($"  skip   {region.Id} (no layer data, {watch.Elapsed.TotalSeconds:F1}s)");
                     continue;
                 }
 
                 var package = Pack(region, directory);
                 bundles.Add(new(region, package, directory, counts));
-                Console.WriteLine($"  done   {Path.GetFileName(package)} ({watch.Elapsed.TotalSeconds:F1}s)");
+                Log($"  done   {Path.GetFileName(package)} ({watch.Elapsed.TotalSeconds:F1}s)");
             }
             catch (Exception exception)
             {
                 // Log and keep going — one bad region must not sink the whole run. Failures are
                 // listed at the end so they're easy to spot in a long log.
                 failures.Add(region.Id);
-                Console.WriteLine($"  FAIL   {region.Id} ({watch.Elapsed.TotalSeconds:F1}s): {exception.GetType().Name}: {exception.Message}");
+                Log($"  FAIL   {region.Id} ({watch.Elapsed.TotalSeconds:F1}s): {exception.GetType().Name}: {exception.Message}");
             }
         }
 
         if (failures.Count > 0)
         {
-            Console.WriteLine($"Skipped {failures.Count} region(s) after failures: {string.Join(", ", failures.OrderBy(_ => _))}");
+            Log($"Skipped {failures.Count} region(s) after failures: {string.Join(", ", failures.OrderBy(_ => _))}");
         }
 
         if (writeIndex)
@@ -147,42 +170,85 @@ public class PackageBuilder
         var members = context.Members(region);
         var iso = members.SelectMany(_ => _.Iso).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Run polygon layers through Geo.MakeValid: country-levels' simplification leaves
-        // self-intersecting rings on heavily-indented coastlines (Greenland, the Canadian arctic, …)
-        // that triangulating GPU renderers (Mapbox-GL / MapLibre-GL via earcut, behind tools like
-        // geojson.io) can't fill, producing fan-shaped artifacts across each invalid country.
+        // Time each prep phase separately so we can see where BuildRegion's wall-time really goes
+        // — the FGB-write and PNG-render timing inside Write is only a small fraction of a heavy
+        // region's total. Each phase's stopwatch covers just the .ToList()-materialised work, not
+        // the Write call that follows (those are accounted for separately by LogLayerTiming).
+        var prep = new Dictionary<string, double>();
+
+        // country-levels features are already Geo.MakeValid'd at load time (see CountryLevels.
+        // ReadFeature), so per-region Repair here would be wasted work. country-levels'
+        // Douglas-Peucker simplification leaves self-intersecting rings on heavily-indented
+        // coastlines that NTS Buffer(0) repairs — required for triangulating GPU renderers like
+        // Mapbox-GL / MapLibre-GL (via earcut, behind tools like geojson.io) which can't fill
+        // invalid rings without fan-shaped artifacts across each country.
+        var bordersWatch = Stopwatch.StartNew();
         var borders = iso
             .Select(context.CountryLevels.Border)
             .OfType<Feature>()
-            .Select(Repair)
             .ToList();
+        prep["borders"] = bordersWatch.Elapsed.TotalMilliseconds;
+
+        var statesWatch = Stopwatch.StartNew();
         var states = iso
             .SelectMany(context.CountryLevels.Subdivisions)
-            .Select(Repair)
             .ToList();
+        prep["states"] = statesWatch.Elapsed.TotalMilliseconds;
+
         var bounds = new FeatureCollection(borders).GetBounds();
 
         var counts = new Dictionary<MapLayer, int>();
         Write(directory, region, MapLayer.Borders, borders, bounds, counts);
         Write(directory, region, MapLayer.StatesProvinces, states, bounds, counts);
 
-        Write(directory, region, MapLayer.Cities, context.NaturalEarth.Cities(iso), bounds, counts);
-        Write(directory, region, MapLayer.Rivers, context.NaturalEarth.Rivers(bounds), bounds, counts);
-        Write(directory, region, MapLayer.Lakes, context.NaturalEarth.Lakes(bounds).Select(Repair).ToList(), bounds, counts);
+        var citiesWatch = Stopwatch.StartNew();
+        var cities = context.NaturalEarth.Cities(iso);
+        prep["cities"] = citiesWatch.Elapsed.TotalMilliseconds;
+        Write(directory, region, MapLayer.Cities, cities, bounds, counts);
+
+        var riversWatch = Stopwatch.StartNew();
+        var rivers = context.NaturalEarth.Rivers(bounds);
+        prep["rivers"] = riversWatch.Elapsed.TotalMilliseconds;
+        Write(directory, region, MapLayer.Rivers, rivers, bounds, counts);
+
+        var lakesWatch = Stopwatch.StartNew();
+        var lakes = context.NaturalEarth.Lakes(bounds).Select(Repair).ToList();
+        prep["lakes"] = lakesWatch.Elapsed.TotalMilliseconds;
+        Write(directory, region, MapLayer.Lakes, lakes, bounds, counts);
 
         // Skip Land for landlocked regions: with no ocean intersecting the bbox there's no
         // coastline either, so the Land layer collapses to a single rectangle covering the whole
         // bounds — redundant noise that just bloats the package. "No ocean in bounds" is the
         // robust test (works for Switzerland and Liechtenstein, and also for inland-sea-only
         // countries like Kazakhstan, since osmdata's water polygons are ocean-only).
-        var ocean = context.OsmData.Ocean(bounds).Select(Repair).ToList();
-        List<Feature> land = ocean.Count == 0
-            ? []
-            : [.. context.OsmData.Land(bounds).Select(Repair)];
+        // Repair is no longer applied here — OsmData reprojects + validates eagerly at load time,
+        // so the per-region path is bbox-cull + optional clip only.
+        var oceanWatch = Stopwatch.StartNew();
+        var ocean = context.OsmData.Ocean(bounds);
+        prep["ocean"] = oceanWatch.Elapsed.TotalMilliseconds;
+
+        var landWatch = Stopwatch.StartNew();
+        var land = ocean.Count > 0
+            ? context.OsmData.Land(bounds)
+            : (IReadOnlyList<Feature>) [];
+        prep["land"] = landWatch.Elapsed.TotalMilliseconds;
 
         Write(directory, region, MapLayer.Land, land, bounds, counts);
         Write(directory, region, MapLayer.Ocean, ocean, bounds, counts);
-        Write(directory, region, MapLayer.Coastline, context.OsmData.Coastline(bounds), bounds, counts);
+
+        var coastlineWatch = Stopwatch.StartNew();
+        var coastline = context.OsmData.Coastline(bounds);
+        prep["coastline"] = coastlineWatch.Elapsed.TotalMilliseconds;
+        Write(directory, region, MapLayer.Coastline, coastline, bounds, counts);
+
+        // Per-region prep summary. Always emit for World + continents; for countries, only when
+        // the prep was non-trivial — keeps small-country output quiet.
+        var prepTotal = prep.Values.Sum();
+        if (region.IsWorld || region.IsContinent || prepTotal >= 500)
+        {
+            var breakdown = string.Join(" ", prep.Select(_ => $"{_.Key}={_.Value,5:F0}ms"));
+            Log($"    {region.Key,-20} prep total={prepTotal,7:F0}ms  {breakdown}");
+        }
 
         File.WriteAllText(Path.Combine(directory, "meta.json"), Meta(region, counts));
         return (directory, counts);
@@ -217,7 +283,9 @@ public class PackageBuilder
         }
 
         var collection = new FeatureCollection(features);
+        var fgbWatch = Stopwatch.StartNew();
         GeoConverter.Write(collection, Path.Combine(directory, Map.FileName(layer)), GeoFormat.FlatGeobuf);
+        var fgbMs = fgbWatch.Elapsed.TotalMilliseconds;
         counts[layer] = features.Count;
 
         // A preview needs a bounding box. `bounds` is computed from country-levels borders, so when
@@ -227,6 +295,7 @@ public class PackageBuilder
         // file already shipped above, so the layer's data is still in the package.
         if (bounds.IsEmpty)
         {
+            LogLayerTiming(region, layer, features.Count, fgbMs, pngMs: 0);
             return;
         }
 
@@ -240,11 +309,13 @@ public class PackageBuilder
         var previewFeatures = layer == MapLayer.StatesProvinces ? TopLevelSubdivisions(features) : features;
         if (previewFeatures.Count == 0)
         {
+            LogLayerTiming(region, layer, features.Count, fgbMs, pngMs: 0);
             return;
         }
 
         var preview = ReferenceEquals(previewFeatures, features) ? collection : new(previewFeatures);
         var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
+        var pngWatch = Stopwatch.StartNew();
         MapRenderer.RenderPng(
             preview,
             pngPath,
@@ -255,6 +326,20 @@ public class PackageBuilder
                 Compression = CompressionLevel.Fastest,
                 Label = HasNames(layer) ? NameLabel : null,
             });
+        LogLayerTiming(region, layer, features.Count, fgbMs, pngWatch.Elapsed.TotalMilliseconds);
+    }
+
+    // Per-layer timing breakdown so we can see where a big region's build wall-time goes (FGB write
+    // vs PNG render). Always logged for World + continents; for countries, only logged when the
+    // layer was slow enough to be interesting (>= 100 ms total) so small-country output stays quiet.
+    static void LogLayerTiming(Region region, MapLayer layer, int featureCount, double fgbMs, double pngMs)
+    {
+        if (!region.IsWorld && !region.IsContinent && fgbMs + pngMs < 100)
+        {
+            return;
+        }
+
+        Log($"    {region.Key,-20} {layer,-16} features={featureCount,7:N0} fgb={fgbMs,7:F0}ms png={pngMs,7:F0}ms");
     }
 
     // Keeps only the lowest (broadest) admin_level per country — OSM numbers smaller = higher up the
