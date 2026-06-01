@@ -14,4 +14,34 @@
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Build the MSBuild task project before packing so its output exists for _MapBundleAddTaskFiles.
+       ReferenceOutputAssembly=false: the task is build-time tooling, not a runtime reference of the
+       core library. SkipGetTargetFrameworkProperties avoids TF negotiation against this multi-TFM
+       project (the task is single-TFM net8.0). -->
+  <ItemGroup>
+    <ProjectReference Include="..\MapBundle.Build\MapBundle.Build.csproj"
+                      ReferenceOutputAssembly="false"
+                      SetTargetFramework="TargetFramework=net8.0"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- The buildTransitive targets are auto-imported (filename == package id) into consumers. -->
+  <ItemGroup>
+    <None Include="buildTransitive\MapBundle.targets" Pack="true" PackagePath="buildTransitive\MapBundle.targets" Visible="false" />
+  </ItemGroup>
+
+  <!-- Pack the conversion task plus its runtime dependencies into tasks/net8.0. Added in a target
+       (not a static ItemGroup) because on a clean build the task's bin/ is empty at evaluation time;
+       the ProjectReference above guarantees it is populated by the time packing runs. -->
+  <PropertyGroup>
+    <_MapBundleTasksBin>..\MapBundle.Build\bin\$(Configuration)\net8.0\</_MapBundleTasksBin>
+  </PropertyGroup>
+  <Target Name="_MapBundleAddTaskFiles" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(_MapBundleTasksBin)MapBundle.Build.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
+      <None Include="$(_MapBundleTasksBin)GeoConvert.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
+      <None Include="$(_MapBundleTasksBin)System.IO.Hashing.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The build-time tooling shipped inside the MapBundle core package as an MSBuild task. It is NOT a
+    standalone NuGet package and NOT a runtime dependency: MapBundle.csproj builds it, then packs its
+    output (this assembly plus GeoConvert + System.IO.Hashing) into the core package's tasks/ folder,
+    next to buildTransitive/MapBundle.targets which loads the task. Targets net8.0 — the lowest the
+    library supports and the floor the .NET SDK's MSBuild host can load.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsPackageProject>false</IsPackageProject>
+    <!-- Pull GeoConvert + its System.IO.Hashing dependency into bin/ so MapBundle.csproj can pack
+         them next to the task (MSBuild tasks resolve no NuGet dependencies at run time). -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- An MSBuild task assembly is not a CLS-compliant public API surface. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets=runtime: the MSBuild host already provides these; bundling them would clash. -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="GeoConvert" PrivateAssets="all" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

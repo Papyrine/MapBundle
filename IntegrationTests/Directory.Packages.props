@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+    <PackageVersion Include="TUnit" Version="1.47.0" />
+    <!-- The locally-built data package (which pulls the MapBundle core transitively). -->
+    <PackageVersion Include="MapBundle.Monaco" Version="0.1.0" />
+  </ItemGroup>
+</Project>

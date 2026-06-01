@@ -20,6 +20,8 @@
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <ProjectReference Include="..\MapBundle\MapBundle.csproj" />
+    <!-- The build-time conversion engine, so its pure logic can be unit-tested directly. -->
+    <ProjectReference Include="..\MapBundle.Build\MapBundle.Build.csproj" />
   </ItemGroup>
 
 </Project>

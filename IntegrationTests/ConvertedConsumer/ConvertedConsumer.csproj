@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Opted-in consumer: convert the FlatGeobuf layers to GeoJSON at build time AND render a styled
+       preview PNG per region, all via GeoConvert in the ConvertMapData task. This opts out of the raw
+       .fgb copy — only the converted format and the image land in maps/Monaco. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MapBundleFormat>GeoJson</MapBundleFormat>
+    <MapBundleRenderImages>true</MapBundleRenderImages>
+    <MapBundleImageWidth>256</MapBundleImageWidth>
+    <MapBundleImageProjection>WebMercator</MapBundleImageProjection>
+    <MapBundleImageBackground>#eef</MapBundleImageBackground>
+    <MapBundleImageOcean>#cde</MapBundleImageOcean>
+    <MapBundleImageFill>#4682b480</MapBundleImageFill>
+    <MapBundleImageStrokeWidth>1</MapBundleImageStrokeWidth>
+    <MapBundleImageLabels>true</MapBundleImageLabels>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MapBundle.Monaco" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>

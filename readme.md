@@ -17,7 +17,7 @@ Install the core package plus the area required:
 dotnet add package MapBundle.Monaco
 ```
 
-A data package copies its FlatGeobuf files into a `maps/<Region>` folder beside the application at build time; the `MapBundle` core reads them from there.
+By default a data package copies its FlatGeobuf files into a `maps/<Region>` folder beside the application at build time; the `MapBundle` core reads them from there. When FlatGeobuf is not the desired format, the data can instead be [converted to another format and/or rendered to an image at build time](#build-time-format-conversion-and-images).
 
 
 ## Usage
@@ -37,6 +37,52 @@ var rivers = map.Rivers;          // rivers
 <!-- endSnippet -->
 
 Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coordinates are WGS84 longitude/latitude).
+
+
+## Build-time format conversion and images
+
+FlatGeobuf is the default on-disk format, but it is not always the right fit for a consumer. Setting a few MSBuild properties (in a `.csproj`, `Directory.Build.props`, or on the command line) converts a data package's layers — and/or renders a preview image — with [GeoConvert](https://github.com/SimonCropp/GeoConvert) at build time, instead of copying the raw `.fgb`. The output still lands in `maps/<Region>` next to the app.
+
+```xml
+<PropertyGroup>
+  <!-- Convert every layer to GeoJSON instead of copying the FlatGeobuf. -->
+  <MapBundleFormat>GeoJson</MapBundleFormat>
+  <!-- Also render a styled preview PNG per region (maps/<Region>/<Region>.png). -->
+  <MapBundleRenderImages>true</MapBundleRenderImages>
+</PropertyGroup>
+```
+
+> **Note:** conversion and image rendering run as an MSBuild task targeting `net8.0`, so they require building with the .NET SDK's MSBuild (`dotnet build` / `dotnet publish`, or Visual Studio using the .NET SDK build). The default raw-copy path needs no task and works under any host.
+
+### Data options
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `MapBundleFormat` | `FlatGeobuf` | The vector format to emit. Any GeoConvert format: `GeoJson`, `TopoJson`, `Kml`, `Kmz`, `Gpx`, `Wkt`, `Wkb`, `Csv`, `GeoParquet`, `Shapefile`, or `FlatGeobuf` (copies verbatim). Choosing anything other than `FlatGeobuf` opts out of the `.fgb` copy. |
+| `MapBundleRenderImages` | `false` | When `true`, render a stacked preview PNG per region (layers painted ocean → land → lakes → rivers → coastline → states → borders → cities). |
+| `MapBundleCopyData` | `true` | When `false`, no vector data is emitted at all — useful with `MapBundleRenderImages` for an images-only output. |
+
+### Image options
+
+Only used when `MapBundleRenderImages` is `true`; each is left at GeoConvert's own default when unset.
+
+| Property | Description |
+| --- | --- |
+| `MapBundleImageWidth` | Image width in pixels (default `2048`). |
+| `MapBundleImageHeight` | Image height in pixels; `0` derives it from the width and aspect ratio. |
+| `MapBundleImagePadding` | Empty margin around the content, in pixels. |
+| `MapBundleImageProjection` | `Auto`, `PlateCarree`, `WebMercator`, `Lambert`, or `Goode`. |
+| `MapBundleImageBackground` | Background color (`#RGB`, `#RRGGBB`, or `#RRGGBBAA`). |
+| `MapBundleImageOcean` | Ocean (world-envelope) fill color; unset skips the ocean pass. |
+| `MapBundleImageStroke` | Outline color for lines, polygon edges, and point markers. |
+| `MapBundleImageFill` | Polygon fill color (typically semi-transparent). |
+| `MapBundleImageStrokeWidth` | Stroke width in pixels. |
+| `MapBundleImagePointRadius` | Point marker radius in pixels. |
+| `MapBundleImageStrokeAutoScale` | `true` scales stroke/point size by an implicit-zoom factor. |
+| `MapBundleImageLabels` | `true` labels features that carry a `name` (borders, states, cities, rivers, lakes). |
+| `MapBundleImageLabelSize` | Cap height of label text in pixels. |
+| `MapBundleImageLabelColor` | Label text color. |
+| `MapBundleImageCompression` | PNG deflate level: `Optimal`, `Fastest`, `SmallestSize`, or `NoCompression`. |
 
 
 ## Layers

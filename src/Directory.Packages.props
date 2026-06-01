@@ -5,6 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="GeoConvert" Version="0.6.0" />
+    <!-- Build-task host API for MapBundle.Build. Runtime assets excluded — the MSBuild host supplies them. -->
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.13.9" />
     <!-- Test/builder only: simplify + geometry ops while preparing OSM data. Not a shipped dependency. -->
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />

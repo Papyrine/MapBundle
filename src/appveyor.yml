@@ -23,6 +23,14 @@ build_script:
     dotnet build src --configuration Release
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --report-trx --report-trx-filename unit.trx --results-directory TestResults --coverage --coverage-output-format cobertura --coverage-output unit.cobertura.xml
     pwsh ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
+    # MSBuild integration tests: build the Monaco data package (Slice does not wipe nugets/, so the
+    # core package from the build above stays in the local feed), then build two consumer projects
+    # against that feed and run them. Building the consumers IS the test — the RawConsumer expects the
+    # FlatGeobuf layers copied verbatim; the ConvertedConsumer expects GeoJSON + a rendered PNG.
+    src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Slice"
+    dotnet build IntegrationTests --configuration Release
+    dotnet run --project IntegrationTests/RawConsumer --configuration Release --no-build
+    dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
 test: off
 artifacts:

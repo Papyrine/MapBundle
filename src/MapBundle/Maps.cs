@@ -1,9 +1,11 @@
 namespace MapBundle;
 
 /// <summary>
-/// Entry point for loading bundled map data. The data packages (<c>MapBundle.World</c>,
+/// Entry point for loading bundled map data. By default the data packages (<c>MapBundle.World</c>,
 /// <c>MapBundle.[Region]</c>) copy their FlatGeobuf files into a <c>maps</c> folder next to the
-/// running application; <see cref="Open()"/> reads from there.
+/// running application; <see cref="Open()"/> reads from there. (Consumers can instead opt into
+/// build-time conversion to another format or image rendering via the <c>MapBundle*</c> MSBuild
+/// properties — see the readme — in which case those files are read with GeoConvert directly.)
 /// </summary>
 public static class Maps
 {
