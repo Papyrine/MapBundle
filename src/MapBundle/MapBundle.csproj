@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\MapBundle.Build\MapBundle.Build.csproj"
                       ReferenceOutputAssembly="false"
-                      SetTargetFramework="TargetFramework=net8.0"
                       PrivateAssets="all" />
   </ItemGroup>
 

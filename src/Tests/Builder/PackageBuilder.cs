@@ -394,7 +394,7 @@ public class PackageBuilder
     // Register this region's layer files as @(MapBundleData) (tagged with the region). The MapBundle
     // core package's buildTransitive/MapBundle.targets consumes them — copying the raw FlatGeobuf by
     // default, or converting / rendering when the consumer opts in via the MapBundle* properties.
-    static string Targets(Region region) =>
+    internal static string Targets(Region region) =>
         $"""
         <Project>
           <ItemGroup>
