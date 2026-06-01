@@ -57,7 +57,18 @@ foreach ($entry in $lineHits.GetEnumerator())
 }
 
 $total = $lineHits.Count
-$percent = if ($total -eq 0) { 100 } else { 100.0 * $covered / $total }
+
+# Zero shipped-source lines means the report is empty — not 100% coverage. This happens when the
+# build that produced it used deterministic source paths (ContinuousIntegrationBuild), whose rewritten
+# "/_/..." paths the coverage collector cannot map back to files. Fail loudly rather than silently
+# passing a meaningless 0/0.
+if ($total -eq 0)
+{
+    Write-Error "No shipped-source coverage found: 0 lines matched 'src/MapBundle/' in '$Report'. The report is empty — ensure the build that produced it ran with -p:DeterministicSourcePaths=false."
+    exit 1
+}
+
+$percent = 100.0 * $covered / $total
 "Line coverage (shipped source): {0}/{1} = {2:N2}%" -f $covered, $total, $percent
 
 if ($percent -lt $Threshold)
