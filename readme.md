@@ -352,4 +352,9 @@ Geometry simplification and EPSG:3857→4326 reprojection use [NetTopologySuite]
 
 ## License
 
-The `MapBundle` core library is MIT. The data packages contain OpenStreetMap data and are licensed under the [ODbL](https://opendatacommons.org/licenses/odbl/) — © OpenStreetMap contributors.
+The `MapBundle` core library is MIT.
+
+The data packages are licensed under the [ODbL](https://opendatacommons.org/licenses/odbl/), reflecting their OpenStreetMap-derived content:
+
+- **Borders** and **StatesProvinces** (via [country-levels](https://github.com/hyperknot/country-levels)) and **Land**, **Ocean** and **Coastline** (via [osmdata](https://osmdata.openstreetmap.de/)) are © OpenStreetMap contributors, ODbL.
+- **Cities**, **Rivers** and **Lakes** are made with [Natural Earth](https://www.naturalearthdata.com/) (public domain).

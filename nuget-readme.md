@@ -55,4 +55,4 @@ Full documentation, the complete per-region package list, data sources and licen
 
 ## License
 
-The `MapBundle` core library is MIT. The data packages contain OpenStreetMap data and are licensed under the [ODbL](https://opendatacommons.org/licenses/odbl/) — © OpenStreetMap contributors.
+The `MapBundle` core library is MIT. The data packages are licensed under the [ODbL](https://opendatacommons.org/licenses/odbl/): the boundary layers (via [country-levels](https://github.com/hyperknot/country-levels)) and the land/ocean/coastline layers (via [osmdata](https://osmdata.openstreetmap.de/)) are © OpenStreetMap contributors; cities, rivers and lakes are made with [Natural Earth](https://www.naturalearthdata.com/) (public domain).
