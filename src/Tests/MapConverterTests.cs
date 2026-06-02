@@ -217,6 +217,43 @@ public class MapConverterTests
     }
 
     [Test]
+    public async Task Settings_changes_invalidate_timestamp_current_outputs()
+    {
+        using var temp = new TempDirectory();
+        var source = WriteFgb(Path.Combine(temp, "src"), "rivers.fgb", lineGeoJson);
+        var output = Path.Combine(temp, "out");
+        var geojson = Path.Combine(output, "Monaco", "rivers.geojson");
+        ConvertRequest Request(double tolerance, string key) => new()
+        {
+            Sources = [new(source, "Monaco")],
+            OutputDirectory = output,
+            Format = GeoFormat.GeoJson,
+            SimplifyTolerance = tolerance,
+            SettingsKey = key,
+        };
+
+        // First build: no simplification, so all four vertices of the line survive.
+        MapConverter.Convert(Request(0, "no-simplify"));
+        await Assert.That(Vertices(geojson)).IsEqualTo(4);
+        var firstWrite = File.GetLastWriteTimeUtc(geojson);
+
+        // Same settings key + unchanged source: the existing output is left untouched (the timestamp
+        // fast-path still holds when the settings have not changed).
+        MapConverter.Convert(Request(0, "no-simplify"));
+        await Assert.That(File.GetLastWriteTimeUtc(geojson)).IsEqualTo(firstWrite);
+        await Assert.That(Vertices(geojson)).IsEqualTo(4);
+
+        // Turning on a tolerance changes the settings but NOT the source .fgb. Without settings-aware
+        // invalidation the timestamp-current output would be kept and the new tolerance silently
+        // ignored; with it, the line is re-simplified and sheds its near-collinear vertex.
+        MapConverter.Convert(Request(0.001, "simplify-0.001"));
+        await Assert.That(Vertices(geojson)).IsLessThan(4);
+    }
+
+    static int Vertices(string geojson) =>
+        ((LineString) GeoConverter.Read(geojson, GeoFormat.GeoJson).Single().Geometry!).Positions.Count;
+
+    [Test]
     public async Task Png_is_rejected_as_a_data_format()
     {
         using var temp = new TempDirectory();

@@ -73,6 +73,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
                 SimplifyMethod = simplifyMethod,
                 RenderImages = RenderImages,
                 Image = BuildImageOptions(),
+                SettingsKey = BuildSettingsKey(),
             };
 
             var outputs = MapConverter.Convert(request);
@@ -94,6 +95,21 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
             return false;
         }
     }
+
+    // A signature of every property that affects what Convert emits, built from the raw MSBuild strings
+    // so nothing is missed. MapConverter persists it beside the outputs and regenerates them whenever it
+    // changes — even when the source .fgb (and hence its timestamp) is untouched.
+    string BuildSettingsKey() =>
+        string.Join(
+            "\n",
+            Format,
+            CopyData ? "data" : "no-data",
+            SimplifyTolerance,
+            SimplifyMethod,
+            RenderImages ? "images" : "no-images",
+            ImageWidth, ImageHeight, ImagePadding, ImageProjection, ImageBackground, ImageOcean,
+            ImageStroke, ImageFill, ImageStrokeWidth, ImagePointRadius, ImageStrokeAutoScale,
+            ImageLabels, ImageLabelSize, ImageLabelColor, ImageCompression);
 
     ImageOptions BuildImageOptions()
     {

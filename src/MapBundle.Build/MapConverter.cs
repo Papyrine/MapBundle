@@ -30,6 +30,13 @@ public static class MapConverter
                 "Png is not a data format; render images with RenderImages instead of setting it as the Format.");
         }
 
+        // A change to the consumer's MapBundle* settings (e.g. a new SimplifyTolerance or image colour)
+        // does not touch the source .fgb, so the per-file timestamp check below would wrongly treat the
+        // existing (stale) outputs as up to date. SettingsChanged compares the request's settings
+        // signature against the one persisted last run and, when it differs, forces every file to be
+        // rewritten so the change actually takes effect.
+        var rewriteAll = SettingsChanged(request);
+
         var outputs = new List<Output>();
         foreach (var group in request.Sources.GroupBy(_ => _.Region, StringComparer.Ordinal))
         {
@@ -43,13 +50,13 @@ public static class MapConverter
             {
                 foreach (var source in layers)
                 {
-                    outputs.Add(EmitData(source, directory, region, request));
+                    outputs.Add(EmitData(source, directory, region, request, rewriteAll));
                 }
             }
 
             if (request.RenderImages)
             {
-                var image = RenderImage(layers, directory, region, request);
+                var image = RenderImage(layers, directory, region, request, rewriteAll);
                 if (image is { } produced)
                 {
                     outputs.Add(produced);
@@ -57,6 +64,7 @@ public static class MapConverter
             }
         }
 
+        WriteSettingsStamp(request);
         return outputs;
     }
 
@@ -64,7 +72,7 @@ public static class MapConverter
     // simplify is requested) or reads a .fgb, optionally simplifies it, and writes it in the requested
     // format. Up-to-date outputs are left untouched so incremental builds stay cheap, but are still
     // reported so the copy-to-output step always sees them.
-    static Output EmitData(string source, string directory, string region, ConvertRequest request)
+    static Output EmitData(string source, string directory, string region, ConvertRequest request, bool rewriteAll)
     {
         var format = request.Format;
         var isFgb = string.Equals(Path.GetExtension(source), ".fgb", StringComparison.OrdinalIgnoreCase);
@@ -75,7 +83,7 @@ public static class MapConverter
         var extension = convert ? Extension(format) : Path.GetExtension(source);
         var target = Path.Combine(directory, name + extension);
 
-        if (!UpToDate(target, source))
+        if (rewriteAll || !UpToDate(target, source))
         {
             if (convert || simplify)
             {
@@ -100,7 +108,7 @@ public static class MapConverter
 
     // Stacks the region's FlatGeobuf layers bottom-up (ocean first, cities last) and renders one PNG.
     // Returns null when the region carries no renderable layer (e.g. a meta-only group).
-    static Output? RenderImage(IReadOnlyList<string> layers, string directory, string region, ConvertRequest request)
+    static Output? RenderImage(IReadOnlyList<string> layers, string directory, string region, ConvertRequest request, bool rewriteAll)
     {
         var fgb = layers
             .Where(_ => string.Equals(Path.GetExtension(_), ".fgb", StringComparison.OrdinalIgnoreCase))
@@ -112,7 +120,7 @@ public static class MapConverter
         }
 
         var target = Path.Combine(directory, region + ".png");
-        if (!UpToDate(target, fgb))
+        if (rewriteAll || !UpToDate(target, fgb))
         {
             var collections = fgb
                 .Select(_ =>
@@ -157,6 +165,36 @@ public static class MapConverter
     static bool UpToDate(string target, IReadOnlyList<string> sources) =>
         File.Exists(target) &&
         sources.All(_ => File.GetLastWriteTimeUtc(_) <= File.GetLastWriteTimeUtc(target));
+
+    // The settings signature from the last run lives in this file at the root of the output directory;
+    // regions live in subfolders, so it never collides with one.
+    const string settingsStampName = ".mapbundle-settings";
+
+    // True when a settings signature is supplied (the MSBuild task always supplies one) and it differs
+    // from the one persisted by the previous run — i.e. the consumer changed a MapBundle* property, so
+    // every output must be regenerated. A null signature (direct engine callers) keeps the pure
+    // timestamp behaviour, as does a first run whose stamp does not exist yet (nothing is built either).
+    static bool SettingsChanged(ConvertRequest request)
+    {
+        if (request.SettingsKey is not { } key)
+        {
+            return false;
+        }
+
+        var stamp = Path.Combine(request.OutputDirectory, settingsStampName);
+        return !File.Exists(stamp) || File.ReadAllText(stamp) != key;
+    }
+
+    static void WriteSettingsStamp(ConvertRequest request)
+    {
+        if (request.SettingsKey is not { } key)
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(request.OutputDirectory);
+        File.WriteAllText(Path.Combine(request.OutputDirectory, settingsStampName), key);
+    }
 
     /// <summary>Parses a <see cref="GeoFormat"/> name (case-insensitive), as set via <c>MapBundleFormat</c>.</summary>
     public static GeoFormat ParseFormat(string value)

@@ -46,4 +46,40 @@ public class ConvertedConsumerTests
     {
         await Assert.That(Directory.GetFiles(RegionDirectory, "*.verified.txt")).IsEmpty();
     }
+
+    // The opt-in conversion path is settings-aware: the task writes a signature of the consumer's
+    // MapBundle* properties beside the build intermediates, so editing one (e.g. the SimplifyTolerance)
+    // regenerates maps/Monaco even when the source .fgb is unchanged. Confirm the real build produced
+    // that stamp and that it captured this project's settings. (The regeneration behaviour itself is
+    // unit-tested by MapConverterTests.Settings_changes_invalidate_timestamp_current_outputs.)
+    [Test]
+    public async Task Conversion_is_settings_stamped()
+    {
+        var stamp = FindIntermediateFile(".mapbundle-settings");
+        await Assert.That(stamp).IsNotNull();
+        var settings = await File.ReadAllTextAsync(stamp!);
+        await Assert.That(settings).Contains("GeoJson");
+        await Assert.That(settings).Contains("0.0001");
+    }
+
+    // Walk up from the test assembly to the project, then search its obj/ for the build intermediate
+    // (Config/Tfm vary by how it was built, so we don't hard-code obj/<Config>/<Tfm>/mapbundle).
+    static string? FindIntermediateFile(string name)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null &&
+               !File.Exists(Path.Combine(directory.FullName, "ConvertedConsumer.csproj")))
+        {
+            directory = directory.Parent;
+        }
+
+        var obj = directory is null ? null : Path.Combine(directory.FullName, "obj");
+        if (obj is null || !Directory.Exists(obj))
+        {
+            return null;
+        }
+
+        return Directory.EnumerateFiles(obj, "*", SearchOption.AllDirectories)
+            .FirstOrDefault(_ => Path.GetFileName(_) == name);
+    }
 }

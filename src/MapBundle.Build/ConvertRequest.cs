@@ -35,6 +35,15 @@ public sealed class ConvertRequest
 
     /// <summary>The image render toggles (only consulted when <see cref="RenderImages"/> is true).</summary>
     public ImageOptions Image { get; init; } = new();
+
+    /// <summary>
+    /// A signature of the consumer's <c>MapBundle*</c> settings, persisted beside the outputs so that
+    /// changing a setting (e.g. <see cref="SimplifyTolerance"/>, <see cref="SimplifyMethod"/> or an
+    /// image colour) regenerates them even though the source <c>.fgb</c> is unchanged and would
+    /// otherwise look up to date. <c>null</c> (the default, for direct engine callers) keeps the pure
+    /// source-vs-output timestamp behaviour; the MSBuild <c>ConvertMapData</c> task always supplies one.
+    /// </summary>
+    public string? SettingsKey { get; init; }
 }
 
 /// <summary>
