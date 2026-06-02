@@ -7,6 +7,8 @@ artifacts/
 
 ## Locally built nuget packages
 nugets/
+## Generated map data packages (builder output)
+data-nugets/
 
 ## OpenStreetMap source download/extract cache (builder)
 .cache/

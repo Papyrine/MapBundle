@@ -49,7 +49,8 @@ Run from the repo root.
   `Builder/`) is excluded.
 - Build the data packages: run the explicit generator test:
   `src/Tests/bin/Debug/net10.0/Tests --treenode-filter "/*/*/PackageBuilder/Generate"`.
-  Output `nugets/`, cache `.cache`; downloads are cached and reused. `Generate` is `[Explicit]`, so normal
+  Output `data-nugets/` (kept separate from the core/integration `nugets/`, which a full build would
+  otherwise wipe), cache `.cache`; downloads are cached and reused. `Generate` is `[Explicit]`, so normal
   test runs skip it and stay fast. The full build writes many packages (continents + ~200 countries +
   World), but every source (Natural Earth, country-levels, osmdata) is downloaded once globally.
 - Validate one region end-to-end (the vertical slice) without building everything: set

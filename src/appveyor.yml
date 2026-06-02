@@ -23,8 +23,8 @@ build_script:
     # DeterministicSourcePaths=false: ProjectDefaults turns on ContinuousIntegrationBuild (hence
     # deterministic source paths) on AppVeyor, but Microsoft's coverage collector cannot map those
     # rewritten "/_/..." paths back to files and emits an EMPTY report — which the gate below would
-    # read as a meaningless 0/0 = 100%. The core package is not a published artifact of this pipeline
-    # (the final data build wipes nugets/), so opting out of deterministic paths here is free.
+    # read as a meaningless 0/0 = 100%. The core package is not a published artifact of this pipeline,
+    # so opting out of deterministic paths here is free.
     dotnet build src --configuration Release -p:DeterministicSourcePaths=false
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --report-trx --report-trx-filename unit.trx --results-directory TestResults --coverage --coverage-output-format cobertura --coverage-output unit.cobertura.xml
     pwsh ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
@@ -41,6 +41,7 @@ build_script:
 test: off
 artifacts:
 - path: nugets/*.nupkg
+- path: data-nugets/*.nupkg
 - path: TestResults/*.cobertura.xml
 on_finish:
 - sh: |

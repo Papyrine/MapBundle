@@ -48,7 +48,10 @@ public class PackageBuilder
         "© OpenStreetMap contributors, ODbL (boundaries via country-levels, land/ocean via osmdata.openstreetmap.de); cities, rivers and lakes made with Natural Earth (public domain).";
 
     static readonly string root = Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "../"));
-    static string OutputDirectory => Path.Combine(root, "nugets");
+    // The data packages get their own directory, kept separate from nugets/ (which holds the core
+    // MapBundle package and the integration fixture feed). A full build wipes its whole output
+    // directory; pointing it here means that wipe can't take out the core package alongside it.
+    static string OutputDirectory => Path.Combine(root, "data-nugets");
     static string MapsDirectory => Path.Combine(root, "maps");
     static string CacheDirectory => Path.Combine(root, ".cache");
     static string IconPath => Path.Combine(root, "src", "icon.png");
@@ -67,8 +70,8 @@ public class PackageBuilder
 
     static async Task BuildAsync(Func<Region, bool> selected, bool writeIndex)
     {
-        // Full builds (writeIndex==true) replace every region in one pass, so wipe nugets/ first to
-        // avoid stale packages from removed/renamed regions or earlier skipped-on-failure regions
+        // Full builds (writeIndex==true) replace every region in one pass, so wipe data-nugets/ first
+        // to avoid stale packages from removed/renamed regions or earlier skipped-on-failure regions
         // lingering. Slice builds touch only a subset, so leave the rest in place.
         if (writeIndex)
         {
@@ -114,7 +117,7 @@ public class PackageBuilder
                 var (directory, counts) = BuildRegion(region, context, staging);
                 // Don't ship empty stubs: a region with no layer data (typically a Geofabrik continent
                 // child that carries no ISO codes — Alps, Russian federal districts, US states…) has
-                // nothing useful to package. Skip it; it won't appear in nugets/ or the bundles index.
+                // nothing useful to package. Skip it; it won't appear in data-nugets/ or the bundles index.
                 if (counts.Count == 0)
                 {
                     Console.WriteLine($"  skip   {region.Id} (no layer data, {watch.Elapsed.TotalSeconds:F1}s)");
@@ -252,7 +255,7 @@ public class PackageBuilder
             return;
         }
 
-        // Per-layer preview PNG dropped next to the .nupkg under nugets/ — same region bounds across
+        // Per-layer preview PNG dropped next to the .nupkg under data-nugets/ — same region bounds across
         // every layer so the images overlay cleanly when viewed side-by-side. For StatesProvinces we
         // render only the topmost admin level per country: country-levels' iso2 set mixes levels for
         // some countries (Bangladesh ships admin_level 4 divisions and admin_level 6 districts that
