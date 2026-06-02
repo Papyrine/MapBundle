@@ -51,7 +51,7 @@ public class IntegrationFixture
             region.PackageId,
             version: "0.1.0",
             description: "Monaco map data (integration-test fixture).",
-            projectUrl: "https://github.com/SimonCropp/MapBundle",
+            projectUrl: "https://github.com/Papyrine/MapBundle",
             tags: "map maps geo",
             license: "ODbL-1.0",
             dependencyId: "MapBundle",

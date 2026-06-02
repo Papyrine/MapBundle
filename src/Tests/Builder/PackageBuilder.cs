@@ -41,7 +41,7 @@ public class PackageBuilder
     }
 
     const string version = "0.1.0";
-    const string projectUrl = "https://github.com/SimonCropp/MapBundle";
+    const string projectUrl = "https://github.com/Papyrine/MapBundle";
     const string tags = "map maps geo geospatial openstreetmap osm flatgeobuf borders cities rivers offline";
 
     const string attribution =
@@ -55,7 +55,9 @@ public class PackageBuilder
     static string MapsDirectory => Path.Combine(root, "maps");
     static string CacheDirectory => Path.Combine(root, ".cache");
     static string IconPath => Path.Combine(root, "src", "icon.png");
-    static string ReadmePath => Path.Combine(root, "readme.md");
+    // The succinct NuGet readme (not the full GitHub readme.md, which carries the entire ~200-row
+    // per-region bundle table). Packed at the package root as readme.md (see NuPkgWriter).
+    static string ReadmePath => Path.Combine(root, "nuget-readme.md");
 
     /// <summary>Builds and packs every region package (continents, countries and the merged World).</summary>
     public static Task RunAsync() =>
