@@ -40,7 +40,7 @@ public class PackageBuilder
         return [.. value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
     }
 
-    const string version = "0.1.0";
+    static readonly string version = CoreVersion.Value;
     const string projectUrl = "https://github.com/Papyrine/MapBundle";
     const string tags = "map maps geo geospatial openstreetmap osm flatgeobuf borders cities rivers offline";
 

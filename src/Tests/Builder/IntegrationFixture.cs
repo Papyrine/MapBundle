@@ -45,17 +45,18 @@ public class IntegrationFixture
 
         files[$"buildTransitive/{region.PackageId}.targets"] = Encoding.UTF8.GetBytes(PackageBuilder.Targets(region));
 
-        var package = Path.Combine(nugets, $"{region.PackageId}.0.1.0.nupkg");
+        var version = CoreVersion.Value;
+        var package = Path.Combine(nugets, $"{region.PackageId}.{version}.nupkg");
         NuPkgWriter.Write(
             package,
             region.PackageId,
-            version: "0.1.0",
+            version,
             description: "Monaco map data (integration-test fixture).",
             projectUrl: "https://github.com/Papyrine/MapBundle",
             tags: "map maps geo",
             license: "ODbL-1.0",
             dependencyId: "MapBundle",
-            dependencyVersion: "0.1.0",
+            dependencyVersion: version,
             files);
 
         await Assert.That(File.Exists(package)).IsTrue();
