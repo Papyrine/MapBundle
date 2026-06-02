@@ -95,7 +95,7 @@ public static class NuPkgWriter
             <license type="expression">{license}</license>{icon}{readme}
             <tags>{Escape(tags)}</tags>
             <dependencies>
-              <group>
+              <group targetFramework="net8.0">
                 <dependency id="{dependencyId}" version="{dependencyVersion}" />
               </group>
             </dependencies>

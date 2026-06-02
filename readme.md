@@ -128,9 +128,9 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 
 | Bundle | NuGet | Data | Layers | Features |
 | --- | --: | --: | --: | --: |
-| [MapBundle.Afghanistan](https://www.nuget.org/packages/MapBundle.Afghanistan) | 121 KB | 282 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 81 |
+| [MapBundle.Afghanistan](https://www.nuget.org/packages/MapBundle.Afghanistan) | 120 KB | 282 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 81 |
 | [MapBundle.Albania](https://www.nuget.org/packages/MapBundle.Albania) | 71 KB | 100 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 69 |
-| [MapBundle.Algeria](https://www.nuget.org/packages/MapBundle.Algeria) | 265 KB | 426 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 203 |
+| [MapBundle.Algeria](https://www.nuget.org/packages/MapBundle.Algeria) | 266 KB | 426 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 203 |
 | [MapBundle.AmericanOceania](https://www.nuget.org/packages/MapBundle.AmericanOceania) | 135 KB | 213 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 193 |
 | [MapBundle.Andorra](https://www.nuget.org/packages/MapBundle.Andorra) | 26 KB | 7 KB | 🗺️ 🏙️ 🏛️ | 9 |
 | [MapBundle.Angola](https://www.nuget.org/packages/MapBundle.Angola) | 156 KB | 337 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 101 |
@@ -140,29 +140,29 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Austria](https://www.nuget.org/packages/MapBundle.Austria) | 64 KB | 123 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 29 |
 | [MapBundle.Azerbaijan](https://www.nuget.org/packages/MapBundle.Azerbaijan) | 108 KB | 200 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 137 |
 | [MapBundle.Bahamas](https://www.nuget.org/packages/MapBundle.Bahamas) | 751 KB | 1.2 MB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 1,825 |
-| [MapBundle.Bangladesh](https://www.nuget.org/packages/MapBundle.Bangladesh) | 354 KB | 660 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 635 |
-| [MapBundle.Belarus](https://www.nuget.org/packages/MapBundle.Belarus) | 74 KB | 150 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 33 |
+| [MapBundle.Bangladesh](https://www.nuget.org/packages/MapBundle.Bangladesh) | 353 KB | 660 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 635 |
+| [MapBundle.Belarus](https://www.nuget.org/packages/MapBundle.Belarus) | 75 KB | 150 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 33 |
 | [MapBundle.Belgium](https://www.nuget.org/packages/MapBundle.Belgium) | 90 KB | 127 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 43 |
 | [MapBundle.Belize](https://www.nuget.org/packages/MapBundle.Belize) | 107 KB | 154 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 161 |
 | [MapBundle.Benin](https://www.nuget.org/packages/MapBundle.Benin) | 50 KB | 76 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 31 |
 | [MapBundle.Bhutan](https://www.nuget.org/packages/MapBundle.Bhutan) | 40 KB | 51 KB | 🗺️ 🏙️ 〰️ 🏛️ | 26 |
-| [MapBundle.Bolivia](https://www.nuget.org/packages/MapBundle.Bolivia) | 121 KB | 283 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 103 |
+| [MapBundle.Bolivia](https://www.nuget.org/packages/MapBundle.Bolivia) | 122 KB | 283 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 103 |
 | [MapBundle.BosniaHerzegovina](https://www.nuget.org/packages/MapBundle.BosniaHerzegovina) | 140 KB | 196 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 183 |
 | [MapBundle.Botswana](https://www.nuget.org/packages/MapBundle.Botswana) | 71 KB | 136 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 53 |
 | [MapBundle.Brazil](https://www.nuget.org/packages/MapBundle.Brazil) | 1.4 MB | 2.6 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 1,601 |
 | [MapBundle.Bulgaria](https://www.nuget.org/packages/MapBundle.Bulgaria) | 83 KB | 145 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 60 |
-| [MapBundle.BurkinaFaso](https://www.nuget.org/packages/MapBundle.BurkinaFaso) | 88 KB | 215 KB | 🗺️ 🏙️ 〰️ 🏛️ | 99 |
+| [MapBundle.BurkinaFaso](https://www.nuget.org/packages/MapBundle.BurkinaFaso) | 90 KB | 215 KB | 🗺️ 🏙️ 〰️ 🏛️ | 99 |
 | [MapBundle.Burundi](https://www.nuget.org/packages/MapBundle.Burundi) | 49 KB | 80 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 39 |
 | [MapBundle.Cambodia](https://www.nuget.org/packages/MapBundle.Cambodia) | 128 KB | 228 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 179 |
 | [MapBundle.Cameroon](https://www.nuget.org/packages/MapBundle.Cameroon) | 126 KB | 267 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 87 |
 | [MapBundle.Canada](https://www.nuget.org/packages/MapBundle.Canada) | 23.9 MB | 37.2 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 43,814 |
 | [MapBundle.CapeVerde](https://www.nuget.org/packages/MapBundle.CapeVerde) | 69 KB | 84 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 61 |
-| [MapBundle.CentralAfricanRepublic](https://www.nuget.org/packages/MapBundle.CentralAfricanRepublic) | 102 KB | 239 KB | 🗺️ 🏙️ 〰️ 🏛️ | 59 |
+| [MapBundle.CentralAfricanRepublic](https://www.nuget.org/packages/MapBundle.CentralAfricanRepublic) | 103 KB | 239 KB | 🗺️ 🏙️ 〰️ 🏛️ | 59 |
 | [MapBundle.Chad](https://www.nuget.org/packages/MapBundle.Chad) | 75 KB | 149 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 55 |
 | [MapBundle.Chile](https://www.nuget.org/packages/MapBundle.Chile) | 4.4 MB | 7.7 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 7,276 |
 | [MapBundle.China](https://www.nuget.org/packages/MapBundle.China) | 4.9 MB | 7.8 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 8,847 |
 | [MapBundle.Colombia](https://www.nuget.org/packages/MapBundle.Colombia) | 703 KB | 1.1 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 760 |
-| [MapBundle.CongoDemocraticRepublic](https://www.nuget.org/packages/MapBundle.CongoDemocraticRepublic) | 287 KB | 711 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 201 |
+| [MapBundle.CongoDemocraticRepublic](https://www.nuget.org/packages/MapBundle.CongoDemocraticRepublic) | 289 KB | 711 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 201 |
 | [MapBundle.CongoBrazzaville](https://www.nuget.org/packages/MapBundle.CongoBrazzaville) | 91 KB | 188 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 61 |
 | [MapBundle.CookIslands](https://www.nuget.org/packages/MapBundle.CookIslands) | 39 KB | 34 KB | 🗺️ 🏙️ 🏖️ 🟩 🌊 | 92 |
 | [MapBundle.CostaRica](https://www.nuget.org/packages/MapBundle.CostaRica) | 109 KB | 155 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 80 |
@@ -189,13 +189,13 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Georgia](https://www.nuget.org/packages/MapBundle.Georgia) | 63 KB | 100 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 29 |
 | [MapBundle.Germany](https://www.nuget.org/packages/MapBundle.Germany) | 393 KB | 655 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 445 |
 | [MapBundle.Ghana](https://www.nuget.org/packages/MapBundle.Ghana) | 92 KB | 155 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 45 |
-| [MapBundle.Greece](https://www.nuget.org/packages/MapBundle.Greece) | 926 KB | 1.5 MB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 961 |
+| [MapBundle.Greece](https://www.nuget.org/packages/MapBundle.Greece) | 924 KB | 1.5 MB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 961 |
 | [MapBundle.Greenland](https://www.nuget.org/packages/MapBundle.Greenland) | 9.1 MB | 13.4 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 17,456 |
 | [MapBundle.Guatemala](https://www.nuget.org/packages/MapBundle.Guatemala) | 74 KB | 104 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 85 |
-| [MapBundle.Guinea](https://www.nuget.org/packages/MapBundle.Guinea) | 201 KB | 385 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 242 |
+| [MapBundle.Guinea](https://www.nuget.org/packages/MapBundle.Guinea) | 200 KB | 385 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 242 |
 | [MapBundle.GuineaBissau](https://www.nuget.org/packages/MapBundle.GuineaBissau) | 182 KB | 273 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 199 |
 | [MapBundle.Guyana](https://www.nuget.org/packages/MapBundle.Guyana) | 75 KB | 139 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 35 |
-| [MapBundle.HaitiAndDomrep](https://www.nuget.org/packages/MapBundle.HaitiAndDomrep) | 197 KB | 402 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 145 |
+| [MapBundle.HaitiAndDomrep](https://www.nuget.org/packages/MapBundle.HaitiAndDomrep) | 196 KB | 402 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 145 |
 | [MapBundle.Honduras](https://www.nuget.org/packages/MapBundle.Honduras) | 228 KB | 338 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 267 |
 | [MapBundle.Hungary](https://www.nuget.org/packages/MapBundle.Hungary) | 62 KB | 114 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 58 |
 | [MapBundle.Iceland](https://www.nuget.org/packages/MapBundle.Iceland) | 466 KB | 692 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 516 |
@@ -211,7 +211,7 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Japan](https://www.nuget.org/packages/MapBundle.Japan) | 2.1 MB | 3.3 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 2,956 |
 | [MapBundle.Jordan](https://www.nuget.org/packages/MapBundle.Jordan) | 44 KB | 47 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 32 |
 | [MapBundle.Kazakhstan](https://www.nuget.org/packages/MapBundle.Kazakhstan) | 384 KB | 703 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 489 |
-| [MapBundle.Kenya](https://www.nuget.org/packages/MapBundle.Kenya) | 150 KB | 286 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 171 |
+| [MapBundle.Kenya](https://www.nuget.org/packages/MapBundle.Kenya) | 149 KB | 286 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 171 |
 | [MapBundle.Kiribati](https://www.nuget.org/packages/MapBundle.Kiribati) | 4.7 MB | 6.2 MB | 🗺️ 🏙️ 〰️ 💧 🏖️ 🟩 🌊 | 10,347 |
 | [MapBundle.Kyrgyzstan](https://www.nuget.org/packages/MapBundle.Kyrgyzstan) | 82 KB | 167 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 35 |
 | [MapBundle.Laos](https://www.nuget.org/packages/MapBundle.Laos) | 201 KB | 378 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 288 |
@@ -221,7 +221,7 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Liberia](https://www.nuget.org/packages/MapBundle.Liberia) | 67 KB | 119 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 39 |
 | [MapBundle.Libya](https://www.nuget.org/packages/MapBundle.Libya) | 102 KB | 164 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 73 |
 | [MapBundle.Liechtenstein](https://www.nuget.org/packages/MapBundle.Liechtenstein) | 26 KB | 8 KB | 🗺️ 🏙️ 〰️ 🏛️ | 14 |
-| [MapBundle.Lithuania](https://www.nuget.org/packages/MapBundle.Lithuania) | 71 KB | 140 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 88 |
+| [MapBundle.Lithuania](https://www.nuget.org/packages/MapBundle.Lithuania) | 72 KB | 140 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 88 |
 | [MapBundle.Luxembourg](https://www.nuget.org/packages/MapBundle.Luxembourg) | 31 KB | 20 KB | 🗺️ 🏙️ 〰️ 🏛️ | 17 |
 | [MapBundle.Macedonia](https://www.nuget.org/packages/MapBundle.Macedonia) | 45 KB | 70 KB | 🗺️ 🏙️ 〰️ 🏛️ | 78 |
 | [MapBundle.Madagascar](https://www.nuget.org/packages/MapBundle.Madagascar) | 317 KB | 592 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 325 |
@@ -237,10 +237,10 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Micronesia](https://www.nuget.org/packages/MapBundle.Micronesia) | 73 KB | 103 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 229 |
 | [MapBundle.Moldova](https://www.nuget.org/packages/MapBundle.Moldova) | 56 KB | 93 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 49 |
 | [MapBundle.Monaco](https://www.nuget.org/packages/MapBundle.Monaco) | 25 KB | 2 KB | 🗺️ 🏙️ 🏖️ 🟩 🌊 | 5 |
-| [MapBundle.Mongolia](https://www.nuget.org/packages/MapBundle.Mongolia) | 127 KB | 264 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 93 |
+| [MapBundle.Mongolia](https://www.nuget.org/packages/MapBundle.Mongolia) | 126 KB | 264 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 93 |
 | [MapBundle.Montenegro](https://www.nuget.org/packages/MapBundle.Montenegro) | 55 KB | 71 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 36 |
 | [MapBundle.Morocco](https://www.nuget.org/packages/MapBundle.Morocco) | 197 KB | 322 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 137 |
-| [MapBundle.Mozambique](https://www.nuget.org/packages/MapBundle.Mozambique) | 226 KB | 420 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 194 |
+| [MapBundle.Mozambique](https://www.nuget.org/packages/MapBundle.Mozambique) | 225 KB | 420 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 194 |
 | [MapBundle.Myanmar](https://www.nuget.org/packages/MapBundle.Myanmar) | 843 KB | 1.7 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 1,621 |
 | [MapBundle.Namibia](https://www.nuget.org/packages/MapBundle.Namibia) | 106 KB | 198 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 73 |
 | [MapBundle.Nauru](https://www.nuget.org/packages/MapBundle.Nauru) | 26 KB | 5 KB | 🗺️ 🏛️ 🏖️ 🟩 🌊 | 18 |
@@ -254,12 +254,12 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Niue](https://www.nuget.org/packages/MapBundle.Niue) | 26 KB | 4 KB | 🗺️ 🏖️ 🟩 🌊 | 4 |
 | [MapBundle.NorthKorea](https://www.nuget.org/packages/MapBundle.NorthKorea) | 227 KB | 372 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 210 |
 | [MapBundle.Norway](https://www.nuget.org/packages/MapBundle.Norway) | 13.7 MB | 19.5 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 30,849 |
-| [MapBundle.Pakistan](https://www.nuget.org/packages/MapBundle.Pakistan) | 251 KB | 509 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 160 |
+| [MapBundle.Pakistan](https://www.nuget.org/packages/MapBundle.Pakistan) | 250 KB | 509 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 160 |
 | [MapBundle.Palau](https://www.nuget.org/packages/MapBundle.Palau) | 57 KB | 69 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 94 |
 | [MapBundle.Panama](https://www.nuget.org/packages/MapBundle.Panama) | 275 KB | 455 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 261 |
 | [MapBundle.PapuaNewGuinea](https://www.nuget.org/packages/MapBundle.PapuaNewGuinea) | 1.0 MB | 1.8 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 2,088 |
 | [MapBundle.Paraguay](https://www.nuget.org/packages/MapBundle.Paraguay) | 85 KB | 174 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 68 |
-| [MapBundle.Peru](https://www.nuget.org/packages/MapBundle.Peru) | 401 KB | 765 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 406 |
+| [MapBundle.Peru](https://www.nuget.org/packages/MapBundle.Peru) | 400 KB | 765 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 406 |
 | [MapBundle.Philippines](https://www.nuget.org/packages/MapBundle.Philippines) | 1.4 MB | 2.5 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 2,188 |
 | [MapBundle.PitcairnIslands](https://www.nuget.org/packages/MapBundle.PitcairnIslands) | 82 KB | 140 KB | 🗺️ 🏙️ 🏖️ 🟩 🌊 | 319 |
 | [MapBundle.Poland](https://www.nuget.org/packages/MapBundle.Poland) | 147 KB | 264 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 157 |
@@ -281,7 +281,7 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.SouthAfrica](https://www.nuget.org/packages/MapBundle.SouthAfrica) | 245 KB | 476 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 218 |
 | [MapBundle.SouthKorea](https://www.nuget.org/packages/MapBundle.SouthKorea) | 759 KB | 1.2 MB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 1,292 |
 | [MapBundle.SouthSudan](https://www.nuget.org/packages/MapBundle.SouthSudan) | 85 KB | 181 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 46 |
-| [MapBundle.Spain](https://www.nuget.org/packages/MapBundle.Spain) | 657 KB | 1.1 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 354 |
+| [MapBundle.Spain](https://www.nuget.org/packages/MapBundle.Spain) | 655 KB | 1.1 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 354 |
 | [MapBundle.SriLanka](https://www.nuget.org/packages/MapBundle.SriLanka) | 101 KB | 170 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 126 |
 | [MapBundle.Sudan](https://www.nuget.org/packages/MapBundle.Sudan) | 133 KB | 252 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 121 |
 | [MapBundle.Suriname](https://www.nuget.org/packages/MapBundle.Suriname) | 59 KB | 83 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 33 |
@@ -291,15 +291,15 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.Syria](https://www.nuget.org/packages/MapBundle.Syria) | 70 KB | 101 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 51 |
 | [MapBundle.Taiwan](https://www.nuget.org/packages/MapBundle.Taiwan) | 227 KB | 310 KB | 🗺️ 🏙️ 〰️ 🏛️ 🏖️ 🟩 🌊 | 335 |
 | [MapBundle.Tajikistan](https://www.nuget.org/packages/MapBundle.Tajikistan) | 74 KB | 144 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 25 |
-| [MapBundle.Tanzania](https://www.nuget.org/packages/MapBundle.Tanzania) | 273 KB | 596 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 249 |
-| [MapBundle.Thailand](https://www.nuget.org/packages/MapBundle.Thailand) | 609 KB | 1.1 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 1,347 |
+| [MapBundle.Tanzania](https://www.nuget.org/packages/MapBundle.Tanzania) | 274 KB | 596 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 249 |
+| [MapBundle.Thailand](https://www.nuget.org/packages/MapBundle.Thailand) | 607 KB | 1.1 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 1,347 |
 | [MapBundle.Togo](https://www.nuget.org/packages/MapBundle.Togo) | 57 KB | 80 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 21 |
 | [MapBundle.Tokelau](https://www.nuget.org/packages/MapBundle.Tokelau) | 135 KB | 213 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 193 |
 | [MapBundle.Tonga](https://www.nuget.org/packages/MapBundle.Tonga) | 59 KB | 73 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 146 |
 | [MapBundle.Tunisia](https://www.nuget.org/packages/MapBundle.Tunisia) | 131 KB | 220 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 108 |
 | [MapBundle.Turkey](https://www.nuget.org/packages/MapBundle.Turkey) | 589 KB | 1.0 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 634 |
 | [MapBundle.Turkmenistan](https://www.nuget.org/packages/MapBundle.Turkmenistan) | 110 KB | 171 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 60 |
-| [MapBundle.Tuvalu](https://www.nuget.org/packages/MapBundle.Tuvalu) | 34 KB | 24 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 48 |
+| [MapBundle.Tuvalu](https://www.nuget.org/packages/MapBundle.Tuvalu) | 35 KB | 24 KB | 🗺️ 🏙️ 🏛️ 🏖️ 🟩 🌊 | 48 |
 | [MapBundle.Uganda](https://www.nuget.org/packages/MapBundle.Uganda) | 136 KB | 337 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ | 175 |
 | [MapBundle.Ukraine](https://www.nuget.org/packages/MapBundle.Ukraine) | 297 KB | 545 KB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 229 |
 | [MapBundle.UnitedKingdom](https://www.nuget.org/packages/MapBundle.UnitedKingdom) | 2.0 MB | 4.0 MB | 🗺️ 🏙️ 〰️ 💧 🏛️ 🏖️ 🟩 🌊 | 1,677 |
