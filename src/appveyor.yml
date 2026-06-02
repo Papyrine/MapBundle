@@ -23,8 +23,9 @@ build_script:
     # DeterministicSourcePaths=false: ProjectDefaults turns on ContinuousIntegrationBuild (hence
     # deterministic source paths) on AppVeyor, but Microsoft's coverage collector cannot map those
     # rewritten "/_/..." paths back to files and emits an EMPTY report — which the gate below would
-    # read as a meaningless 0/0 = 100%. The core package is not a published artifact of this pipeline,
-    # so opting out of deterministic paths here is free.
+    # read as a meaningless 0/0 = 100%. So this build opts out: its core package (in nugets/) has
+    # degraded source paths and is used only as the integration-test feed, NOT published — a separate
+    # deterministic pack step at the end produces the publish-grade core in core-nuget/.
     dotnet build src --configuration Release -p:DeterministicSourcePaths=false
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --report-trx --report-trx-filename unit.trx --results-directory TestResults --coverage --coverage-output-format cobertura --coverage-output unit.cobertura.xml
     pwsh ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
@@ -38,9 +39,14 @@ build_script:
     dotnet run --project IntegrationTests/RawConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
+    # Publish-grade core: pack with deterministic source paths (no opt-out, so the CI default
+    # ContinuousIntegrationBuild stays on) into its own core-nuget/ folder, kept apart from the
+    # degraded-paths core and the Monaco fixture in nugets/. -o overrides ProjectDefaults'
+    # PackageOutputPath (which would otherwise drop it back into nugets/).
+    dotnet pack src/MapBundle/MapBundle.csproj --configuration Release -o core-nuget
 test: off
 artifacts:
-- path: nugets/*.nupkg
+- path: core-nuget/*.nupkg
 - path: data-nugets/*.nupkg
 - path: TestResults/*.cobertura.xml
 on_finish:

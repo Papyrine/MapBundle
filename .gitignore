@@ -9,6 +9,8 @@ artifacts/
 nugets/
 ## Generated map data packages (builder output)
 data-nugets/
+## Publish-grade core package (deterministic pack step)
+core-nuget/
 
 ## OpenStreetMap source download/extract cache (builder)
 .cache/
