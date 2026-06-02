@@ -47,7 +47,10 @@
           Condition="'$(MapBundleCopyData)' == 'true' and '$(_MapBundleNeedsTask)' != 'true' and '@(MapBundleData)' != ''">
     <ItemGroup>
       <None Include="@(MapBundleData)">
-        <Link>maps\%(Region)\%(Filename)%(Extension)</Link>
+        <!-- Qualify every metadata reference to MapBundleData so the batch is over MapBundleData, not
+             the consumer's global None list (an unqualified %(Region) batches over None and fails for
+             any None item lacking Region metadata, e.g. Verify *.verified.* snapshots — MSB4096). -->
+        <Link>maps\%(MapBundleData.Region)\%(MapBundleData.Filename)%(MapBundleData.Extension)</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Visible>false</Visible>
       </None>
@@ -84,7 +87,9 @@
 
     <ItemGroup>
       <None Include="@(_MapBundleConverted)">
-        <Link>maps\%(Region)\%(Filename)%(Extension)</Link>
+        <!-- Qualify to _MapBundleConverted for the same reason as _MapBundleCopyRaw above: keep the
+             batch over the converted files, not the consumer's global None list. -->
+        <Link>maps\%(_MapBundleConverted.Region)\%(_MapBundleConverted.Filename)%(_MapBundleConverted.Extension)</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Visible>false</Visible>
       </None>

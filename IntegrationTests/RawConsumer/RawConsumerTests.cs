@@ -27,4 +27,14 @@ public class RawConsumerTests
         await Assert.That(map.Borders.Count).IsGreaterThan(0);
         await Assert.That(map.Cities.Count).IsGreaterThan(0);
     }
+
+    // Regression for the MSB4096 batching bug: this project carries Snapshot.verified.txt, which the
+    // SDK default-globs into @(None) with no Region metadata (mimicking a Verify snapshot). The fact
+    // that this project builds at all proves _MapBundleCopyRaw no longer batches its <None> Link over
+    // the global None list. Belt-and-braces: that unrelated None item must not leak into maps/Monaco.
+    [Test]
+    public async Task Unrelated_None_items_are_not_staged()
+    {
+        await Assert.That(Directory.GetFiles(RegionDirectory, "*.verified.txt")).IsEmpty();
+    }
 }

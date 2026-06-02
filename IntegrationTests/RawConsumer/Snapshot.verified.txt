@@ -1,0 +1,7 @@
+Regression fixture: mimics a Verify *.verified.txt snapshot.
+
+The .NET SDK default-globs this file into the project's @(None) item list with no Region
+metadata. The MapBundle targets must NOT batch their <None Include="@(MapBundleData)"> Link over
+this global None list (an unqualified %(Region) does, and fails with MSB4096). If this file makes
+the build fail, the _MapBundleCopyRaw target has regressed — re-qualify its metadata to
+%(MapBundleData.*). See src/MapBundle/buildTransitive/MapBundle.targets.
