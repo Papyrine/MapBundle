@@ -33,16 +33,21 @@ public sealed class NaturalEarth
     }
 
     /// <summary>
-    /// Populated places (points) in the given countries, trimmed to name and population. Selected by ISO
-    /// 3166-1 alpha-2 (like borders and states) rather than by bounding box, so a small country keeps its
-    /// own capital even when Natural Earth places the point just outside the tight border bbox (Monaco's
+    /// Populated places (points) in the given countries, trimmed to name, population and rank. Selected by
+    /// ISO 3166-1 alpha-2 (like borders and states) rather than by bounding box, so a small country keeps
+    /// its own capital even when Natural Earth places the point just outside the tight border bbox (Monaco's
     /// point sits ~180 m west of its country-levels border), and neighbours' cities don't bleed in.
+    /// <para>
+    /// <c>rank</c> is Natural Earth's <c>rank_max</c> — a gap-free 0–14 label rank derived from population
+    /// but defined for every place (unlike <c>pop_max</c>, which is 0 for some smaller towns). It makes a
+    /// cleaner signal for a renderer's label-priority callback than raw population.
+    /// </para>
     /// </summary>
     public IReadOnlyList<Feature> Cities(ISet<string> iso) =>
     [
         .. places
             .Where(_ => iso.Contains(Props.Text(_, "ISO_A2")))
-            .Select(_ => Rename(_, ("name", "name"), ("population", "pop_max")))
+            .Select(_ => Rename(_, ("name", "name"), ("population", "pop_max"), ("rank", "rank_max")))
     ];
 
     /// <summary>Named river + lake centerlines (lines) clipped to <paramref name="bounds"/> and simplified.</summary>

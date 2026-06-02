@@ -14,11 +14,12 @@
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- Build the MSBuild task project before packing so its output exists for _MapBundleAddTaskFiles.
-       ReferenceOutputAssembly=false: the task is build-time tooling, not a runtime reference of the
-       core library. SkipGetTargetFrameworkProperties avoids TF negotiation against this multi-TFM
-       project (the task is single-TFM net8.0). -->
-  <ItemGroup>
+  <!-- Pulls MapBundle.Build into core's restore graph and orders its build before core packs. Scoped
+       to the net10.0 inner build because the task is single-TFM net10.0 and the net8.0/net9.0 inner
+       builds cannot reference it; that scoping now fails loudly (the pack target below can't build the
+       task) rather than silently if the task's TFM ever changes without this being updated.
+       ReferenceOutputAssembly=false: it is build-time tooling, not a runtime reference of core. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <ProjectReference Include="..\MapBundle.Build\MapBundle.Build.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />
@@ -29,17 +30,29 @@
     <None Include="buildTransitive\MapBundle.targets" Pack="true" PackagePath="buildTransitive\MapBundle.targets" Visible="false" />
   </ItemGroup>
 
-  <!-- Pack the conversion task plus its runtime dependencies into tasks/net8.0. Added in a target
-       (not a static ItemGroup) because on a clean build the task's bin/ is empty at evaluation time;
-       the ProjectReference above guarantees it is populated by the time packing runs. -->
-  <PropertyGroup>
-    <_MapBundleTasksBin>..\MapBundle.Build\bin\$(Configuration)\net8.0\</_MapBundleTasksBin>
-  </PropertyGroup>
+  <!--
+    Pack the conversion task plus the assemblies it copies local (GeoConvert + System.IO.Hashing) into a
+    flat tasks/ folder, which buildTransitive/MapBundle.targets loads via an explicit AssemblyFile path
+    (the MSBuild host resolves the task's dependencies from that same directory).
+
+    The file list is queried from MapBundle.Build's own output groups via the MSBuild task rather than a
+    hardcoded bin path — so the task's output location and target framework live only in
+    MapBundle.Build.csproj and cannot drift out of sync here. RemoveProperties drops any inherited
+    TargetFramework so the single-TFM task resolves as itself regardless of the caller.
+  -->
   <Target Name="_MapBundleAddTaskFiles" BeforeTargets="_GetPackageFiles">
+    <MSBuild Projects="..\MapBundle.Build\MapBundle.Build.csproj"
+             Targets="BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
+             Properties="Configuration=$(Configuration)"
+             RemoveProperties="TargetFramework">
+      <Output TaskParameter="TargetOutputs" ItemName="_MapBundleTaskFiles" />
+    </MSBuild>
     <ItemGroup>
-      <None Include="$(_MapBundleTasksBin)MapBundle.Build.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
-      <None Include="$(_MapBundleTasksBin)GeoConvert.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
-      <None Include="$(_MapBundleTasksBin)System.IO.Hashing.dll" Pack="true" PackagePath="tasks\net8.0\" Visible="false" />
+      <None Include="@(_MapBundleTaskFiles)"
+            Condition="'%(Extension)' == '.dll'"
+            Pack="true"
+            PackagePath="tasks\%(Filename)%(Extension)"
+            Visible="false" />
     </ItemGroup>
   </Target>
 

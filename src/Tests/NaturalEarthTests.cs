@@ -19,14 +19,16 @@ public class NaturalEarthTests
                 {
                     ["ISO_A2"] = "MC",
                     ["NAME"] = "Monaco",
-                    ["POP_MAX"] = 38000L
+                    ["POP_MAX"] = 38000L,
+                    ["RANK_MAX"] = 7L
                 }),
             Point(2.3, 48.8,
                 new Dictionary<string, object?>
                 {
                     ["ISO_A2"] = "FR",
                     ["NAME"] = "Paris",
-                    ["POP_MAX"] = 2148000L
+                    ["POP_MAX"] = 2148000L,
+                    ["RANK_MAX"] = 12L
                 }));
         var ne = new NaturalEarth(places, [], []);
 
@@ -35,6 +37,7 @@ public class NaturalEarthTests
         await Assert.That(cities.Count).IsEqualTo(1);
         await Assert.That(cities[0].Properties["name"]).IsEqualTo("Monaco");
         await Assert.That(cities[0].Properties["population"]).IsEqualTo(38000L);
+        await Assert.That(cities[0].Properties["rank"]).IsEqualTo(7L);
     }
 
     [Test]
@@ -61,7 +64,7 @@ public class NaturalEarthTests
     }
 
     [Test]
-    public async Task Cities_strips_all_attributes_except_name_and_population()
+    public async Task Cities_strips_all_attributes_except_name_population_and_rank()
     {
         var places = Places(
             Point(
@@ -72,13 +75,14 @@ public class NaturalEarthTests
                     ["ISO_A2"] = "MC",
                     ["NAME"] = "Monaco",
                     ["POP_MAX"] = 38000L,
+                    ["RANK_MAX"] = 7L,
                     ["TIMEZONE"] = "Europe/Monaco",
                     ["FEATURECLA"] = "Populated place",
                 }));
         var ne = new NaturalEarth(places, [], []);
 
         var properties = ne.Cities(new HashSet<string>(["MC"]))[0].Properties;
-        await Assert.That(properties.Keys.OrderBy(_ => _).ToList()).IsEquivalentTo(["name", "population"]);
+        await Assert.That(properties.Keys.OrderBy(_ => _).ToList()).IsEquivalentTo(["name", "population", "rank"]);
     }
 
     [Test]

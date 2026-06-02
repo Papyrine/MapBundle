@@ -268,6 +268,7 @@ public class PackageBuilder
                 Width = 1024,
                 Compression = CompressionLevel.Fastest,
                 Label = HasNames(layer) ? NameLabel : null,
+                LabelPriority = layer == MapLayer.Cities ? CityPriority : null,
             });
     }
 
@@ -350,6 +351,17 @@ public class PackageBuilder
 
     static string? NameLabel(Feature feature) =>
         feature.Properties.TryGetValue("name", out var value) ? value as string : null;
+
+    // Label priority for the Cities layer: the bigger place wins the renderer's greedy label-collision
+    // pass, so a metropolis claims its slot before a nearby small town. Without this every point ties at
+    // the renderer's default priority (0) and source-file order decides — which is how Ulladulla (pop
+    // 9,250, line 69k in Natural Earth) beat Sydney (pop ~5M, line 99k) on the world preview: their
+    // labels overlap at world scale, and the earlier one was placed first. rank (Natural Earth's
+    // gap-free 0–14 label rank) is the dominant key so it always orders tiers correctly; population
+    // breaks ties within a rank and is defined more finely. Multiplying rank by 1e8 keeps it above any
+    // real population (Tokyo's ~37M), so a higher rank never loses to a denser lower-rank place.
+    static double CityPriority(Feature feature) =>
+        Props.Number(feature, "rank") * 100_000_000 + Props.Number(feature, "population");
 
     /// <summary>Packs a staged region folder into a <c>.nupkg</c> and returns its path.</summary>
     static string Pack(Region region, string stagingDirectory)

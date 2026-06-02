@@ -9,9 +9,9 @@
     historical behaviour). Set the properties below to opt out of that, convert to another format, or
     render a preview image instead — all driven by GeoConvert at build time via the ConvertMapData task.
 
-    NOTE: the task is a net8.0 assembly, so the conversion/render path requires building with the .NET
-    SDK MSBuild ("dotnet build" / "dotnet publish" / VS using the .NET SDK). The default raw-copy path
-    needs no task and works under any host.
+    NOTE: the task is a net10.0 assembly, so the conversion/render path requires building with a
+    .NET 10+ SDK's MSBuild ("dotnet build" / "dotnet publish", or VS using a .NET 10 SDK). The default
+    raw-copy path needs no task and works under any host.
 
       MapBundleFormat       any GeoFormat name: GeoJson, TopoJson, Kml, Kmz, Gpx, Wkt, Wkb, Csv,
                             GeoParquet, Shapefile, or FlatGeobuf (the default; copies verbatim).
@@ -31,7 +31,7 @@
     <MapBundleCopyData Condition="'$(MapBundleCopyData)' == ''">true</MapBundleCopyData>
     <MapBundleIntermediateDir Condition="'$(MapBundleIntermediateDir)' == ''">$(IntermediateOutputPath)mapbundle\</MapBundleIntermediateDir>
 
-    <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\net8.0\MapBundle.Build.dll</_MapBundleTasksAssembly>
+    <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\MapBundle.Build.dll</_MapBundleTasksAssembly>
     <!-- The task is only needed when converting away from FlatGeobuf or rendering images. -->
     <_MapBundleNeedsTask Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true'">true</_MapBundleNeedsTask>
   </PropertyGroup>

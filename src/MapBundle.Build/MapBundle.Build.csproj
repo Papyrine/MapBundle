@@ -4,11 +4,12 @@
     The build-time tooling shipped inside the MapBundle core package as an MSBuild task. It is NOT a
     standalone NuGet package and NOT a runtime dependency: MapBundle.csproj builds it, then packs its
     output (this assembly plus GeoConvert + System.IO.Hashing) into the core package's tasks/ folder,
-    next to buildTransitive/MapBundle.targets which loads the task. Targets net8.0 — the lowest the
-    library supports and the floor the .NET SDK's MSBuild host can load.
+    next to buildTransitive/MapBundle.targets which loads the task. Targets net10.0, so the
+    conversion/render path requires a .NET 10+ SDK (whose MSBuild host runs on the .NET 10 runtime that
+    loads this task).
   -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsPackageProject>false</IsPackageProject>
     <!-- Pull GeoConvert + its System.IO.Hashing dependency into bin/ so MapBundle.csproj can pack
