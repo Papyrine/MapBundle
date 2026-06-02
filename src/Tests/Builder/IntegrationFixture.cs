@@ -33,14 +33,14 @@ public class IntegrationFixture
 
         WriteFgb(staging, "borders.fgb", bordersGeoJson);
         WriteFgb(staging, "cities.fgb", citiesGeoJson);
-        File.WriteAllText(Path.Combine(staging, "meta.json"), "{\n  \"region\": \"Monaco\"\n}\n");
+        await File.WriteAllTextAsync(Path.Combine(staging, "meta.json"), "{\n  \"region\": \"Monaco\"\n}\n");
 
         var region = new Region("monaco", "europe", "Monaco", ["MC"], ShpUrl: null);
 
         var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var file in Directory.GetFiles(staging))
         {
-            files[$"data/{Path.GetFileName(file)}"] = File.ReadAllBytes(file);
+            files[$"data/{Path.GetFileName(file)}"] = await File.ReadAllBytesAsync(file);
         }
 
         files[$"buildTransitive/{region.PackageId}.targets"] = Encoding.UTF8.GetBytes(PackageBuilder.Targets(region));

@@ -51,7 +51,7 @@ public class MapConverterTests
         using var temp = new TempDirectory();
         var source = WriteFgb(Path.Combine(temp, "src"), "borders.fgb");
         var meta = Path.Combine(temp, "src", "meta.json");
-        File.WriteAllText(meta, "{}");
+        await File.WriteAllTextAsync(meta, "{}");
         var output = Path.Combine(temp, "out");
 
         MapConverter.Convert(new()
@@ -170,7 +170,7 @@ public class MapConverterTests
 
         var png = Path.Combine(output, "Monaco", "Monaco.png");
         await Assert.That(produced.Select(_ => _.Path)).Contains(png);
-        var header = File.ReadAllBytes(png)[..4];
+        var header = (await File.ReadAllBytesAsync(png))[..4];
         await Assert.That(header).IsEquivalentTo(new byte[] { 0x89, (byte) 'P', (byte) 'N', (byte) 'G' });
     }
 
