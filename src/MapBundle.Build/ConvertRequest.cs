@@ -18,6 +18,18 @@ public sealed class ConvertRequest
     /// <summary>When false, no vector data is emitted at all (images only, if enabled).</summary>
     public bool CopyData { get; init; } = true;
 
+    /// <summary>
+    /// Vertex-reduction tolerance applied to every layer (data and preview) before it is written, via
+    /// GeoConvert's <see cref="Simplifier"/>. <c>0</c> (the default) disables simplification and keeps
+    /// the verbatim FlatGeobuf copy fast-path; any positive value forces a read/simplify/write even when
+    /// <see cref="Format"/> is FlatGeobuf. Its unit depends on <see cref="SimplifyMethod"/>: a distance
+    /// in degrees for Douglas–Peucker, an area in degrees² for Visvalingam.
+    /// </summary>
+    public double SimplifyTolerance { get; init; }
+
+    /// <summary>The line-simplification algorithm used when <see cref="SimplifyTolerance"/> is positive.</summary>
+    public SimplifyMethod SimplifyMethod { get; init; } = SimplifyMethod.DouglasPeucker;
+
     /// <summary>When true, a stacked preview PNG is rendered per region.</summary>
     public bool RenderImages { get; init; }
 

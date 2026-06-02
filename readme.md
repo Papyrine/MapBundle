@@ -61,6 +61,8 @@ FlatGeobuf is the default on-disk format, but it is not always the right fit for
 | `MapBundleFormat` | `FlatGeobuf` | The vector format to emit. Any GeoConvert format: `GeoJson`, `TopoJson`, `Kml`, `Kmz`, `Gpx`, `Wkt`, `Wkb`, `Csv`, `GeoParquet`, `Shapefile`, or `FlatGeobuf` (copies verbatim). Choosing anything other than `FlatGeobuf` opts out of the `.fgb` copy. |
 | `MapBundleRenderImages` | `false` | When `true`, render a stacked preview PNG per region (layers painted ocean → land → lakes → rivers → coastline → states → borders → cities). |
 | `MapBundleCopyData` | `true` | When `false`, no vector data is emitted at all — useful with `MapBundleRenderImages` for an images-only output. |
+| `MapBundleSimplifyTolerance` | `0` (off) | Vertex-reduction tolerance applied (to both data and any preview) before writing. A positive value turns on simplification — a perpendicular distance in degrees for `DouglasPeucker`, an effective triangle area in degrees² for `Visvalingam`. Setting it forces a read/rewrite even when `MapBundleFormat` is `FlatGeobuf`. |
+| `MapBundleSimplifyMethod` | `DouglasPeucker` | The simplify algorithm: `DouglasPeucker` or `Visvalingam`. Only used when `MapBundleSimplifyTolerance` is positive. |
 
 ### Image options
 

@@ -25,6 +25,12 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
     /// <summary>When false, no vector data is emitted (images only, if enabled).</summary>
     public bool CopyData { get; set; } = true;
 
+    /// <summary>Vertex-reduction tolerance (a <c>double</c>); empty or <c>0</c> leaves geometry untouched.</summary>
+    public string SimplifyTolerance { get; set; } = "";
+
+    /// <summary>The simplify algorithm (a <c>SimplifyMethod</c> name): DouglasPeucker or Visvalingam.</summary>
+    public string SimplifyMethod { get; set; } = "";
+
     /// <summary>When true, a stacked preview PNG is rendered per region.</summary>
     public bool RenderImages { get; set; }
 
@@ -52,12 +58,19 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
     {
         try
         {
+            var simplifyTolerance = 0d;
+            Apply(SimplifyTolerance, _ => simplifyTolerance = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
+            var simplifyMethod = GeoConvert.SimplifyMethod.DouglasPeucker;
+            Apply(SimplifyMethod, _ => simplifyMethod = MapConverter.ParseSimplifyMethod(_));
+
             var request = new ConvertRequest
             {
                 Sources = [.. SourceFiles.Select(_ => new MapConverter.Source(_.ItemSpec, _.GetMetadata("Region")))],
                 OutputDirectory = OutputDirectory,
                 Format = MapConverter.ParseFormat(Format),
                 CopyData = CopyData,
+                SimplifyTolerance = simplifyTolerance,
+                SimplifyMethod = simplifyMethod,
                 RenderImages = RenderImages,
                 Image = BuildImageOptions(),
             };

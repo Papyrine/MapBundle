@@ -11,10 +11,12 @@ osmdata). The "major feature" point/line/area layers — cities, rivers and lake
 Earth** (public domain, 1:10m), which is purpose-built for small-scale overview data and is global in a
 single small download, where the equivalent OpenStreetMap extracts were tens of GB.
 Reading/writing geo formats is delegated to the **GeoConvert** NuGet (`GeoConverter.Read/Write`); this
-repo does not re-implement format codecs. GeoConvert cannot read `.osm.pbf` and has no simplify/
-reproject/topology ops, so the builder consumes sources that already ship in GeoConvert-readable,
-pre-generalized form (Natural Earth shapefiles, country-levels GeoJSON, osmdata shapefiles), and uses
-NetTopologySuite (build-only) for simplify/reproject/coastline.
+repo does not re-implement format codecs. GeoConvert can plain-simplify (Douglas–Peucker / Visvalingam,
+exposed to package consumers via the `MapBundleSimplify*` MSBuild properties on the build task), but it
+cannot read `.osm.pbf` and has no topology-preserving simplify, reproject or coastline ops, so the data
+builder consumes sources that already ship in GeoConvert-readable, pre-generalized form (Natural Earth
+shapefiles, country-levels GeoJSON, osmdata shapefiles), and uses NetTopologySuite (build-only) for the
+topology-preserving simplify, reproject and coastline steps.
 
 Two projects:
 

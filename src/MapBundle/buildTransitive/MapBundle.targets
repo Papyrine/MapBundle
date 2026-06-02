@@ -17,6 +17,10 @@
                             GeoParquet, Shapefile, or FlatGeobuf (the default; copies verbatim).
       MapBundleRenderImages "true" also renders maps/<Region>/<Region>.png.
       MapBundleCopyData     "false" emits no vector data at all (images only).
+      MapBundleSimplifyTolerance  a positive number turns on GeoConvert vertex reduction (degrees for
+                            DouglasPeucker, degrees² for Visvalingam) before the data/image is written;
+                            unset or 0 leaves geometry untouched (and keeps the verbatim .fgb copy).
+      MapBundleSimplifyMethod  DouglasPeucker (default) or Visvalingam; only used when a tolerance is set.
 
     Image toggles (only used when MapBundleRenderImages is true; unset means GeoConvert's own default):
       MapBundleImageWidth, MapBundleImageHeight, MapBundleImagePadding, MapBundleImageProjection,
@@ -32,8 +36,8 @@
     <MapBundleIntermediateDir Condition="'$(MapBundleIntermediateDir)' == ''">$(IntermediateOutputPath)mapbundle\</MapBundleIntermediateDir>
 
     <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\MapBundle.Build.dll</_MapBundleTasksAssembly>
-    <!-- The task is only needed when converting away from FlatGeobuf or rendering images. -->
-    <_MapBundleNeedsTask Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true'">true</_MapBundleNeedsTask>
+    <!-- The task is only needed when converting away from FlatGeobuf, simplifying, or rendering images. -->
+    <_MapBundleNeedsTask Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true' or ('$(MapBundleSimplifyTolerance)' != '' and '$(MapBundleSimplifyTolerance)' != '0')">true</_MapBundleNeedsTask>
   </PropertyGroup>
 
   <UsingTask
@@ -66,6 +70,8 @@
         OutputDirectory="$(MapBundleIntermediateDir)"
         Format="$(MapBundleFormat)"
         CopyData="$(MapBundleCopyData)"
+        SimplifyTolerance="$(MapBundleSimplifyTolerance)"
+        SimplifyMethod="$(MapBundleSimplifyMethod)"
         RenderImages="$(MapBundleRenderImages)"
         ImageWidth="$(MapBundleImageWidth)"
         ImageHeight="$(MapBundleImageHeight)"

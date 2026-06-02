@@ -10,6 +10,10 @@
 
   <PropertyGroup>
     <MapBundleFormat>GeoJson</MapBundleFormat>
+    <!-- Also generalise the geometry at build time (exercises the SimplifyTolerance/SimplifyMethod task
+         wiring). The tolerance is well below Monaco's ~0.03° edges, so every corner survives. -->
+    <MapBundleSimplifyTolerance>0.0001</MapBundleSimplifyTolerance>
+    <MapBundleSimplifyMethod>DouglasPeucker</MapBundleSimplifyMethod>
     <MapBundleRenderImages>true</MapBundleRenderImages>
     <MapBundleImageWidth>256</MapBundleImageWidth>
     <MapBundleImageProjection>WebMercator</MapBundleImageProjection>

@@ -43,13 +43,13 @@ public static class MapConverter
             {
                 foreach (var source in layers)
                 {
-                    outputs.Add(EmitData(source, directory, region, request.Format));
+                    outputs.Add(EmitData(source, directory, region, request));
                 }
             }
 
             if (request.RenderImages)
             {
-                var image = RenderImage(layers, directory, region, request.Image);
+                var image = RenderImage(layers, directory, region, request);
                 if (image is { } produced)
                 {
                     outputs.Add(produced);
@@ -60,13 +60,16 @@ public static class MapConverter
         return outputs;
     }
 
-    // Either copies the file verbatim (meta.json, or .fgb when the target format is FlatGeobuf) or
-    // converts a .fgb to the requested format. Up-to-date outputs are left untouched so incremental
-    // builds stay cheap, but are still reported so the copy-to-output step always sees them.
-    static Output EmitData(string source, string directory, string region, GeoFormat format)
+    // Either copies the file verbatim (meta.json, or .fgb when the target format is FlatGeobuf and no
+    // simplify is requested) or reads a .fgb, optionally simplifies it, and writes it in the requested
+    // format. Up-to-date outputs are left untouched so incremental builds stay cheap, but are still
+    // reported so the copy-to-output step always sees them.
+    static Output EmitData(string source, string directory, string region, ConvertRequest request)
     {
+        var format = request.Format;
         var isFgb = string.Equals(Path.GetExtension(source), ".fgb", StringComparison.OrdinalIgnoreCase);
         var convert = isFgb && format != GeoFormat.FlatGeobuf;
+        var simplify = isFgb && request.SimplifyTolerance > 0;
 
         var name = Path.GetFileNameWithoutExtension(source);
         var extension = convert ? Extension(format) : Path.GetExtension(source);
@@ -74,9 +77,17 @@ public static class MapConverter
 
         if (!UpToDate(target, source))
         {
-            if (convert)
+            if (convert || simplify)
             {
-                GeoConverter.Write(GeoConverter.Read(source, GeoFormat.FlatGeobuf), target, format);
+                var collection = GeoConverter.Read(source, GeoFormat.FlatGeobuf);
+                if (simplify)
+                {
+                    collection = Simplifier.Simplify(collection, request.SimplifyTolerance, request.SimplifyMethod);
+                }
+
+                // `format` is FlatGeobuf in the simplify-only case (convert is false), so this writes the
+                // simplified .fgb back; otherwise it writes the converted format.
+                GeoConverter.Write(collection, target, format);
             }
             else
             {
@@ -89,7 +100,7 @@ public static class MapConverter
 
     // Stacks the region's FlatGeobuf layers bottom-up (ocean first, cities last) and renders one PNG.
     // Returns null when the region carries no renderable layer (e.g. a meta-only group).
-    static Output? RenderImage(IReadOnlyList<string> layers, string directory, string region, ImageOptions image)
+    static Output? RenderImage(IReadOnlyList<string> layers, string directory, string region, ConvertRequest request)
     {
         var fgb = layers
             .Where(_ => string.Equals(Path.GetExtension(_), ".fgb", StringComparison.OrdinalIgnoreCase))
@@ -107,11 +118,18 @@ public static class MapConverter
                 .Select(_ =>
                 {
                     var collection = GeoConverter.Read(_, GeoFormat.FlatGeobuf);
+                    // Simplify before render so the preview reflects the same generalisation the data
+                    // emission applies (Simplifier preserves the collection name either way).
+                    if (request.SimplifyTolerance > 0)
+                    {
+                        collection = Simplifier.Simplify(collection, request.SimplifyTolerance, request.SimplifyMethod);
+                    }
+
                     collection.Name = Path.GetFileNameWithoutExtension(_);
                     return collection;
                 })
                 .ToList();
-            MapRenderer.RenderPng(collections, target, image.ToRenderOptions());
+            MapRenderer.RenderPng(collections, target, request.Image.ToRenderOptions());
         }
 
         return new(target, region);
@@ -169,6 +187,18 @@ public static class MapConverter
             GeoFormat.GeoParquet => ".parquet",
             _ => throw new ArgumentException($"No file extension for format '{format}'."),
         };
+
+    /// <summary>Parses a <see cref="SimplifyMethod"/> name (case-insensitive), as set via <c>MapBundleSimplifyMethod</c>.</summary>
+    public static SimplifyMethod ParseSimplifyMethod(string value)
+    {
+        if (Enum.TryParse<SimplifyMethod>(value, ignoreCase: true, out var method))
+        {
+            return method;
+        }
+
+        throw new ArgumentException(
+            $"Unknown simplify method '{value}'. Valid values: {string.Join(", ", Enum.GetNames<SimplifyMethod>())}.");
+    }
 
     /// <summary>Parses a <see cref="MapProjection"/> name (case-insensitive), as set via <c>MapBundleImageProjection</c>.</summary>
     public static MapProjection ParseProjection(string value)
