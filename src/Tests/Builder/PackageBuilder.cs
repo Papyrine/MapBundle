@@ -159,17 +159,25 @@ public class PackageBuilder
         var members = context.Members(region);
         var iso = members.SelectMany(_ => _.Iso).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        // Enumerate ISO codes in a stable order when building the per-country feature lists below.
+        // HashSet<string> iteration order is randomised per process (.NET randomised string hashing),
+        // so iterating `iso` directly would shuffle borders/states feature order between runs —
+        // changing the .fgb byte output and, because the preview fills are semi-transparent, the
+        // blended preview PNG. Cities is unaffected (NaturalEarth.Cities walks its source in file
+        // order and only uses iso.Contains), so the set is still passed there as-is.
+        var orderedIso = iso.OrderBy(_ => _, StringComparer.OrdinalIgnoreCase).ToList();
+
         // country-levels features are already Geo.MakeValid'd at load time (see CountryLevels.
         // ReadFeature), so per-region Repair here would be wasted work. country-levels'
         // Douglas-Peucker simplification leaves self-intersecting rings on heavily-indented
         // coastlines that NTS Buffer(0) repairs — required for triangulating GPU renderers like
         // Mapbox-GL / MapLibre-GL (via earcut, behind tools like geojson.io) which can't fill
         // invalid rings without fan-shaped artifacts across each country.
-        var borders = iso
+        var borders = orderedIso
             .Select(context.CountryLevels.Border)
             .OfType<Feature>()
             .ToList();
-        var states = iso
+        var states = orderedIso
             .SelectMany(context.CountryLevels.Subdivisions)
             .ToList();
         var bounds = new FeatureCollection(borders).GetBounds();
