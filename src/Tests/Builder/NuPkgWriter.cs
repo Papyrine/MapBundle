@@ -92,7 +92,8 @@ public static class NuPkgWriter
             <authors>Simon Cropp</authors>
             <description>{Escape(description)}</description>
             <projectUrl>{projectUrl}</projectUrl>
-            <license type="expression">{license}</license>{icon}{readme}
+            <license type="expression">{license}</license>
+            <licenseUrl>https://licenses.nuget.org/{license}</licenseUrl>{icon}{readme}
             <tags>{Escape(tags)}</tags>
             <dependencies>
               <group targetFramework="net8.0">
