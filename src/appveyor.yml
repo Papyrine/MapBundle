@@ -31,13 +31,15 @@ build_script:
     pwsh ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
     # MSBuild integration tests: build a small real MapBundle.Monaco package into the local feed
     # (offline — no source downloads; the core package from the build above stays alongside it), then
-    # build two consumer projects against that feed and run them. Building the consumers IS the test —
+    # build three consumer projects against that feed and run them. Building the consumers IS the test —
     # the RawConsumer expects the FlatGeobuf layers copied verbatim; the ConvertedConsumer expects
-    # GeoJSON plus a rendered PNG.
+    # GeoJSON plus a rendered PNG; the FilteredConsumer expects only the whitelisted layers (minus
+    # any the blacklist removes) plus the meta.json sidecar.
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/IntegrationFixture/BuildMonacoPackage"
     dotnet build IntegrationTests --configuration Release
     dotnet run --project IntegrationTests/RawConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
+    dotnet run --project IntegrationTests/FilteredConsumer --configuration Release --no-build
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
     # Publish-grade core: pack with deterministic source paths (no opt-out, so the CI default
     # ContinuousIntegrationBuild stays on) into its own core-nuget/ folder, kept apart from the

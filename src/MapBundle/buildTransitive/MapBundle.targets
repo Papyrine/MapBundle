@@ -17,6 +17,13 @@
                             GeoParquet, Shapefile, or FlatGeobuf (the default; copies verbatim).
       MapBundleRenderImages "true" also renders maps/<Region>/<Region>.png.
       MapBundleCopyData     "false" emits no vector data at all (images only).
+      MapBundleLayers       semicolon- or comma-separated whitelist of layer names to keep (the rest
+                            are dropped before either path runs). Accepts both the MapLayer enum names
+                            (Borders, StatesProvinces, Cities, Rivers, Lakes, Coastline, Land, Ocean)
+                            and the on-disk filenames (borders, states, cities, …). Case-insensitive.
+                            Unset = all layers. Non-layer files (meta.json) are always kept.
+      MapBundleExcludeLayers  semicolon- or comma-separated blacklist, applied after MapBundleLayers.
+                            Same name accepted as MapBundleLayers.
       MapBundleSimplifyTolerance  a positive number turns on GeoConvert vertex reduction (degrees for
                             DouglasPeucker, degrees² for Visvalingam) before the data/image is written;
                             unset or 0 leaves geometry untouched (and keeps the verbatim .fgb copy).
@@ -44,6 +51,37 @@
     TaskName="MapBundle.Build.ConvertMapData"
     AssemblyFile="$(_MapBundleTasksAssembly)"
     Condition="'$(_MapBundleNeedsTask)' == 'true'" />
+
+  <!-- Layer subset filter: when the consumer set MapBundleLayers / MapBundleExcludeLayers, drop the
+       MapBundleData items that don't survive the filter BEFORE either downstream path consumes them
+       (so the convert path doesn't waste work on layers the consumer is about to throw away, and the
+       raw-copy path doesn't stage them into maps/<Region>). Non-layer files (meta.json) are always
+       kept — both properties act only on the eight known layer filenames. -->
+  <Target Name="_MapBundleFilterLayers"
+          BeforeTargets="_MapBundleConvert;_MapBundleCopyRaw"
+          Condition="('$(MapBundleLayers)' != '' or '$(MapBundleExcludeLayers)' != '') and '@(MapBundleData)' != ''">
+    <PropertyGroup>
+      <!-- Normalise each list to a ;-padded, lowercase token string. Padding makes Contains() an exact-
+           token match (so 'land' doesn't match 'lakes'). Accept either ; or , as separator and strip
+           spaces, so 'Borders, Cities' and 'borders;cities' both work. Translate the one enum-name →
+           on-disk-filename mismatch (StatesProvinces → states) so the consumer can use the enum names
+           they already know from C# / meta.json without having to translate to the storage convention. -->
+      <_MapBundleLayersNorm Condition="'$(MapBundleLayers)' != ''">;$([System.String]::Copy('$(MapBundleLayers)').ToLowerInvariant().Replace(',', ';').Replace(' ', '').Replace('statesprovinces', 'states'));</_MapBundleLayersNorm>
+      <_MapBundleExcludeLayersNorm Condition="'$(MapBundleExcludeLayers)' != ''">;$([System.String]::Copy('$(MapBundleExcludeLayers)').ToLowerInvariant().Replace(',', ';').Replace(' ', '').Replace('statesprovinces', 'states'));</_MapBundleExcludeLayersNorm>
+      <!-- The eight on-disk layer filenames, ;-padded. The whitelist only ever removes items whose
+           filename is in this set; everything else (meta.json, future sidecars) is preserved. -->
+      <_MapBundleKnownLayerFiles>;borders;cities;rivers;lakes;states;coastline;land;ocean;</_MapBundleKnownLayerFiles>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- Whitelist: drop layer files NOT named in MapBundleLayers. -->
+      <MapBundleData Remove="@(MapBundleData)"
+                     Condition="'$(_MapBundleLayersNorm)' != '' and $(_MapBundleKnownLayerFiles.Contains(';%(Filename);')) and !$(_MapBundleLayersNorm.Contains(';%(Filename);'))" />
+      <!-- Blacklist: drop layer files named in MapBundleExcludeLayers. Non-layer files survive because
+           their filename isn't in the user's exclude list. -->
+      <MapBundleData Remove="@(MapBundleData)"
+                     Condition="'$(_MapBundleExcludeLayersNorm)' != '' and $(_MapBundleExcludeLayersNorm.Contains(';%(Filename);'))" />
+    </ItemGroup>
+  </Target>
 
   <!-- Default, task-free path: copy the raw FlatGeobuf data straight into maps/<Region>. -->
   <Target Name="_MapBundleCopyRaw"

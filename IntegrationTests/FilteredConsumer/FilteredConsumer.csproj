@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Layer-subset consumer: opts into MapBundleLayers (whitelist) and MapBundleExcludeLayers
+       (blacklist) to keep only Borders out of Monaco's data package. Building this project is the
+       integration test — the assertions check that only the requested layers (plus the always-kept
+       meta.json sidecar) land in maps/Monaco. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Whitelist Borders and Cities (mixing the enum name "Borders" with the on-disk name "cities"
+         to prove the filter accepts both). Then drop Cities via the blacklist — leaving just Borders.
+         This exercises whitelist + blacklist + name-form mixing in one consumer. -->
+    <MapBundleLayers>Borders;cities</MapBundleLayers>
+    <MapBundleExcludeLayers>Cities</MapBundleExcludeLayers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MapBundle.Monaco" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>
