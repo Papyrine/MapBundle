@@ -36,22 +36,22 @@ SDK pack. Each carries `buildTransitive/<id>.targets` that copies its `.fgb` fil
 
 The core's `buildTransitive/MapBundle.targets` decides what happens to those `@(MapBundleData)` items.
 Three independent levers, all consumer-controlled:
-- **What to keep** — `MapBundleLayers` (whitelist) and `MapBundleExcludeLayers` (blacklist) drop layer
-  files *before* either downstream path runs, so the convert task never spins up on layers the consumer
-  is about to throw away. Accept the `MapLayer` enum names (`Borders`, `StatesProvinces`, …) *or* the
-  on-disk filenames (`borders`, `states`, …); case-insensitive. The `meta.json` sidecar is always kept.
-  Implemented as a thin MSBuild target that invokes the `FilterMapBundleLayers` net10.0 task; all the
-  parsing / validation / keep-or-drop logic lives in the static `MapBundle.Build.LayerFilter` class so
-  it can be unit-tested directly (see `LayerFilterTests`) without spinning up `dotnet build`. The task
-  reports unknown layer names as a build error listing both the bad tokens and the valid names — a
-  typo fails fast instead of silently emptying `maps/<Region>`.
-- **How to emit it** — `MapBundleFormat` / `MapBundleSimplify*` route through the `ConvertMapData`
-  net10.0 task; default `FlatGeobuf` + no simplify hits the task-free `_MapBundleCopyRaw` path.
+- **What to keep** — `MapBundleLayers` (whitelist) and `MapBundleExcludeLayers` (blacklist). Accepts
+  the `MapLayer` enum names (`Borders`, `StatesProvinces`, …) *or* the on-disk filenames (`borders`,
+  `states`, …); case-insensitive. The `meta.json` sidecar is always kept. Unknown names fail the
+  build with a list of the valid names — a typo fails fast instead of silently emptying `maps/<Region>`.
+- **How to emit it** — `MapBundleFormat` / `MapBundleSimplify*` route through `ConvertMapData`'s
+  conversion phase; default `FlatGeobuf` + no simplify hits the task-free `_MapBundleCopyRaw` fast path.
 - **Whether to render a preview** — `MapBundleRenderImages` plus the `MapBundleImage*` knobs.
 
-Both tasks ship in the same net10.0 `MapBundle.Build.dll`, loaded by separate `<UsingTask>` entries
-in `MapBundle.targets` so each loads only when its property surface is in use. Consequence: using
-the filter feature pulls the same net10+ SDK requirement as the conversion feature.
+All three levers go through one `ConvertMapData` net10.0 MSBuild task that does both layer filtering
+and (when needed) format conversion / rendering in a single pass over `@(MapBundleData)`. The task's
+`Execute()` runs in two phases: filter first (always — even when no convert work is needed, so the
+raw-copy path sees the filtered set), then convert only if `Format != FlatGeobuf` / `RenderImages` /
+`SimplifyTolerance > 0` / `CopyData=false`. The unit-testable cores are `MapBundle.Build.LayerFilter`
+(parse, validate, keep-or-drop) and `MapBundle.Build.MapConverter` (read / simplify / write / render);
+the task is the thin glue between them and MSBuild. Consequence: using the filter feature pulls the
+same net10+ SDK requirement as the conversion feature.
 
 Integration tests for these levers live under `IntegrationTests/` — one consumer project per
 top-level mode: `RawConsumer` (default raw copy), `ConvertedConsumer` (format + simplify + render),
