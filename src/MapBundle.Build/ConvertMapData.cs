@@ -63,6 +63,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
     public string ImageStrokeWidth { get; set; } = "";
     public string ImagePointRadius { get; set; } = "";
     public string ImageStrokeAutoScale { get; set; } = "";
+    public string ImageMinFeaturePixels { get; set; } = "";
     public string ImageLabels { get; set; } = "";
     public string ImageLabelSize { get; set; } = "";
     public string ImageLabelColor { get; set; } = "";
@@ -204,6 +205,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
             Layers, ExcludeLayers,
             ImageWidth, ImageHeight, ImagePadding, ImageProjection, ImageBackground, ImageOcean,
             ImageStroke, ImageFill, ImageStrokeWidth, ImagePointRadius, ImageStrokeAutoScale,
+            ImageMinFeaturePixels,
             ImageLabels, ImageLabelSize, ImageLabelColor, ImageCompression);
 
     ImageOptions BuildImageOptions()
@@ -220,6 +222,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
         Apply(ImageStrokeWidth, _ => options.StrokeWidth = int.Parse(_));
         Apply(ImagePointRadius, _ => options.PointRadius = int.Parse(_));
         Apply(ImageStrokeAutoScale, _ => options.StrokeAutoScale = bool.Parse(_));
+        Apply(ImageMinFeaturePixels, _ => options.MinFeaturePixels = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
         Apply(ImageLabels, _ => options.Labels = bool.Parse(_));
         Apply(ImageLabelSize, _ => options.LabelSize = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
         Apply(ImageLabelColor, _ => options.LabelColor = MapConverter.ParseColor(_));

@@ -39,7 +39,16 @@
       MapBundleImageWidth, MapBundleImageHeight, MapBundleImagePadding, MapBundleImageProjection,
       MapBundleImageBackground, MapBundleImageOcean, MapBundleImageStroke, MapBundleImageFill,
       MapBundleImageStrokeWidth, MapBundleImagePointRadius, MapBundleImageStrokeAutoScale,
-      MapBundleImageLabels, MapBundleImageLabelSize, MapBundleImageLabelColor, MapBundleImageCompression.
+      MapBundleImageMinFeaturePixels, MapBundleImageLabels, MapBundleImageLabelSize,
+      MapBundleImageLabelColor, MapBundleImageCompression.
+
+      MapBundleImageMinFeaturePixels  positive value drops polygons / lines whose projected pixel
+                            bbox is below this many pixels in both axes — render-time cartographic
+                            "selection" that prevents dense archipelagoes painting as sub-pixel
+                            noise at world scale. Unset / 0 (default) renders everything; 1 is the
+                            "if you can't see it, don't paint it" floor; 4 prunes aggressively for
+                            thumbnails. Zooming in (tighter bbox / larger canvas) naturally
+                            surfaces previously-pruned features without re-baking the data.
   -->
 
   <PropertyGroup>
@@ -94,6 +103,7 @@
         ImageStrokeWidth="$(MapBundleImageStrokeWidth)"
         ImagePointRadius="$(MapBundleImagePointRadius)"
         ImageStrokeAutoScale="$(MapBundleImageStrokeAutoScale)"
+        ImageMinFeaturePixels="$(MapBundleImageMinFeaturePixels)"
         ImageLabels="$(MapBundleImageLabels)"
         ImageLabelSize="$(MapBundleImageLabelSize)"
         ImageLabelColor="$(MapBundleImageLabelColor)"

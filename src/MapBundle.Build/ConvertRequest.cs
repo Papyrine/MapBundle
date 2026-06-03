@@ -69,6 +69,15 @@ public sealed class ImageOptions
     public int PointRadius { get; set; } = 4;
     public bool StrokeAutoScale { get; set; }
 
+    /// <summary>
+    /// Forwarded to <see cref="RenderOptions.MinFeaturePixels"/> — the render-time cartographic
+    /// "selection" threshold. A positive value drops polygons / lines whose projected pixel bbox is
+    /// below the threshold in both axes, so dense archipelagoes (Indonesia, Norway, Arctic Canada)
+    /// don't paint thousands of sub-pixel islands as 1-px specks at world scale while keeping the
+    /// mainland that does deserve to render. <c>0</c> (the default) renders everything.
+    /// </summary>
+    public double MinFeaturePixels { get; set; }
+
     /// <summary>When true, features carrying a <c>name</c> property are labelled.</summary>
     public bool Labels { get; set; }
     public double LabelSize { get; set; } = 14;
@@ -90,6 +99,7 @@ public sealed class ImageOptions
             StrokeWidth = StrokeWidth,
             PointRadius = PointRadius,
             StrokeAutoScale = StrokeAutoScale,
+            MinFeaturePixels = MinFeaturePixels,
             LabelSize = LabelSize,
             LabelColor = LabelColor,
             Label = Labels ? NameLabel : null,
