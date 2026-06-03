@@ -55,7 +55,7 @@ public class InvalidLayerNameTests
             .IsNotEqualTo(0)
             .Because($"Build of InvalidConsumer should have failed but exited 0. Output:\n{output}");
 
-        // Error must mention the validation phrase the target emits — proves the failure is OUR error
+        // Error must mention the validation phrase the task emits — proves the failure is OUR error
         // (not, say, a NuGet restore failure or some other build break that would let a real typo slip
         // through unnoticed).
         await Assert.That(output)
@@ -63,9 +63,11 @@ public class InvalidLayerNameTests
             .Because($"Build failed but not with the MapBundle layer-name validation error. Output:\n{output}");
 
         // Both typos must be reported (not just the first), so a user fixing one and re-running isn't
-        // surprised by the second.
-        await Assert.That(output).Contains("boders").Because(output);
-        await Assert.That(output).Contains("citties").Because(output);
+        // surprised by the second. Case-insensitive: the task echoes the user's verbatim input so they
+        // can find it in their .csproj — the InvalidConsumer fixture has them capitalised.
+        var lower = output.ToLowerInvariant();
+        await Assert.That(lower).Contains("boders").Because(output);
+        await Assert.That(lower).Contains("citties").Because(output);
     }
 
     static void DeleteIfPresent(string path)

@@ -37,19 +37,29 @@ SDK pack. Each carries `buildTransitive/<id>.targets` that copies its `.fgb` fil
 The core's `buildTransitive/MapBundle.targets` decides what happens to those `@(MapBundleData)` items.
 Three independent levers, all consumer-controlled:
 - **What to keep** — `MapBundleLayers` (whitelist) and `MapBundleExcludeLayers` (blacklist) drop layer
-  files at the item-group level *before* either downstream path runs, so the convert task never spins
-  up on layers the consumer is about to throw away. Accept the `MapLayer` enum names (`Borders`,
-  `StatesProvinces`, …) *or* the on-disk filenames (`borders`, `states`, …); case-insensitive. The
-  `meta.json` sidecar is always kept. The `_MapBundleFilterLayers` target normalises with one
-  `StatesProvinces` → `states` rewrite, then `Remove="…" Condition` filters by ;-padded `Contains`.
+  files *before* either downstream path runs, so the convert task never spins up on layers the consumer
+  is about to throw away. Accept the `MapLayer` enum names (`Borders`, `StatesProvinces`, …) *or* the
+  on-disk filenames (`borders`, `states`, …); case-insensitive. The `meta.json` sidecar is always kept.
+  Implemented as a thin MSBuild target that invokes the `FilterMapBundleLayers` net10.0 task; all the
+  parsing / validation / keep-or-drop logic lives in the static `MapBundle.Build.LayerFilter` class so
+  it can be unit-tested directly (see `LayerFilterTests`) without spinning up `dotnet build`. The task
+  reports unknown layer names as a build error listing both the bad tokens and the valid names — a
+  typo fails fast instead of silently emptying `maps/<Region>`.
 - **How to emit it** — `MapBundleFormat` / `MapBundleSimplify*` route through the `ConvertMapData`
   net10.0 task; default `FlatGeobuf` + no simplify hits the task-free `_MapBundleCopyRaw` path.
 - **Whether to render a preview** — `MapBundleRenderImages` plus the `MapBundleImage*` knobs.
 
+Both tasks ship in the same net10.0 `MapBundle.Build.dll`, loaded by separate `<UsingTask>` entries
+in `MapBundle.targets` so each loads only when its property surface is in use. Consequence: using
+the filter feature pulls the same net10+ SDK requirement as the conversion feature.
+
 Integration tests for these levers live under `IntegrationTests/` — one consumer project per
 top-level mode: `RawConsumer` (default raw copy), `ConvertedConsumer` (format + simplify + render),
 `FilteredConsumer` (whitelist + blacklist). Building each project IS the test; the assertions inspect
-what landed in `maps/Monaco`. CI builds the local Monaco fixture, then runs all three.
+what landed in `maps/Monaco`. A fourth fixture project, `InvalidConsumer`, is kept out of the slnx
+and driven by `InvalidLayerNameTests` (an `[Explicit]` test that runs `dotnet build` as a subprocess
+and asserts the build fails with the layer-name validation error). CI builds the local Monaco
+fixture, runs all three positive consumers, then runs the negative test.
 
 ## Commands
 

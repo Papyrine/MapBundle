@@ -9,9 +9,10 @@
     historical behaviour). Set the properties below to opt out of that, convert to another format, or
     render a preview image instead — all driven by GeoConvert at build time via the ConvertMapData task.
 
-    NOTE: the task is a net10.0 assembly, so the conversion/render path requires building with a
-    .NET 10+ SDK's MSBuild ("dotnet build" / "dotnet publish", or VS using a .NET 10 SDK). The default
-    raw-copy path needs no task and works under any host.
+    NOTE: the tasks are a net10.0 assembly, so the conversion/render path AND the layer-filter path
+    (whenever MapBundleLayers / MapBundleExcludeLayers is set) require building with a .NET 10+ SDK's
+    MSBuild ("dotnet build" / "dotnet publish", or VS using a .NET 10 SDK). The default raw-copy path
+    with no filter needs no task and works under any host.
 
       MapBundleFormat       any GeoFormat name: GeoJson, TopoJson, Kml, Kmz, Gpx, Wkt, Wkb, Csv,
                             GeoParquet, Shapefile, or FlatGeobuf (the default; copies verbatim).
@@ -52,53 +53,32 @@
     AssemblyFile="$(_MapBundleTasksAssembly)"
     Condition="'$(_MapBundleNeedsTask)' == 'true'" />
 
-  <!-- Layer subset filter: when the consumer set MapBundleLayers / MapBundleExcludeLayers, drop the
-       MapBundleData items that don't survive the filter BEFORE either downstream path consumes them
-       (so the convert path doesn't waste work on layers the consumer is about to throw away, and the
-       raw-copy path doesn't stage them into maps/<Region>). Non-layer files (meta.json) are always
-       kept — both properties act only on the eight known layer filenames. -->
+  <!-- The filter task is loaded independently of the conversion task: layer filtering applies to both
+       the raw-copy and convert paths, and a filter-only consumer pays no conversion cost. Same task
+       DLL, separate UsingTask so the condition stays orthogonal. -->
+  <UsingTask
+    TaskName="MapBundle.Build.FilterMapBundleLayers"
+    AssemblyFile="$(_MapBundleTasksAssembly)"
+    Condition="'$(MapBundleLayers)' != '' or '$(MapBundleExcludeLayers)' != ''" />
+
+  <!-- Layer subset filter. Runs BEFORE either downstream path so the convert task doesn't spin up on
+       layers the consumer is about to throw away. The heavy lifting (parsing, validation with a clear
+       error on unknown names, the keep/drop decision) lives in MapBundle.Build.LayerFilter — kept in
+       C# so it's unit-testable (see LayerFilterTests). This target is just glue: invoke the task, then
+       replace @(MapBundleData) with its filtered output. ITaskItem identity preserves the original
+       Region metadata, so downstream targets see the same items minus the filtered-out ones. -->
   <Target Name="_MapBundleFilterLayers"
           BeforeTargets="_MapBundleConvert;_MapBundleCopyRaw"
           Condition="('$(MapBundleLayers)' != '' or '$(MapBundleExcludeLayers)' != '') and '@(MapBundleData)' != ''">
-    <PropertyGroup>
-      <!-- Normalise each list to a ;-padded, lowercase token string. Padding makes Contains() an exact-
-           token match (so 'land' doesn't match 'lakes'). Accept either ; or , as separator and strip
-           spaces, so 'Borders, Cities' and 'borders;cities' both work. Translate the one enum-name →
-           on-disk-filename mismatch (StatesProvinces → states) so the consumer can use the enum names
-           they already know from C# / meta.json without having to translate to the storage convention. -->
-      <_MapBundleLayersNorm Condition="'$(MapBundleLayers)' != ''">;$([System.String]::Copy('$(MapBundleLayers)').ToLowerInvariant().Replace(',', ';').Replace(' ', '').Replace('statesprovinces', 'states'));</_MapBundleLayersNorm>
-      <_MapBundleExcludeLayersNorm Condition="'$(MapBundleExcludeLayers)' != ''">;$([System.String]::Copy('$(MapBundleExcludeLayers)').ToLowerInvariant().Replace(',', ';').Replace(' ', '').Replace('statesprovinces', 'states'));</_MapBundleExcludeLayersNorm>
-      <!-- The eight on-disk layer filenames, ;-padded. The whitelist only ever removes items whose
-           filename is in this set; everything else (meta.json, future sidecars) is preserved. -->
-      <_MapBundleKnownLayerFiles>;borders;cities;rivers;lakes;states;coastline;land;ocean;</_MapBundleKnownLayerFiles>
-    </PropertyGroup>
-    <!-- Validate: every token in either list must be a known layer (after normalisation). Without this
-         a typo like 'Boders' silently removes every real layer (it's not in the include list, and the
-         include list isn't itself empty so the filter runs), leaving the consumer with an empty maps/
-         folder and no signal anything went wrong.
-
-         The two normalised properties are concatenated and fed to Include="…". MSBuild splits Include
-         values on ';' to produce one item per token — but a ';' inside a property value returned by a
-         property function like .Replace() is auto-escaped (as %3B) so it survives later parsing as a
-         literal. That's the opposite of what we want here: we need those embedded ';' to act as token
-         separators. [MSBuild]::Unescape converts the %3B back to a real ';' so Include sees them and
-         splits the value into one item per token. -->
+    <MapBundle.Build.FilterMapBundleLayers
+        SourceFiles="@(MapBundleData)"
+        Layers="$(MapBundleLayers)"
+        ExcludeLayers="$(MapBundleExcludeLayers)">
+      <Output ItemName="_MapBundleFilteredData" TaskParameter="FilteredFiles" />
+    </MapBundle.Build.FilterMapBundleLayers>
     <ItemGroup>
-      <_MapBundleRequestedLayerTokens Include="$([MSBuild]::Unescape('$(_MapBundleLayersNorm)$(_MapBundleExcludeLayersNorm)'))" />
-      <_MapBundleUnknownLayerTokens Include="@(_MapBundleRequestedLayerTokens)"
-                                    Condition="'%(Identity)' != '' and !$(_MapBundleKnownLayerFiles.Contains(';%(Identity);'))" />
-    </ItemGroup>
-    <Error Condition="'@(_MapBundleUnknownLayerTokens)' != ''"
-           Text="MapBundleLayers / MapBundleExcludeLayers contains unknown layer name(s): @(_MapBundleUnknownLayerTokens, ', '). Known layers: Borders, StatesProvinces, Cities, Rivers, Lakes, Coastline, Land, Ocean (the on-disk filenames borders/states/cities/rivers/lakes/coastline/land/ocean are also accepted)." />
-
-    <ItemGroup>
-      <!-- Whitelist: drop layer files NOT named in MapBundleLayers. -->
-      <MapBundleData Remove="@(MapBundleData)"
-                     Condition="'$(_MapBundleLayersNorm)' != '' and $(_MapBundleKnownLayerFiles.Contains(';%(Filename);')) and !$(_MapBundleLayersNorm.Contains(';%(Filename);'))" />
-      <!-- Blacklist: drop layer files named in MapBundleExcludeLayers. Non-layer files survive because
-           their filename isn't in the user's exclude list. -->
-      <MapBundleData Remove="@(MapBundleData)"
-                     Condition="'$(_MapBundleExcludeLayersNorm)' != '' and $(_MapBundleExcludeLayersNorm.Contains(';%(Filename);'))" />
+      <MapBundleData Remove="@(MapBundleData)" />
+      <MapBundleData Include="@(_MapBundleFilteredData)" />
     </ItemGroup>
   </Target>
 
