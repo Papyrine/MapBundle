@@ -9,14 +9,22 @@
     historical behaviour). Set the properties below to opt out of that, convert to another format, or
     render a preview image instead — all driven by GeoConvert at build time via the ConvertMapData task.
 
-    NOTE: the task is a net10.0 assembly, so the conversion/render path requires building with a
-    .NET 10+ SDK's MSBuild ("dotnet build" / "dotnet publish", or VS using a .NET 10 SDK). The default
-    raw-copy path needs no task and works under any host.
+    NOTE: the task is a net10.0 assembly, so any non-default setting — format conversion, render,
+    simplify, MapBundleLayers / MapBundleExcludeLayers — requires building with a .NET 10+ SDK's
+    MSBuild ("dotnet build" / "dotnet publish", or VS using a .NET 10 SDK). The default raw-copy path
+    (FlatGeobuf, no filter, no simplify, no render) needs no task and works under any host.
 
       MapBundleFormat       any GeoFormat name: GeoJson, TopoJson, Kml, Kmz, Gpx, Wkt, Wkb, Csv,
                             GeoParquet, Shapefile, or FlatGeobuf (the default; copies verbatim).
       MapBundleRenderImages "true" also renders maps/<Region>/<Region>.png.
       MapBundleCopyData     "false" emits no vector data at all (images only).
+      MapBundleLayers       semicolon- or comma-separated whitelist of layer names to keep (the rest
+                            are dropped before either path runs). Accepts both the MapLayer enum names
+                            (Borders, StatesProvinces, Cities, Rivers, Lakes, Coastline, Land, Ocean)
+                            and the on-disk filenames (borders, states, cities, …). Case-insensitive.
+                            Unset = all layers. Non-layer files (meta.json) are always kept.
+      MapBundleExcludeLayers  semicolon- or comma-separated blacklist, applied after MapBundleLayers.
+                            Same name accepted as MapBundleLayers.
       MapBundleSimplifyTolerance  a positive number turns on GeoConvert vertex reduction (degrees for
                             DouglasPeucker, degrees² for Visvalingam) before the data/image is written;
                             unset or 0 leaves geometry untouched (and keeps the verbatim .fgb copy).
@@ -36,8 +44,15 @@
     <MapBundleIntermediateDir Condition="'$(MapBundleIntermediateDir)' == ''">$(IntermediateOutputPath)mapbundle\</MapBundleIntermediateDir>
 
     <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\MapBundle.Build.dll</_MapBundleTasksAssembly>
-    <!-- The task is only needed when converting away from FlatGeobuf, simplifying, or rendering images. -->
-    <_MapBundleNeedsTask Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true' or ('$(MapBundleSimplifyTolerance)' != '' and '$(MapBundleSimplifyTolerance)' != '0')">true</_MapBundleNeedsTask>
+    <!-- True when the ConvertMapData task needs to run: either because the consumer wants format
+         conversion / simplification / image rendering (so MapConverter has real work to do) or because
+         they want a layer subset (which the task filters @(MapBundleData) for before either downstream
+         path consumes it). Filter-only mode still loads the task but skips MapConverter — the task's
+         NeedsConvert() check inside Execute() short-circuits and only FilteredSourceFiles is populated. -->
+    <_MapBundleNeedsTask Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true' or ('$(MapBundleSimplifyTolerance)' != '' and '$(MapBundleSimplifyTolerance)' != '0') or '$(MapBundleLayers)' != '' or '$(MapBundleExcludeLayers)' != '' or '$(MapBundleCopyData)' != 'true'">true</_MapBundleNeedsTask>
+    <!-- Subset: convert / render needed (filter-only doesn't count). Drives whether the task's
+         ConvertedFiles output is staged via None vs. _MapBundleCopyRaw staging the filtered raw set. -->
+    <_MapBundleNeedsConvert Condition="'$(MapBundleFormat)' != 'FlatGeobuf' or '$(MapBundleRenderImages)' == 'true' or ('$(MapBundleSimplifyTolerance)' != '' and '$(MapBundleSimplifyTolerance)' != '0') or '$(MapBundleCopyData)' != 'true'">true</_MapBundleNeedsConvert>
   </PropertyGroup>
 
   <UsingTask
@@ -45,28 +60,18 @@
     AssemblyFile="$(_MapBundleTasksAssembly)"
     Condition="'$(_MapBundleNeedsTask)' == 'true'" />
 
-  <!-- Default, task-free path: copy the raw FlatGeobuf data straight into maps/<Region>. -->
-  <Target Name="_MapBundleCopyRaw"
-          BeforeTargets="AssignTargetPaths"
-          Condition="'$(MapBundleCopyData)' == 'true' and '$(_MapBundleNeedsTask)' != 'true' and '@(MapBundleData)' != ''">
-    <ItemGroup>
-      <None Include="@(MapBundleData)">
-        <!-- Qualify every metadata reference to MapBundleData so the batch is over MapBundleData, not
-             the consumer's global None list (an unqualified %(Region) batches over None and fails for
-             any None item lacking Region metadata, e.g. Verify *.verified.* snapshots — MSB4096). -->
-        <Link>maps\%(MapBundleData.Region)\%(MapBundleData.Filename)%(MapBundleData.Extension)</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Visible>false</Visible>
-      </None>
-    </ItemGroup>
-  </Target>
-
-  <!-- Conversion / render path: run GeoConvert and stage whatever it produces into maps/<Region>. -->
-  <Target Name="_MapBundleConvert"
-          BeforeTargets="AssignTargetPaths"
+  <!-- Filter + (optional) convert. Runs BEFORE both AssignTargetPaths and _MapBundleCopyRaw so the
+       filtered @(MapBundleData) reaches the raw-copy path in filter-only mode. The task always sets
+       FilteredSourceFiles (the surviving subset, or SourceFiles verbatim when no filter is set); it
+       only sets ConvertedFiles when MapConverter actually ran. The heavy lifting is pure C# (see
+       MapBundle.Build.LayerFilter and MapBundle.Build.MapConverter, both unit-tested directly). -->
+  <Target Name="_MapBundleProcess"
+          BeforeTargets="_MapBundleCopyRaw;AssignTargetPaths"
           Condition="'$(_MapBundleNeedsTask)' == 'true' and '@(MapBundleData)' != ''">
     <MapBundle.Build.ConvertMapData
         SourceFiles="@(MapBundleData)"
+        Layers="$(MapBundleLayers)"
+        ExcludeLayers="$(MapBundleExcludeLayers)"
         OutputDirectory="$(MapBundleIntermediateDir)"
         Format="$(MapBundleFormat)"
         CopyData="$(MapBundleCopyData)"
@@ -88,14 +93,44 @@
         ImageLabelSize="$(MapBundleImageLabelSize)"
         ImageLabelColor="$(MapBundleImageLabelColor)"
         ImageCompression="$(MapBundleImageCompression)">
+      <Output ItemName="_MapBundleFiltered" TaskParameter="FilteredSourceFiles" />
       <Output ItemName="_MapBundleConverted" TaskParameter="ConvertedFiles" />
     </MapBundle.Build.ConvertMapData>
 
+    <!-- Replace @(MapBundleData) with the filtered subset so any downstream target (including
+         _MapBundleCopyRaw in filter-only mode) only sees the survivors. Harmless in convert mode
+         where _MapBundleConverted carries the produced files instead. -->
     <ItemGroup>
+      <MapBundleData Remove="@(MapBundleData)" />
+      <MapBundleData Include="@(_MapBundleFiltered)" />
+    </ItemGroup>
+
+    <!-- Convert / render mode: stage the produced files. Filter-only mode leaves _MapBundleConverted
+         empty, so this is a no-op and _MapBundleCopyRaw handles the (filtered) raw set instead. -->
+    <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true'">
       <None Include="@(_MapBundleConverted)">
-        <!-- Qualify to _MapBundleConverted for the same reason as _MapBundleCopyRaw above: keep the
-             batch over the converted files, not the consumer's global None list. -->
+        <!-- Qualify to _MapBundleConverted to scope the batch to these files, not the consumer's
+             global None list (an unqualified %(Region) batches over None and fails for any None item
+             lacking Region metadata, e.g. Verify *.verified.* snapshots — MSB4096). -->
         <Link>maps\%(_MapBundleConverted.Region)\%(_MapBundleConverted.Filename)%(_MapBundleConverted.Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Visible>false</Visible>
+      </None>
+    </ItemGroup>
+  </Target>
+
+  <!-- Default raw-copy path: link the FlatGeobuf data straight into maps/<Region> with no
+       intermediate file write. Runs when conversion isn't needed; sees @(MapBundleData) post-filter
+       when the consumer set MapBundleLayers / MapBundleExcludeLayers. -->
+  <Target Name="_MapBundleCopyRaw"
+          BeforeTargets="AssignTargetPaths"
+          Condition="'$(MapBundleCopyData)' == 'true' and '$(_MapBundleNeedsConvert)' != 'true' and '@(MapBundleData)' != ''">
+    <ItemGroup>
+      <None Include="@(MapBundleData)">
+        <!-- Qualify every metadata reference to MapBundleData so the batch is over MapBundleData, not
+             the consumer's global None list (an unqualified %(Region) batches over None and fails for
+             any None item lacking Region metadata, e.g. Verify *.verified.* snapshots — MSB4096). -->
+        <Link>maps\%(MapBundleData.Region)\%(MapBundleData.Filename)%(MapBundleData.Extension)</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Visible>false</Visible>
       </None>

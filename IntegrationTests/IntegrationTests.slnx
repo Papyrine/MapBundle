@@ -7,4 +7,5 @@
   </Folder>
   <Project Path="RawConsumer/RawConsumer.csproj" />
   <Project Path="ConvertedConsumer/ConvertedConsumer.csproj" />
+  <Project Path="FilteredConsumer/FilteredConsumer.csproj" />
 </Solution>
