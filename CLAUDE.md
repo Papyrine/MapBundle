@@ -52,15 +52,17 @@ Four independent levers, all consumer-controlled:
   task) **and** the task-free raw-copy path (`_MapBundleCopyRaw` does its own `<Copy>` when the
   property is set) — so `MapBundleOutputDirectory` on its own, with no format/simplify/render/filter
   lever, redirects the verbatim `.fgb`; it is **not** silently ignored without a convert lever (the
-  old behavior — it used to only reach the then-skipped `ConvertMapData` task). Both paths register
-  the produced files as `<Content>` items with the project-relative path Blazor's
+  old behavior — it used to only reach the then-skipped `ConvertMapData` task). Each path only *writes*
+  the files; a single shared `_MapBundleStage` target then *places* whatever they staged into
+  `@(_MapBundleStaged)` — `<None Link>` + `CopyToOutputDirectory` into `maps/<Region>` (default) or, for
+  a redirect, registering them as `<Content>` items with the project-relative path Blazor's
   `DefineStaticWebAssets` pipeline matches against `wwwroot/**` (inert for non-Blazor SDKs), with a
   `<Content Remove>` first so a rebuild — where the SDK's eval-time wwwroot glob already caught the
   file the previous run left behind — doesn't trip `DiscoverPrecompressedAssets`'s Dictionary-keyed
   "duplicate FullPath" throw. The redirected files are not in `maps/`, so the runtime reads them with
   the `Maps.Open(directory)` overload, not the no-arg `Maps.Open()`. The `_MapBundleOutputRelativeDirectory`
-  property both paths share is computed once in the top `PropertyGroup` (the MSBuild metadata-in-property-
-  function gotcha below is why it's a pre-computed property, not an inline transform).
+  property `_MapBundleStage` batches against is computed once in the top `PropertyGroup` (the MSBuild
+  metadata-in-property-function gotcha below is why it's a pre-computed property, not an inline transform).
 
 All three levers go through one `ConvertMapData` net10.0 MSBuild task that does both layer filtering
 and (when needed) format conversion / rendering in a single pass over `@(MapBundleData)`. The task's
