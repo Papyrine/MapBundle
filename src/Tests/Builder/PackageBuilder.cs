@@ -501,9 +501,23 @@ public class PackageBuilder
         var id = bundle.Region.PackageId;
         var nuget = Size(new FileInfo(bundle.Package).Length);
         var data = Size(Directory.GetFiles(bundle.Staging, "*.fgb").Sum(_ => new FileInfo(_).Length));
-        var layers = string.Join(" ", bundle.Counts.Keys.OrderBy(_ => _).Select(LayerIcon));
+        var layers = string.Join(" ", bundle.Counts.Keys.OrderBy(_ => _).Select(_ => LayerCell(bundle.Region, _)));
         var features = bundle.Counts.Values.Sum();
         return $"| [{id}](https://www.nuget.org/packages/{id}) | {nuget} | {data} | {layers} | {features:N0} |";
+    }
+
+    // A layer's cell in the per-region table: its icon, linked to the layer's preview under /maps so a
+    // reader can click straight through to see what that region's layer looks like. Not every counted
+    // layer has a preview — Write skips the render when the region has no bounds (Antarctica's cities)
+    // or the preview comes out empty — so link only when the PNG is actually there; otherwise the bare
+    // icon, never a dead link.
+    static string LayerCell(Region region, MapLayer layer)
+    {
+        var icon = LayerIcon(layer);
+        var file = $"{region.Key}.{layer}.png";
+        return File.Exists(Path.Combine(MapsDirectory, file))
+            ? $"[{icon}](/maps/{file})"
+            : icon;
     }
 
     static string LayerIcon(MapLayer layer) =>
