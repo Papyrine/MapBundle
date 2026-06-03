@@ -120,7 +120,7 @@ Only used when `MapBundleRenderImages` is `true`; each is left at GeoConvert's o
 
 ### Staging output elsewhere
 
-The default staging path (`maps/<Region>/<layer>.<ext>` next to the built app) is fine for a console or desktop consumer that loads via `Maps.Open()` at runtime, but it isn't always where the consumer wants the file to land. `MapBundleOutputDirectory` lets the consumer point MapBundle at a different directory; MapBundle writes the produced files straight there, with the same `<Region>/<filename>.<ext>` layout, and skips the default `<None Link>` auto-stage (the file is already at its final destination).
+The default staging path (`maps/<Region>/<layer>.<ext>` next to the built app) is fine for a console or desktop consumer that loads via `Maps.Open()` at runtime, but it isn't always where the consumer wants the file to land. `MapBundleOutputDirectory` lets the consumer point MapBundle at a different directory; MapBundle writes the produced files straight there, with the same `<Region>/<filename>.<ext>` layout, and skips the default `<None Link>` auto-stage (the file is already at its final destination). This works whether or not the build also converts/simplifies/renders — setting `MapBundleOutputDirectory` on its own redirects the verbatim FlatGeobuf copy too.
 
 The motivating use case is a Blazor WebAssembly app that wants the simplified data served as a static asset. The whole pipeline collapses to three properties — no custom MSBuild target, no `<Copy>`, no `<Exec>`:
 
@@ -142,6 +142,7 @@ Trade-offs to be aware of when redirecting the output:
 - The path is exactly `<MapBundleOutputDirectory>/<Region>/<filename>.<ext>`. A single-region single-layer consumer pays for the `<Region>/` subfolder in the URL; that's the multi-region-friendly default. Flatten with the regular MSBuild file-staging tools if it matters.
 - Pick an absolute path (or one rooted via `$(MSBuildProjectDirectory)`). A bare relative path will be interpreted relative to the working directory MSBuild was invoked from, which on a Visual Studio build isn't necessarily the project directory.
 - Files land in the consumer's source tree if `MapBundleOutputDirectory` points there. They're regenerated on every build that finds them stale, so add the target subfolder (e.g. `wwwroot/sample/`) to `.gitignore`.
+- Redirected files are not copied into `maps/` next to the app, so the no-arg `Maps.Open()` (which only ever reads `AppContext.BaseDirectory/maps`) won't find them. The consumer reads them back with the directory overload — `Maps.Open("<MapBundleOutputDirectory>").Load("<Region>")` — or, for a Blazor/WASM app, fetches the served `.fgb` over HTTP. Loading via `Maps.Open` needs `MapBundleFormat` left at the default FlatGeobuf, since the reader is FlatGeobuf-only.
 
 
 ## Layers

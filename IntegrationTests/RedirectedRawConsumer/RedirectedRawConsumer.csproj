@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Raw-copy + redirect consumer: MapBundleOutputDirectory is set but NO conversion lever
+       (format / simplify / render / filter) is. That is the exact configuration that used to be a
+       silent no-op — the property only ever reached the ConvertMapData task, which this config never
+       triggers, so the verbatim .fgb went to the default maps/<Region> and the consumer's chosen
+       directory stayed empty. The fix makes _MapBundleCopyRaw honour the redirect itself, task-free:
+       the layers are written straight to $(MSBuildProjectDirectory)\custom\<Region>, NOT to
+       maps/<Region>, and the core can load them back via the Maps.Open(directory) overload. Building
+       this project IS the integration test — the assertions inspect what landed where on disk. The
+       sibling RedirectedOutputConsumer covers the same redirect on the convert path. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- The ONLY MapBundle property set: no tolerance/format/render/filter, so the build stays on the
+         task-free raw-copy path. Proves the redirect takes effect without forcing ConvertMapData. -->
+    <MapBundleOutputDirectory>$(MSBuildProjectDirectory)\custom</MapBundleOutputDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MapBundle.Monaco" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>

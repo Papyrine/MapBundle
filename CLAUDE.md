@@ -48,12 +48,19 @@ Four independent levers, all consumer-controlled:
   `<None Link>` + `CopyToOutputDirectory`. Set redirects the write to a consumer-chosen directory
   (typically the project's source tree, e.g. `wwwroot/sample` for Blazor) under a
   `<Region>/<filename>.<ext>` subfolder, and skips the auto-stage — the file is already at its
-  final destination. When `MapBundleOutputDirectory` is set the target also registers the produced
-  files as `<Content>` items with the project-relative path Blazor's `DefineStaticWebAssets`
-  pipeline matches against `wwwroot/**`; for non-Blazor SDKs those Content items are inert. A
-  `<Content Remove>` runs first so a rebuild, where the SDK's eval-time wwwroot glob already caught
-  the file the previous run left behind, doesn't trip `DiscoverPrecompressedAssets`'s
-  Dictionary-keyed "duplicate FullPath" throw.
+  final destination. This is honored on **both** the convert path (`_MapBundleProcess` writes via the
+  task) **and** the task-free raw-copy path (`_MapBundleCopyRaw` does its own `<Copy>` when the
+  property is set) — so `MapBundleOutputDirectory` on its own, with no format/simplify/render/filter
+  lever, redirects the verbatim `.fgb`; it is **not** silently ignored without a convert lever (the
+  old behavior — it used to only reach the then-skipped `ConvertMapData` task). Both paths register
+  the produced files as `<Content>` items with the project-relative path Blazor's
+  `DefineStaticWebAssets` pipeline matches against `wwwroot/**` (inert for non-Blazor SDKs), with a
+  `<Content Remove>` first so a rebuild — where the SDK's eval-time wwwroot glob already caught the
+  file the previous run left behind — doesn't trip `DiscoverPrecompressedAssets`'s Dictionary-keyed
+  "duplicate FullPath" throw. The redirected files are not in `maps/`, so the runtime reads them with
+  the `Maps.Open(directory)` overload, not the no-arg `Maps.Open()`. The `_MapBundleOutputRelativeDirectory`
+  property both paths share is computed once in the top `PropertyGroup` (the MSBuild metadata-in-property-
+  function gotcha below is why it's a pre-computed property, not an inline transform).
 
 All three levers go through one `ConvertMapData` net10.0 MSBuild task that does both layer filtering
 and (when needed) format conversion / rendering in a single pass over `@(MapBundleData)`. The task's

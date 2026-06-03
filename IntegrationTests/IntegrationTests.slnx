@@ -9,4 +9,5 @@
   <Project Path="ConvertedConsumer/ConvertedConsumer.csproj" />
   <Project Path="FilteredConsumer/FilteredConsumer.csproj" />
   <Project Path="RedirectedOutputConsumer/RedirectedOutputConsumer.csproj" />
+  <Project Path="RedirectedRawConsumer/RedirectedRawConsumer.csproj" />
 </Solution>

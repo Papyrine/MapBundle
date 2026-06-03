@@ -31,11 +31,12 @@ build_script:
     pwsh ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
     # MSBuild integration tests: build a small real MapBundle.Monaco package into the local feed
     # (offline — no source downloads; the core package from the build above stays alongside it), then
-    # build four consumer projects against that feed and run them. Building the consumers IS the test —
+    # build five consumer projects against that feed and run them. Building the consumers IS the test —
     # the RawConsumer expects the FlatGeobuf layers copied verbatim; the ConvertedConsumer expects
     # GeoJSON plus a rendered PNG; the FilteredConsumer expects only the whitelisted layers (minus
-    # any the blacklist removes) plus the meta.json sidecar; the RedirectedOutputConsumer expects
-    # the produced files at $(MSBuildProjectDirectory)\custom\Monaco\ and NOT at the default
+    # any the blacklist removes) plus the meta.json sidecar; the RedirectedOutputConsumer (convert
+    # path) and RedirectedRawConsumer (raw path, MapBundleOutputDirectory as the sole setting) both
+    # expect the produced files at $(MSBuildProjectDirectory)\custom\Monaco\ and NOT at the default
     # maps/Monaco/ location. The InvalidLayerNameTests negative test then drives `dotnet build` on
     # an IntegrationTests/InvalidConsumer fixture (kept out of the slnx so the build-all-three step
     # above doesn't trip on it) and asserts the build fails with the layer-name validation error —
@@ -46,6 +47,7 @@ build_script:
     dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/FilteredConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/RedirectedOutputConsumer --configuration Release --no-build
+    dotnet run --project IntegrationTests/RedirectedRawConsumer --configuration Release --no-build
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/InvalidLayerNameTests/*"
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
     # Publish-grade core: pack with deterministic source paths (no opt-out, so the CI default

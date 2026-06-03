@@ -18,8 +18,9 @@ core-nuget/
 ## Test + coverage output
 TestResults/
 
-## RedirectedOutputConsumer integration test: MapBundleOutputDirectory writes here on every build.
+## Redirect integration tests: MapBundleOutputDirectory writes here on every build.
 IntegrationTests/RedirectedOutputConsumer/custom/
+IntegrationTests/RedirectedRawConsumer/custom/
 
 ## BenchmarkDotNet output
 BenchmarkDotNet.Artifacts/

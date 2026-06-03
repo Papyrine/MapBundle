@@ -56,9 +56,16 @@
                             behaviour). Override to a directory anywhere on disk — typically into
                             the consumer's source tree (e.g. wwwroot/sample for a Blazor WASM app) —
                             and MapBundle writes the files there directly, skipping the auto-stage.
-                            Layout under the directory is <Region>/<filename>.<ext>; a single-region
-                            consumer can flatten it with the regular MSBuild tools, but the default
-                            preserves region scoping so a multi-region consumer doesn't collide.
+                            This applies to the default verbatim FlatGeobuf copy too, not only the
+                            convert / simplify / render path: setting MapBundleOutputDirectory on its
+                            own is enough to redirect the raw .fgb — it does NOT silently require a
+                            conversion lever to take effect. Layout under the directory is
+                            <Region>/<filename>.<ext>; a single-region consumer can flatten it with
+                            the regular MSBuild tools, but the default preserves region scoping so a
+                            multi-region consumer doesn't collide. The redirected files are not copied
+                            into maps/ beside the app, so read them back with the directory overload
+                            Maps.Open("<that directory>") — not the no-arg Maps.Open(), which only
+                            ever looks in AppContext.BaseDirectory/maps.
   -->
 
   <PropertyGroup>
@@ -72,6 +79,18 @@
          keeps the historical "write to obj/, link into bin/maps/<Region>/" behaviour intact. -->
     <_MapBundleEffectiveOutputDirectory Condition="'$(MapBundleOutputDirectory)' != ''">$(MapBundleOutputDirectory)</_MapBundleEffectiveOutputDirectory>
     <_MapBundleEffectiveOutputDirectory Condition="'$(MapBundleOutputDirectory)' == ''">$(MapBundleIntermediateDir)</_MapBundleEffectiveOutputDirectory>
+
+    <!-- Project-relative form of MapBundleOutputDirectory, shared by both the convert path
+         (_MapBundleProcess) and the raw-copy path (_MapBundleCopyRaw) to register the produced files
+         as <Content> with the same ItemSpec shape the SDK's eval-time Content glob uses — so the
+         Remove can find and dedupe them on rebuild, and Blazor's DefineStaticWebAssets matches them
+         against wwwroot/**. Computed here as a plain property (NOT inside the item transforms that
+         consume it) because property functions silently fail to expand %(Metadata) when the metadata
+         is their argument — a long-standing MSBuild limitation — so the relative dir has to be a
+         ready-made string the transforms batch against verbatim. Trailing-slash handling: MakeRelative
+         strips a trailing slash from the result iff the input had one; we re-add a backslash so
+         concatenation with %(Region)\%(Filename) yields the SDK's shape. -->
+    <_MapBundleOutputRelativeDirectory Condition="'$(MapBundleOutputDirectory)' != ''">$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)', '$(MapBundleOutputDirectory)'))\</_MapBundleOutputRelativeDirectory>
 
     <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\MapBundle.Build.dll</_MapBundleTasksAssembly>
     <!-- True when the ConvertMapData task needs to run: either because the consumer wants format
@@ -170,20 +189,9 @@
          the files are already at their final on-disk location (the consumer's chosen directory),
          and a second copy would just duplicate them into the build output. For a non-Blazor SDK
          these Content items are inert (no Link, no CopyToOutputDirectory → they associate with the
-         project but don't trigger any staging). -->
-    <!-- Pre-compute the project-relative form of MapBundleOutputDirectory as a plain property.
-         Property functions inside item transforms (e.g. @(X->'$([MSBuild]::MakeRelative(...))')
-         silently fail to expand %(Metadata) — a long-standing MSBuild limitation. By computing the
-         relative directory once here, the Remove and Include patterns below only need simple
-         metadata batching, which works reliably.
-
-         Trailing-slash handling: MakeRelative strips a trailing slash from the result iff the input
-         had one. We re-add a backslash so concatenation with %(Region)\%(Filename) produces the
-         shape the SDK's Content glob uses for relative items, exactly matching what the Remove
-         needs to find on disk. -->
-    <PropertyGroup Condition="'$(MapBundleOutputDirectory)' != ''">
-      <_MapBundleOutputRelativeDirectory>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)', '$(MapBundleOutputDirectory)'))\</_MapBundleOutputRelativeDirectory>
-    </PropertyGroup>
+         project but don't trigger any staging). The project-relative
+         _MapBundleOutputRelativeDirectory the Remove/Include below batch against is computed once,
+         eval-time, in the top PropertyGroup (see the note there on the MSBuild metadata gotcha). -->
     <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true' and '$(MapBundleOutputDirectory)' != ''">
       <!-- Remove first, in its own ItemGroup: the SDK's default $(EnableDefaultContentItems) glob
            runs at evaluation time and already includes anything matching its patterns that exists
@@ -211,13 +219,23 @@
     </ItemGroup>
   </Target>
 
-  <!-- Default raw-copy path: link the FlatGeobuf data straight into maps/<Region> with no
-       intermediate file write. Runs when conversion isn't needed; sees @(MapBundleData) post-filter
-       when the consumer set MapBundleLayers / MapBundleExcludeLayers. -->
+  <!-- Raw-copy path: emit the verbatim FlatGeobuf data with no conversion. Runs when conversion isn't
+       needed; sees @(MapBundleData) post-filter when the consumer set MapBundleLayers /
+       MapBundleExcludeLayers. Two destinations, mutually exclusive on MapBundleOutputDirectory:
+
+         * unset (default) — link straight into maps/<Region> in the build output via <None Link> +
+           CopyToOutputDirectory, no intermediate file write (the historical behaviour).
+         * set             — physically <Copy> the .fgb into <OutputDirectory>/<Region>/ and register
+           the result as <Content>, exactly as _MapBundleProcess does for its produced files. This is
+           what lets MapBundleOutputDirectory take effect with no format / simplify / render lever set;
+           without it the property only ever reached the (skipped) ConvertMapData task, so a consumer
+           who set just MapBundleOutputDirectory got a silent no-op. Stays task-free, so it keeps
+           working under net8/9 SDK hosts (only the ConvertMapData task itself needs net10+). -->
   <Target Name="_MapBundleCopyRaw"
-          BeforeTargets="AssignTargetPaths"
+          BeforeTargets="AssignTargetPaths;ResolveProjectStaticWebAssets"
           Condition="'$(MapBundleCopyData)' == 'true' and '$(_MapBundleNeedsConvert)' != 'true' and '@(MapBundleData)' != ''">
-    <ItemGroup>
+    <!-- Default location: <None Link> into maps/<Region>. -->
+    <ItemGroup Condition="'$(MapBundleOutputDirectory)' == ''">
       <None Include="@(MapBundleData)">
         <!-- Qualify every metadata reference to MapBundleData so the batch is over MapBundleData, not
              the consumer's global None list (an unqualified %(Region) batches over None and fails for
@@ -226,6 +244,30 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Visible>false</Visible>
       </None>
+    </ItemGroup>
+
+    <!-- Consumer-specified output directory: write the files there directly, then register them as
+         Content (mirrors _MapBundleProcess's convert-mode handling). DestinationFiles is a straight
+         metadata-batched transform of @(MapBundleData) — no property function involved, so
+         %(Region)/%(Filename)/%(Extension) expand fine (unlike the relative dir, which is why that one
+         is pre-computed as a property). The Copy creates the <Region> subdirectory as needed;
+         SkipUnchangedFiles keeps rebuilds incremental (the source .fgb sits unchanged in the package). -->
+    <Copy Condition="'$(MapBundleOutputDirectory)' != ''"
+          SourceFiles="@(MapBundleData)"
+          DestinationFiles="@(MapBundleData->'$(MapBundleOutputDirectory)\%(Region)\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <!-- Remove then Include in SEPARATE ItemGroups so the Remove commits before the Include runs: on a
+         rebuild the SDK's eval-time glob has already caught the file the previous run left behind, and
+         a same-ItemGroup Remove+Include wouldn't dedupe it — leaving a duplicate that makes
+         StaticWebAssets' DiscoverPrecompressedAssets throw "duplicate FullPath". Same reasoning and the
+         same project-relative ItemSpec as the convert path. -->
+    <ItemGroup Condition="'$(MapBundleOutputDirectory)' != ''">
+      <Content Remove="$(_MapBundleOutputRelativeDirectory)%(MapBundleData.Region)\%(MapBundleData.Filename)%(MapBundleData.Extension)" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(MapBundleOutputDirectory)' != ''">
+      <Content Include="$(_MapBundleOutputRelativeDirectory)%(MapBundleData.Region)\%(MapBundleData.Filename)%(MapBundleData.Extension)">
+        <Visible>false</Visible>
+      </Content>
     </ItemGroup>
   </Target>
 
