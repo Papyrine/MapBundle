@@ -28,6 +28,11 @@
       MapBundleSimplifyTolerance  a positive number turns on GeoConvert vertex reduction (degrees for
                             DouglasPeucker, degrees² for Visvalingam) before the data/image is written;
                             unset or 0 leaves geometry untouched (and keeps the verbatim .fgb copy).
+                            Uses the topology-preserving variant — shared edges between adjacent admin
+                            polygons (countries, states) are reduced once with a single chord choice,
+                            so the borders stay seamlessly joined (no hairline gaps or alpha-stacking
+                            overlaps along internal borders, which is what plain per-ring simplify
+                            would produce on this data).
       MapBundleSimplifyMethod  DouglasPeucker (default) or Visvalingam; only used when a tolerance is set.
 
     Image toggles (only used when MapBundleRenderImages is true; unset means GeoConvert's own default):

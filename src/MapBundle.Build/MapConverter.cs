@@ -90,7 +90,15 @@ public static class MapConverter
                 var collection = GeoConverter.Read(source, GeoFormat.FlatGeobuf);
                 if (simplify)
                 {
-                    collection = Simplifier.Simplify(collection, request.SimplifyTolerance, request.SimplifyMethod);
+                    // SimplifyTopology, not Simplify: MapBundle ships admin-style layers (Borders,
+                    // StatesProvinces) whose adjacent polygons share borders. Per-ring simplify would
+                    // simplify each shared edge twice with different chord choices, leaving hairline
+                    // gaps and alpha-stacking overlaps where countries meet. Topology-preserving
+                    // simplify classifies junctions across the collection and reduces each shared arc
+                    // once, so adjacent rings stay seamlessly joined. On isolated geometry (single
+                    // line, point, standalone ring) the algorithm degenerates to per-feature simplify
+                    // — bit-identical output to the plain overload.
+                    collection = Simplifier.SimplifyTopology(collection, request.SimplifyTolerance, request.SimplifyMethod);
                 }
 
                 // `format` is FlatGeobuf in the simplify-only case (convert is false), so this writes the
@@ -128,9 +136,12 @@ public static class MapConverter
                     var collection = GeoConverter.Read(_, GeoFormat.FlatGeobuf);
                     // Simplify before render so the preview reflects the same generalisation the data
                     // emission applies (Simplifier preserves the collection name either way).
+                    // SimplifyTopology for the same reason as in EmitData: keep shared admin borders
+                    // seamlessly joined after thinning — without it, low-tolerance previews of dense
+                    // border layers paint hairline gaps that no amount of stroke styling can hide.
                     if (request.SimplifyTolerance > 0)
                     {
-                        collection = Simplifier.Simplify(collection, request.SimplifyTolerance, request.SimplifyMethod);
+                        collection = Simplifier.SimplifyTopology(collection, request.SimplifyTolerance, request.SimplifyMethod);
                     }
 
                     collection.Name = Path.GetFileNameWithoutExtension(_);

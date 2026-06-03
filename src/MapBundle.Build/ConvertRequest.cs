@@ -20,10 +20,14 @@ public sealed class ConvertRequest
 
     /// <summary>
     /// Vertex-reduction tolerance applied to every layer (data and preview) before it is written, via
-    /// GeoConvert's <see cref="Simplifier"/>. <c>0</c> (the default) disables simplification and keeps
-    /// the verbatim FlatGeobuf copy fast-path; any positive value forces a read/simplify/write even when
-    /// <see cref="Format"/> is FlatGeobuf. Its unit depends on <see cref="SimplifyMethod"/>: a distance
-    /// in degrees for Douglas–Peucker, an area in degrees² for Visvalingam.
+    /// GeoConvert's <see cref="Simplifier.SimplifyTopology(FeatureCollection, double, SimplifyMethod)"/> —
+    /// the topology-preserving variant, so adjacent admin polygons (countries, states) that share an
+    /// edge get that edge reduced once to bit-identical vertices on both sides, instead of twice with
+    /// different chord choices (which is what produces the hairline gaps the plain overload leaves on
+    /// admin layers). <c>0</c> (the default) disables simplification and keeps the verbatim FlatGeobuf
+    /// copy fast-path; any positive value forces a read/simplify/write even when <see cref="Format"/>
+    /// is FlatGeobuf. Its unit depends on <see cref="SimplifyMethod"/>: a distance in degrees for
+    /// Douglas–Peucker, an area in degrees² for Visvalingam.
     /// </summary>
     public double SimplifyTolerance { get; init; }
 
