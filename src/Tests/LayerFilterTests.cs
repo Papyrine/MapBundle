@@ -20,14 +20,14 @@ public class LayerFilterTests
     public async Task Resolve_accepts_enum_names()
     {
         var resolved = LayerFilter.Resolve("Borders;StatesProvinces;Cities", "MapBundleLayers");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders", "states", "cities" });
+        await Assert.That(resolved).IsEquivalentTo(["borders", "states", "cities"]);
     }
 
     [Test]
     public async Task Resolve_accepts_on_disk_filenames()
     {
         var resolved = LayerFilter.Resolve("borders;states;cities", "MapBundleLayers");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders", "states", "cities" });
+        await Assert.That(resolved).IsEquivalentTo(["borders", "states", "cities"]);
     }
 
     [Test]
@@ -36,7 +36,7 @@ public class LayerFilterTests
         // The on-disk filenames are lowercase; resolve has to accept any case mix so a consumer who
         // copy-pastes from the C# MapLayer enum (PascalCase) isn't surprised.
         var resolved = LayerFilter.Resolve("BORDERS;statesprovinces;CiTiEs", "MapBundleLayers");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders", "states", "cities" });
+        await Assert.That(resolved).IsEquivalentTo(["borders", "states", "cities"]);
     }
 
     [Test]
@@ -44,8 +44,8 @@ public class LayerFilterTests
     {
         // This is the ONE enum-name → on-disk-filename mismatch. Both forms have to resolve to the same
         // canonical filename so the keep/drop decision in ShouldKeep uses a single name space.
-        await Assert.That(LayerFilter.Resolve("StatesProvinces", "P")).IsEquivalentTo(new[] { "states" });
-        await Assert.That(LayerFilter.Resolve("states", "P")).IsEquivalentTo(new[] { "states" });
+        await Assert.That(LayerFilter.Resolve("StatesProvinces", "P")).IsEquivalentTo(["states"]);
+        await Assert.That(LayerFilter.Resolve("states", "P")).IsEquivalentTo(["states"]);
     }
 
     [Test]
@@ -54,9 +54,9 @@ public class LayerFilterTests
         var semi = LayerFilter.Resolve("Borders;Cities", "P");
         var comma = LayerFilter.Resolve("Borders,Cities", "P");
         var mixed = LayerFilter.Resolve("Borders,Cities;Rivers", "P");
-        await Assert.That(semi).IsEquivalentTo(new[] { "borders", "cities" });
-        await Assert.That(comma).IsEquivalentTo(new[] { "borders", "cities" });
-        await Assert.That(mixed).IsEquivalentTo(new[] { "borders", "cities", "rivers" });
+        await Assert.That(semi).IsEquivalentTo(["borders", "cities"]);
+        await Assert.That(comma).IsEquivalentTo(["borders", "cities"]);
+        await Assert.That(mixed).IsEquivalentTo(["borders", "cities", "rivers"]);
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class LayerFilterTests
         // 'Borders, Cities' (with a space after the comma) is the natural way to write a list — the
         // parser has to handle it without forcing the consumer to omit whitespace.
         var resolved = LayerFilter.Resolve(" Borders , Cities ", "P");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders", "cities" });
+        await Assert.That(resolved).IsEquivalentTo(["borders", "cities"]);
     }
 
     [Test]
@@ -74,7 +74,7 @@ public class LayerFilterTests
         // ;;Borders;; happens when a consumer concatenates a list defensively. Empty tokens are not an
         // error (no information was lost) and should be silently dropped.
         var resolved = LayerFilter.Resolve(";;Borders;;Cities;;", "P");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders", "cities" });
+        await Assert.That(resolved).IsEquivalentTo(["borders", "cities"]);
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class LayerFilterTests
     {
         // Borders;borders;BORDERS is the same name three times. The resulting set has one entry.
         var resolved = LayerFilter.Resolve("Borders;borders;BORDERS", "P");
-        await Assert.That(resolved).IsEquivalentTo(new[] { "borders" });
+        await Assert.That(resolved).IsEquivalentTo(["borders"]);
     }
 
     [Test]

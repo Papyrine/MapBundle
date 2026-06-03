@@ -47,7 +47,7 @@ public class InvalidLayerNameTests
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
-        var output = (await stdoutTask) + (await stderrTask);
+        var output = await stdoutTask + await stderrTask;
 
         // Build must have failed. If it succeeded, the validation isn't firing and consumers with
         // typos will ship empty maps/ folders.

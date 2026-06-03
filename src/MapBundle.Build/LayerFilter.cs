@@ -70,7 +70,7 @@ public static class LayerFilter
             return [];
         }
 
-        var tokens = raw!
+        var tokens = raw
             .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
             .Select(token => token.Trim())
             .Where(token => token.Length > 0)
