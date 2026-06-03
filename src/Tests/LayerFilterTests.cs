@@ -155,8 +155,7 @@ public class LayerFilterTests
         // meta.json (and any future sidecar) isn't a layer file — the whitelist's "drop everything
         // not listed" rule must not catch it, because the core needs it to enumerate available layers.
         var whitelist = new HashSet<string> { "borders" };
-        var blacklist = new HashSet<string>();
-        await Assert.That(LayerFilter.ShouldKeep("meta", whitelist, blacklist)).IsTrue();
+        await Assert.That(LayerFilter.ShouldKeep("meta", whitelist, new HashSet<string>())).IsTrue();
         // Even with both lists empty, non-layer files are kept (the trivial case).
         await Assert.That(LayerFilter.ShouldKeep("meta", [], [])).IsTrue();
     }
