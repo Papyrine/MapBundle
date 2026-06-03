@@ -72,6 +72,25 @@
            filename is in this set; everything else (meta.json, future sidecars) is preserved. -->
       <_MapBundleKnownLayerFiles>;borders;cities;rivers;lakes;states;coastline;land;ocean;</_MapBundleKnownLayerFiles>
     </PropertyGroup>
+    <!-- Validate: every token in either list must be a known layer (after normalisation). Without this
+         a typo like 'Boders' silently removes every real layer (it's not in the include list, and the
+         include list isn't itself empty so the filter runs), leaving the consumer with an empty maps/
+         folder and no signal anything went wrong.
+
+         The two normalised properties are concatenated and fed to Include="…". MSBuild splits Include
+         values on ';' to produce one item per token — but a ';' inside a property value returned by a
+         property function like .Replace() is auto-escaped (as %3B) so it survives later parsing as a
+         literal. That's the opposite of what we want here: we need those embedded ';' to act as token
+         separators. [MSBuild]::Unescape converts the %3B back to a real ';' so Include sees them and
+         splits the value into one item per token. -->
+    <ItemGroup>
+      <_MapBundleRequestedLayerTokens Include="$([MSBuild]::Unescape('$(_MapBundleLayersNorm)$(_MapBundleExcludeLayersNorm)'))" />
+      <_MapBundleUnknownLayerTokens Include="@(_MapBundleRequestedLayerTokens)"
+                                    Condition="'%(Identity)' != '' and !$(_MapBundleKnownLayerFiles.Contains(';%(Identity);'))" />
+    </ItemGroup>
+    <Error Condition="'@(_MapBundleUnknownLayerTokens)' != ''"
+           Text="MapBundleLayers / MapBundleExcludeLayers contains unknown layer name(s): @(_MapBundleUnknownLayerTokens, ', '). Known layers: Borders, StatesProvinces, Cities, Rivers, Lakes, Coastline, Land, Ocean (the on-disk filenames borders/states/cities/rivers/lakes/coastline/land/ocean are also accepted)." />
+
     <ItemGroup>
       <!-- Whitelist: drop layer files NOT named in MapBundleLayers. -->
       <MapBundleData Remove="@(MapBundleData)"

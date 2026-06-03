@@ -34,12 +34,16 @@ build_script:
     # build three consumer projects against that feed and run them. Building the consumers IS the test —
     # the RawConsumer expects the FlatGeobuf layers copied verbatim; the ConvertedConsumer expects
     # GeoJSON plus a rendered PNG; the FilteredConsumer expects only the whitelisted layers (minus
-    # any the blacklist removes) plus the meta.json sidecar.
+    # any the blacklist removes) plus the meta.json sidecar. The InvalidLayerNameTests negative test
+    # then drives `dotnet build` on an IntegrationTests/InvalidConsumer fixture (kept out of the slnx
+    # so the build-all-three step above doesn't trip on it) and asserts the build fails with the
+    # layer-name validation error — pins that a typo can't silently empty maps/<Region>.
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/IntegrationFixture/BuildMonacoPackage"
     dotnet build IntegrationTests --configuration Release
     dotnet run --project IntegrationTests/RawConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
     dotnet run --project IntegrationTests/FilteredConsumer --configuration Release --no-build
+    src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/InvalidLayerNameTests/*"
     src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
     # Publish-grade core: pack with deterministic source paths (no opt-out, so the CI default
     # ContinuousIntegrationBuild stays on) into its own core-nuget/ folder, kept apart from the

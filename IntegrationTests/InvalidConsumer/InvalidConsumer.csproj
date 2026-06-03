@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Invalid-input consumer: MapBundleLayers contains a deliberate typo so the _MapBundleFilterLayers
+       validation rejects it at build time. This project is NOT included in IntegrationTests.slnx so a
+       plain `dotnet build IntegrationTests` doesn't try to build it (and fail); it is driven via
+       Process.Start("dotnet", "build …") from the InvalidLayerNameTests integration test in the main
+       Tests project, which inverts the assertion (build MUST fail, and with the expected error). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <!-- Two intentional typos — one in each list — so the test can pin both the include-side and
+         exclude-side validation paths in one shot, and confirm every unknown token is reported (not
+         just the first). -->
+    <MapBundleLayers>Boders</MapBundleLayers>
+    <MapBundleExcludeLayers>Citties</MapBundleExcludeLayers>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MapBundle.Monaco" />
+  </ItemGroup>
+</Project>
