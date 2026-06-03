@@ -35,7 +35,7 @@ SDK pack. Each carries `buildTransitive/<id>.targets` that copies its `.fgb` fil
 `maps/<Region>` folder in the consumer's output; the core reads from `AppContext.BaseDirectory/maps`.
 
 The core's `buildTransitive/MapBundle.targets` decides what happens to those `@(MapBundleData)` items.
-Three independent levers, all consumer-controlled:
+Four independent levers, all consumer-controlled:
 - **What to keep** — `MapBundleLayers` (whitelist) and `MapBundleExcludeLayers` (blacklist). Accepts
   the `MapLayer` enum names (`Borders`, `StatesProvinces`, …) *or* the on-disk filenames (`borders`,
   `states`, …); case-insensitive. The `meta.json` sidecar is always kept. Unknown names fail the
@@ -43,6 +43,17 @@ Three independent levers, all consumer-controlled:
 - **How to emit it** — `MapBundleFormat` / `MapBundleSimplify*` route through `ConvertMapData`'s
   conversion phase; default `FlatGeobuf` + no simplify hits the task-free `_MapBundleCopyRaw` fast path.
 - **Whether to render a preview** — `MapBundleRenderImages` plus the `MapBundleImage*` knobs.
+- **Where the result lands** — `MapBundleOutputDirectory`. Unset (default) writes to the intermediate
+  output and auto-stages a copy at `maps/<Region>/<filename>.<ext>` in the build output via
+  `<None Link>` + `CopyToOutputDirectory`. Set redirects the write to a consumer-chosen directory
+  (typically the project's source tree, e.g. `wwwroot/sample` for Blazor) under a
+  `<Region>/<filename>.<ext>` subfolder, and skips the auto-stage — the file is already at its
+  final destination. When `MapBundleOutputDirectory` is set the target also registers the produced
+  files as `<Content>` items with the project-relative path Blazor's `DefineStaticWebAssets`
+  pipeline matches against `wwwroot/**`; for non-Blazor SDKs those Content items are inert. A
+  `<Content Remove>` runs first so a rebuild, where the SDK's eval-time wwwroot glob already caught
+  the file the previous run left behind, doesn't trip `DiscoverPrecompressedAssets`'s
+  Dictionary-keyed "duplicate FullPath" throw.
 
 All three levers go through one `ConvertMapData` net10.0 MSBuild task that does both layer filtering
 and (when needed) format conversion / rendering in a single pass over `@(MapBundleData)`. The task's
@@ -59,7 +70,26 @@ top-level mode: `RawConsumer` (default raw copy), `ConvertedConsumer` (format + 
 what landed in `maps/Monaco`. A fourth fixture project, `InvalidConsumer`, is kept out of the slnx
 and driven by `InvalidLayerNameTests` (an `[Explicit]` test that runs `dotnet build` as a subprocess
 and asserts the build fails with the layer-name validation error). CI builds the local Monaco
-fixture, runs all three positive consumers, then runs the negative test.
+fixture, runs all three positive consumers, then runs the negative test. The
+`MapBundleOutputDirectory` redirect path is exercised end-to-end by GeoConvert.Web — its csproj
+points the output into `wwwroot/sample` and consumes the file as a static asset; that consumer
+doesn't live in this repo, so changes to the Content registration logic here should be smoke-tested
+by building GeoConvert.Web against the local MapBundle pack.
+
+### MSBuild gotcha worth remembering
+
+Inside an item transform like `@(Items->'expression')`, item metadata `%(Metadata)` does **not**
+expand when used as an argument to a property function: `@(Items->'$([MSBuild]::MakeRelative($(Dir),
+%(FullPath)))')` silently leaves `%(FullPath)` as the literal seven-character text
+`%(FullPath)` — the property function evaluates against that string and returns nonsense, no error.
+The fix is to pre-compute the property-function result as a plain `<PropertyGroup>` property (where
+property functions evaluate fine, no metadata involved), then plug the resulting string into the
+item transform via straight metadata batching. The `_MapBundleOutputRelativeDirectory` property in
+`MapBundle.targets` is there for exactly this reason: it captures
+`[MSBuild]::MakeRelative($(MSBuildProjectDirectory), $(MapBundleOutputDirectory))` once, and the
+Remove/Include patterns then read it via plain `$(_MapBundleOutputRelativeDirectory)%(Region)\…`
+batching. If you ever find yourself wanting to compute a per-item path with property functions,
+remember this and reach for an intermediate property instead.
 
 ## Commands
 

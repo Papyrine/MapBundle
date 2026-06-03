@@ -44,7 +44,7 @@ Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coord
 
 ## Build-time format conversion and images
 
-FlatGeobuf is the default on-disk format, but it is not always the right fit for a consumer. Setting a few MSBuild properties (in a `.csproj`, `Directory.Build.props`, or on the command line) converts a data package's layers — and/or renders a preview image — with [GeoConvert](https://github.com/SimonCropp/GeoConvert) at build time, instead of copying the raw `.fgb`. The output still lands in `maps/<Region>` next to the app.
+FlatGeobuf is the default on-disk format, but it is not always the right fit for a consumer. Setting a few MSBuild properties (in a `.csproj`, `Directory.Build.props`, or on the command line) converts a data package's layers — and/or renders a preview image — with [GeoConvert](https://github.com/SimonCropp/GeoConvert) at build time, instead of copying the raw `.fgb`. By default the output lands at `maps/<Region>` next to the built app; set [`MapBundleOutputDirectory`](#staging-output-elsewhere) to redirect it anywhere on disk (e.g. straight into a Blazor app's `wwwroot`).
 
 ```xml
 <PropertyGroup>
@@ -68,6 +68,7 @@ FlatGeobuf is the default on-disk format, but it is not always the right fit for
 | `MapBundleExcludeLayers` | (none) | Semicolon- or comma-separated blacklist, applied after `MapBundleLayers`. Same name forms accepted; same validation. Useful to keep most layers but drop a few (e.g. `<MapBundleExcludeLayers>Land;Ocean</MapBundleExcludeLayers>`). |
 | `MapBundleSimplifyTolerance` | `0` (off) | Vertex-reduction tolerance applied (to both data and any preview) before writing, using GeoConvert's topology-preserving simplifier — shared edges between adjacent admin polygons (countries within `Borders`, states within `StatesProvinces`) get reduced once to bit-identical vertices on both sides, so the borders stay seamlessly joined after thinning (no hairline gaps or alpha-stacking overlaps along internal borders). A positive value turns on simplification — a perpendicular distance in degrees for `DouglasPeucker`, an effective triangle area in degrees² for `Visvalingam`. Setting it forces a read/rewrite even when `MapBundleFormat` is `FlatGeobuf`. |
 | `MapBundleSimplifyMethod` | `DouglasPeucker` | The simplify algorithm: `DouglasPeucker` or `Visvalingam`. Only used when `MapBundleSimplifyTolerance` is positive. |
+| `MapBundleOutputDirectory` | (unset) | Where the produced files land on disk. Unset is the historical behaviour: MapBundle writes to the project's intermediate output and auto-stages a copy via `<None Link>` at `maps/<Region>/<filename>.<ext>` in the build output. Set to redirect — typically into the consumer's source tree, e.g. `$(MSBuildProjectDirectory)\wwwroot\sample` for a Blazor WASM app — and MapBundle writes the files there directly under a `<Region>/<filename>.<ext>` subfolder, skipping the default auto-stage. See [Staging output elsewhere](#staging-output-elsewhere). |
 
 ### Image options
 
@@ -91,6 +92,31 @@ Only used when `MapBundleRenderImages` is `true`; each is left at GeoConvert's o
 | `MapBundleImageLabelSize` | Cap height of label text in pixels. |
 | `MapBundleImageLabelColor` | Label text color. |
 | `MapBundleImageCompression` | PNG deflate level: `Optimal`, `Fastest`, `SmallestSize`, or `NoCompression`. |
+
+### Staging output elsewhere
+
+The default staging path (`maps/<Region>/<layer>.<ext>` next to the built app) is fine for a console or desktop consumer that loads via `Maps.Open()` at runtime, but it isn't always where the consumer wants the file to land. `MapBundleOutputDirectory` lets the consumer point MapBundle at a different directory; MapBundle writes the produced files straight there, with the same `<Region>/<filename>.<ext>` layout, and skips the default `<None Link>` auto-stage (the file is already at its final destination).
+
+The motivating use case is a Blazor WebAssembly app that wants the simplified data served as a static asset. The whole pipeline collapses to three properties — no custom MSBuild target, no `<Copy>`, no `<Exec>`:
+
+```xml
+<PropertyGroup>
+  <!-- Keep only the country borders out of MapBundle.World's eight layers. -->
+  <MapBundleLayers>Borders</MapBundleLayers>
+  <!-- Simplify with the topology-preserving variant (the default since 0.3.0). -->
+  <MapBundleSimplifyTolerance>0.1</MapBundleSimplifyTolerance>
+  <!-- Write straight into wwwroot, where Blazor's static-web-assets pipeline picks it up. -->
+  <MapBundleOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\sample</MapBundleOutputDirectory>
+</PropertyGroup>
+```
+
+The simplified borders land at `wwwroot/sample/World/borders.fgb`, served at the URL `/sample/World/borders.fgb` once Blazor's manifest catches up. For Blazor consumers MapBundle also auto-registers the produced files as `<Content>` items (with the project-relative ItemSpec Blazor's `DefineStaticWebAssets` task expects); for non-Blazor SDKs those Content items are inert. A `<Content Remove>` runs first so a rebuild — where the SDK's eval-time wwwroot glob already caught the file the previous run left behind — doesn't trip the `DiscoverPrecompressedAssets` "duplicate FullPath" throw.
+
+Trade-offs to be aware of when redirecting the output:
+
+- The path is exactly `<MapBundleOutputDirectory>/<Region>/<filename>.<ext>`. A single-region single-layer consumer pays for the `<Region>/` subfolder in the URL; that's the multi-region-friendly default. Flatten with the regular MSBuild file-staging tools if it matters.
+- Pick an absolute path (or one rooted via `$(MSBuildProjectDirectory)`). A bare relative path will be interpreted relative to the working directory MSBuild was invoked from, which on a Visual Studio build isn't necessarily the project directory.
+- Files land in the consumer's source tree if `MapBundleOutputDirectory` points there. They're regenerated on every build that finds them stale, so add the target subfolder (e.g. `wwwroot/sample/`) to `.gitignore`.
 
 
 ## Layers

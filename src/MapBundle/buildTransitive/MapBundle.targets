@@ -49,6 +49,16 @@
                             "if you can't see it, don't paint it" floor; 4 prunes aggressively for
                             thumbnails. Zooming in (tighter bbox / larger canvas) naturally
                             surfaces previously-pruned features without re-baking the data.
+
+      MapBundleOutputDirectory  where MapBundle writes the produced files. Default (unset) writes to
+                            the intermediate output and auto-stages a copy via <None Link> at
+                            maps/<Region>/<filename>.<ext> in the build output (the historical
+                            behaviour). Override to a directory anywhere on disk — typically into
+                            the consumer's source tree (e.g. wwwroot/sample for a Blazor WASM app) —
+                            and MapBundle writes the files there directly, skipping the auto-stage.
+                            Layout under the directory is <Region>/<filename>.<ext>; a single-region
+                            consumer can flatten it with the regular MSBuild tools, but the default
+                            preserves region scoping so a multi-region consumer doesn't collide.
   -->
 
   <PropertyGroup>
@@ -56,6 +66,12 @@
     <MapBundleRenderImages Condition="'$(MapBundleRenderImages)' == ''">false</MapBundleRenderImages>
     <MapBundleCopyData Condition="'$(MapBundleCopyData)' == ''">true</MapBundleCopyData>
     <MapBundleIntermediateDir Condition="'$(MapBundleIntermediateDir)' == ''">$(IntermediateOutputPath)mapbundle\</MapBundleIntermediateDir>
+    <!-- The effective output directory passed to ConvertMapData. When the consumer set
+         MapBundleOutputDirectory explicitly, use that (and skip the auto-stage below — the file is
+         already at its final destination). Otherwise fall back to the intermediate directory, which
+         keeps the historical "write to obj/, link into bin/maps/<Region>/" behaviour intact. -->
+    <_MapBundleEffectiveOutputDirectory Condition="'$(MapBundleOutputDirectory)' != ''">$(MapBundleOutputDirectory)</_MapBundleEffectiveOutputDirectory>
+    <_MapBundleEffectiveOutputDirectory Condition="'$(MapBundleOutputDirectory)' == ''">$(MapBundleIntermediateDir)</_MapBundleEffectiveOutputDirectory>
 
     <_MapBundleTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\MapBundle.Build.dll</_MapBundleTasksAssembly>
     <!-- True when the ConvertMapData task needs to run: either because the consumer wants format
@@ -78,15 +94,24 @@
        filtered @(MapBundleData) reaches the raw-copy path in filter-only mode. The task always sets
        FilteredSourceFiles (the surviving subset, or SourceFiles verbatim when no filter is set); it
        only sets ConvertedFiles when MapConverter actually ran. The heavy lifting is pure C# (see
-       MapBundle.Build.LayerFilter and MapBundle.Build.MapConverter, both unit-tested directly). -->
+       MapBundle.Build.LayerFilter and MapBundle.Build.MapConverter, both unit-tested directly).
+
+       @(MapBundleConverted) is a PUBLIC item group consumers can read from after this target runs:
+       each item is one produced file (a simplified / converted .fgb, an emitted .geojson, a rendered
+       .png, or a passthrough copy of meta.json) in the intermediate output, tagged with its `Region`
+       metadata. Use it when the default `maps\<Region>\<filename>.<ext>` staging isn't right for
+       the consumer — e.g. a Blazor WASM app that needs the file physically under wwwroot. Take a
+       DependsOnTargets="_MapBundleProcess" dependency to guarantee ordering, then Copy / Link from
+       @(MapBundleConverted) into wherever the consumer wants it. See GeoConvert.Web for a worked
+       example. -->
   <Target Name="_MapBundleProcess"
-          BeforeTargets="_MapBundleCopyRaw;AssignTargetPaths"
+          BeforeTargets="_MapBundleCopyRaw;AssignTargetPaths;ResolveProjectStaticWebAssets"
           Condition="'$(_MapBundleNeedsTask)' == 'true' and '@(MapBundleData)' != ''">
     <MapBundle.Build.ConvertMapData
         SourceFiles="@(MapBundleData)"
         Layers="$(MapBundleLayers)"
         ExcludeLayers="$(MapBundleExcludeLayers)"
-        OutputDirectory="$(MapBundleIntermediateDir)"
+        OutputDirectory="$(_MapBundleEffectiveOutputDirectory)"
         Format="$(MapBundleFormat)"
         CopyData="$(MapBundleCopyData)"
         SimplifyTolerance="$(MapBundleSimplifyTolerance)"
@@ -109,28 +134,80 @@
         ImageLabelColor="$(MapBundleImageLabelColor)"
         ImageCompression="$(MapBundleImageCompression)">
       <Output ItemName="_MapBundleFiltered" TaskParameter="FilteredSourceFiles" />
-      <Output ItemName="_MapBundleConverted" TaskParameter="ConvertedFiles" />
+      <Output ItemName="MapBundleConverted" TaskParameter="ConvertedFiles" />
     </MapBundle.Build.ConvertMapData>
 
     <!-- Replace @(MapBundleData) with the filtered subset so any downstream target (including
          _MapBundleCopyRaw in filter-only mode) only sees the survivors. Harmless in convert mode
-         where _MapBundleConverted carries the produced files instead. -->
+         where MapBundleConverted carries the produced files instead. -->
     <ItemGroup>
       <MapBundleData Remove="@(MapBundleData)" />
       <MapBundleData Include="@(_MapBundleFiltered)" />
     </ItemGroup>
 
-    <!-- Convert / render mode: stage the produced files. Filter-only mode leaves _MapBundleConverted
-         empty, so this is a no-op and _MapBundleCopyRaw handles the (filtered) raw set instead. -->
-    <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true'">
-      <None Include="@(_MapBundleConverted)">
-        <!-- Qualify to _MapBundleConverted to scope the batch to these files, not the consumer's
-             global None list (an unqualified %(Region) batches over None and fails for any None item
-             lacking Region metadata, e.g. Verify *.verified.* snapshots — MSB4096). -->
-        <Link>maps\%(_MapBundleConverted.Region)\%(_MapBundleConverted.Filename)%(_MapBundleConverted.Extension)</Link>
+    <!-- Convert / render mode, default output directory: stage the produced files at
+         maps/<Region>/ in the build output via <None Link>. Skipped when:
+           * filter-only mode (MapBundleConverted is empty);
+           * MapBundleCopyData=false (consumer explicitly wants no data emission);
+           * MapBundleOutputDirectory is set (consumer told MapBundle to write to a specific
+             location — the file is already where they want it, handled by the next ItemGroup).
+         The Link path uses %(MapBundleConverted.X) qualified metadata so the batch is over
+         MapBundleConverted, not the consumer's global None list (an unqualified %(Region) batches
+         over None and fails for any None item lacking Region metadata, e.g. Verify *.verified.*
+         snapshots — MSB4096). -->
+    <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true' and '$(MapBundleOutputDirectory)' == ''">
+      <None Include="@(MapBundleConverted)">
+        <Link>maps\%(MapBundleConverted.Region)\%(MapBundleConverted.Filename)%(MapBundleConverted.Extension)</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Visible>false</Visible>
       </None>
+    </ItemGroup>
+
+    <!-- Convert / render mode, consumer-specified output directory: register the just-written files
+         as <Content> items so an SDK that globs Content (e.g. Blazor's static-web-assets pipeline
+         for files under wwwroot) picks them up — its glob ran at eval time, before this target
+         wrote the file, so the implicit detection misses them otherwise. No CopyToOutputDirectory:
+         the files are already at their final on-disk location (the consumer's chosen directory),
+         and a second copy would just duplicate them into the build output. For a non-Blazor SDK
+         these Content items are inert (no Link, no CopyToOutputDirectory → they associate with the
+         project but don't trigger any staging). -->
+    <!-- Pre-compute the project-relative form of MapBundleOutputDirectory as a plain property.
+         Property functions inside item transforms (e.g. @(X->'$([MSBuild]::MakeRelative(...))')
+         silently fail to expand %(Metadata) — a long-standing MSBuild limitation. By computing the
+         relative directory once here, the Remove and Include patterns below only need simple
+         metadata batching, which works reliably.
+
+         Trailing-slash handling: MakeRelative strips a trailing slash from the result iff the input
+         had one. We re-add a backslash so concatenation with %(Region)\%(Filename) produces the
+         shape the SDK's Content glob uses for relative items, exactly matching what the Remove
+         needs to find on disk. -->
+    <PropertyGroup Condition="'$(MapBundleOutputDirectory)' != ''">
+      <_MapBundleOutputRelativeDirectory>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)', '$(MapBundleOutputDirectory)'))\</_MapBundleOutputRelativeDirectory>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true' and '$(MapBundleOutputDirectory)' != ''">
+      <!-- Remove first, in its own ItemGroup: the SDK's default $(EnableDefaultContentItems) glob
+           runs at evaluation time and already includes anything matching its patterns that exists
+           on disk under the project — so on a rebuild where the previous run left the file in
+           place under MapBundleOutputDirectory, the SDK has already added it with a
+           project-relative ItemSpec like wwwroot\sample\World\borders.fgb. Match that exact form
+           so the Remove fires; otherwise the Include below produces a duplicate and downstream
+           tasks keyed on FullPath — StaticWebAssets' DiscoverPrecompressedAssets in particular —
+           throw "An item with the same key has already been added" on every rebuild. -->
+      <Content Remove="$(_MapBundleOutputRelativeDirectory)%(MapBundleConverted.Region)\%(MapBundleConverted.Filename)%(MapBundleConverted.Extension)" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(_MapBundleNeedsConvert)' == 'true' and '$(MapBundleCopyData)' == 'true' and '$(MapBundleOutputDirectory)' != ''">
+      <!-- Why two ItemGroups instead of one? The Remove inside the same ItemGroup as the Include
+           operates on the item state BEFORE the Include runs — so a same-ItemGroup Remove+Include
+           doesn't dedupe a later Include. Splitting them into separate ItemGroups makes the Remove
+           commit before the Include runs, so the final state has exactly one entry. -->
+      <Content Include="$(_MapBundleOutputRelativeDirectory)%(MapBundleConverted.Region)\%(MapBundleConverted.Filename)%(MapBundleConverted.Extension)">
+        <!-- The relative ItemSpec above is already the wwwroot/sample/<Region>/<file>.<ext> shape
+             Blazor's DefineStaticWebAssets pipeline matches against RelativePathPattern="wwwroot/**"
+             (when MapBundleOutputDirectory points under wwwroot — for non-Blazor or non-wwwroot
+             consumers the registration is just inert Content). No Link needed: the ItemSpec itself
+             is the path Blazor checks. -->
+        <Visible>false</Visible>
+      </Content>
     </ItemGroup>
   </Target>
 
