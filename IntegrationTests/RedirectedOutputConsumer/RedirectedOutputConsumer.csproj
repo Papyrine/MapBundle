@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Output-redirect consumer: MapBundleOutputDirectory points at a directory under the project's
+       source tree, and MapBundle writes the simplified layer files there directly instead of staging
+       them via <None Link> at maps/<Region>/<file>.<ext> in the build output. Exercises:
+       - The redirect itself — files land under the consumer-specified path, NOT the default location.
+       - Auto-stage skip — no copy at maps/Monaco/borders.fgb in the build output when the redirect is set.
+       - The Content registration — MapBundle adds <Content> items for the produced files so a
+         downstream SDK that globs Content (Blazor's static-web-assets, here just plain Content
+         semantics) picks them up. We don't have Blazor here, so we assert directly on the produced
+         files and on the absence of the default-location copy.
+       - The rebuild path — building twice in a row must succeed without the "duplicate FullPath"
+         throw from DiscoverPrecompressedAssets (or, here, MSB3105 "duplicate items" on Content). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Set a tolerance so MapConverter actually fires (the task short-circuits when no convert work
+         is needed). The tolerance is well below Monaco's ~0.03° edges, so every corner survives. -->
+    <MapBundleSimplifyTolerance>0.0001</MapBundleSimplifyTolerance>
+    <!-- Redirect: write the simplified files into a custom directory under the project. Anything
+         absolute (or rooted via MSBuildProjectDirectory) works — picking the project's own tree
+         here so the test can find the files easily AND so the .gitignore guidance in the readme is
+         what a real consumer would write. -->
+    <MapBundleOutputDirectory>$(MSBuildProjectDirectory)\custom</MapBundleOutputDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MapBundle.Monaco" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>
