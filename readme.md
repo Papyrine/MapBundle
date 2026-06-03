@@ -42,6 +42,31 @@ var rivers = map.Rivers;          // rivers
 Layers are read on demand and returned as GeoConvert `FeatureCollection`s (coordinates are WGS84 longitude/latitude).
 
 
+## Converting and rendering in code
+
+Because layers come back as GeoConvert `FeatureCollection`s — and GeoConvert is a public dependency of the core package — the same data can be written to another format or rasterised to an image directly in code, with no extra dependency. This is the in-process counterpart to the [build-time MSBuild properties](#build-time-format-conversion-and-images) below.
+
+<!-- snippet: convert -->
+<a id='snippet-convert'></a>
+```cs
+var map = Maps.Open().Load("Monaco");
+
+// Layers come back as GeoConvert FeatureCollections, so GeoConvert can write
+// them out in another format or rasterise them directly — no extra dependency.
+var borders = map.Load(MapLayer.Borders);
+
+// Convert the layer to GeoJSON (any GeoFormat works: Kml, TopoJson, Shapefile, …).
+GeoConverter.Write(borders, "borders.geojson", GeoFormat.GeoJson);
+
+// Render the layer to a PNG (pass several collections to stack them bottom-up).
+MapRenderer.RenderPng([borders], "borders.png", new() { Width = 1024 });
+```
+<sup><a href='/src/Tests/Snippets.cs#L22-L34' title='Snippet source file'>snippet source</a> | <a href='#snippet-convert' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+`MapRenderer.RenderPng` takes one or more collections and paints them bottom-up in the order given, and `RenderOptions` exposes the same styling knobs as the `MapBundleImage*` properties. See [GeoConvert](https://github.com/SimonCropp/GeoConvert) for the full format and rendering API.
+
+
 ## Build-time format conversion and images
 
 FlatGeobuf is the default on-disk format, but it is not always the right fit for a consumer. Setting a few MSBuild properties (in a `.csproj`, `Directory.Build.props`, or on the command line) converts a data package's layers — and/or renders a preview image — with [GeoConvert](https://github.com/SimonCropp/GeoConvert) at build time, instead of copying the raw `.fgb`. By default the output lands at `maps/<Region>` next to the built app; set [`MapBundleOutputDirectory`](#staging-output-elsewhere) to redirect it anywhere on disk (e.g. straight into a Blazor app's `wwwroot`).
