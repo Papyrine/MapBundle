@@ -7,6 +7,21 @@ public static class Regions
 {
     public static readonly Region World = new("world", null, "World", [], null, IsWorld: true);
 
+    // Geofabrik's index assigns the ISO 3166-1 codes that drive every per-region layer lookup, but a few
+    // of its named multi-country extracts list only SOME of their members — even though country-levels
+    // (the actual borders/states source) ships geometry for all of them. An omitted code silently drops
+    // that whole country out of its continent and World: no border, no cities, no states. The gap is easy
+    // to miss because the country's landmass still appears via the bbox-based Land/Ocean layers — only the
+    // outlined-and-filled border and its label vanish. Patch the missing codes back in, keyed by extract
+    // id. (If Geofabrik fixes its index, CorrectedIso dedupes so the entry stays correct.)
+    //   gcc-states                 lists QA/AE/OM/BH/KW but not SA — Saudi Arabia, the largest GCC member.
+    //   malaysia-singapore-brunei  lists MY but not SG (Singapore) or BN (Brunei), despite its own name.
+    static readonly Dictionary<string, string[]> isoCorrections = new(StringComparer.Ordinal)
+    {
+        ["gcc-states"] = ["SA"],
+        ["malaysia-singapore-brunei"] = ["SG", "BN"],
+    };
+
     /// <summary>Downloads the Geofabrik index and builds the region tree.</summary>
     public static async Task<IReadOnlyList<Region>> Load(HttpCache httpCache, string directory) =>
         Build(await Geofabrik.Index(httpCache, directory));
@@ -22,9 +37,16 @@ public static class Regions
         List<Region> regions = [World];
         regions.AddRange(index
             .Where(_ => _.Parent is null || continents.Contains(_.Parent))
-            .Select(_ => new Region(_.Id, _.Parent, _.Name, _.Iso2, _.ShpUrl)));
+            .Select(_ => new Region(_.Id, _.Parent, _.Name, CorrectedIso(_), _.ShpUrl)));
         return regions;
     }
+
+    // The entry's ISO codes plus any isoCorrections entry for it, skipping codes already present so an
+    // upstream fix doesn't double them. Order is irrelevant downstream: BuildRegion sorts the merged set.
+    static string[] CorrectedIso(GeofabrikEntry entry) =>
+        isoCorrections.TryGetValue(entry.Id, out var extra)
+            ? [.. entry.Iso2, .. extra.Where(_ => !entry.Iso2.Contains(_))]
+            : entry.Iso2;
 
     /// <summary>
     /// The regions whose ISO codes describe a region (used to look up borders, states and cities).
