@@ -98,4 +98,37 @@ public class CountryLevelsTests
 
         await Assert.That(levels.Subdivisions("us").Count).IsEqualTo(1);
     }
+
+    [Test]
+    public async Task Read_returns_features_in_deterministic_iso_order()
+    {
+        // Regression for the "maps/*.png change on every render" bug. Read parses the geojson files with
+        // PLINQ (AsParallel), which yields results in COMPLETION order, not source order. Borders go into
+        // a keyed dictionary so that was harmless, but subdivisions are kept as ordered per-country lists,
+        // so an unstable order changed the StatesProvinces feature order — and therefore its .fgb bytes
+        // and its semi-transparent-fill preview PNG — on every build. Read now sorts by ISO code; pin that
+        // contract: the output is sorted, and identical across runs, regardless of parse/enumeration order.
+        using var temp = new TempDirectory();
+        // Enough files, in a deliberately unsorted sequence, that an unordered parallel parse would not
+        // come back sorted by chance.
+        string[] codes =
+        [
+            "US-TX", "CA-QC", "US-AK", "US-CA", "CA-ON", "US-NY", "BR-SP", "AU-NSW",
+            "US-WA", "CA-BC", "FR-IDF", "DE-BY", "ZA-GP", "IN-MH", "JP-13", "MX-CMX",
+        ];
+        foreach (var code in codes)
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(temp, $"{code}.geojson"),
+                """{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]},"properties":{"iso2":"CODE"}}"""
+                    .Replace("CODE", code));
+        }
+
+        var expected = string.Join(",", codes.OrderBy(_ => _, StringComparer.Ordinal));
+        var first = string.Join(",", CountryLevels.Read(temp).Select(_ => _.Key));
+        var second = string.Join(",", CountryLevels.Read(temp).Select(_ => _.Key));
+
+        await Assert.That(first).IsEqualTo(expected);
+        await Assert.That(second).IsEqualTo(expected);
+    }
 }

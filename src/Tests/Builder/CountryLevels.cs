@@ -54,14 +54,21 @@ public sealed class CountryLevels
     static string Country(string code) =>
         code.Split('-')[0].ToUpperInvariant();
 
-    // Thousands of files, so read them in parallel (each parse is independent and CPU-bound).
-    static List<(string Key, Feature Feature)> Read(string directory) =>
+    // Thousands of files, so read them in parallel (each parse is independent and CPU-bound). PLINQ yields
+    // results in completion order, not source order, so the list is sorted by ISO code before returning —
+    // otherwise the output order is non-deterministic run-to-run. Borders are keyed into a dictionary so
+    // that was harmless for them, but SUBDIVISIONS are kept as per-country lists (StatesProvinces), and an
+    // unstable order there made the StatesProvinces .fgb bytes AND its semi-transparent-fill preview PNG
+    // change on every build — the committed maps/*.StatesProvinces.png churned each render. Sorting here
+    // fixes both. internal so the determinism is unit-tested directly (CountryLevelsTests).
+    internal static List<(string Key, Feature Feature)> Read(string directory) =>
     [
         .. Directory.EnumerateFiles(directory, "*.geojson", SearchOption.AllDirectories)
             .AsParallel()
             .Select(path => (Key: Path.GetFileNameWithoutExtension(path), Feature: ReadFeature(path)))
             .Where(_ => _.Feature is not null)
             .Select(_ => (_.Key, _.Feature!))
+            .OrderBy(_ => _.Key, StringComparer.Ordinal)
     ];
 
     // country-levels Features carry a huge "osm_data" blob (and nested objects GeoConvert won't model).
