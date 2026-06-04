@@ -149,4 +149,46 @@ public class RegionsTests
     [Test]
     public async Task World_merges_every_extract() =>
         await Assert.That(MemberIds("world")).IsEquivalentTo(["germany", "monaco", "russia"]);
+
+    [Test]
+    public async Task Multi_country_extracts_get_missing_iso_codes_patched_in()
+    {
+        // Regression for the missing-countries bug: Geofabrik's index lists only SOME members of a few
+        // named multi-country extracts, even though country-levels ships geometry for all of them. The
+        // gcc-states entry omits SA (Saudi Arabia, the largest GCC member); malaysia-singapore-brunei
+        // omits SG and BN despite its own name. Without the correction those countries silently drop out
+        // of their continent and World — borders, cities and states all missing (the landmass still
+        // shows via the bbox-based Land/Ocean layers, which is what made the gap easy to overlook).
+        GeofabrikEntry[] index =
+        [
+            new("asia", null, "Asia", [], null),
+            new("gcc-states", "asia", "GCC States", ["QA", "AE", "OM", "BH", "KW"], "shp"),
+            new("malaysia-singapore-brunei", "asia", "Malaysia, Singapore, and Brunei", ["MY"], "shp"),
+        ];
+        var regions = Regions.Build(index);
+
+        await Assert.That(regions.Single(_ => _.Id == "gcc-states").Iso.OrderBy(_ => _))
+            .IsEquivalentTo(["AE", "BH", "KW", "OM", "QA", "SA"]);
+        await Assert.That(regions.Single(_ => _.Id == "malaysia-singapore-brunei").Iso.OrderBy(_ => _))
+            .IsEquivalentTo(["BN", "MY", "SG"]);
+
+        // ...and the patched-in codes reach World's merged iso set, so World/borders includes them.
+        var worldIso = Regions.Members(Regions.World, regions).SelectMany(_ => _.Iso).ToList();
+        await Assert.That(worldIso).Contains("SA");
+        await Assert.That(worldIso).Contains("SG");
+        await Assert.That(worldIso).Contains("BN");
+    }
+
+    [Test]
+    public async Task Iso_correction_does_not_duplicate_a_code_already_present()
+    {
+        // If Geofabrik later adds the missing code itself, the correction must not double it.
+        GeofabrikEntry[] index =
+        [
+            new("asia", null, "Asia", [], null),
+            new("gcc-states", "asia", "GCC States", ["QA", "AE", "OM", "BH", "KW", "SA"], "shp"),
+        ];
+        var gcc = Regions.Build(index).Single(_ => _.Id == "gcc-states");
+        await Assert.That(gcc.Iso.Count(_ => _ == "SA")).IsEqualTo(1);
+    }
 }
