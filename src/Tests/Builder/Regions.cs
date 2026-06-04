@@ -1,7 +1,9 @@
 /// <summary>
 /// The region catalog, built from Geofabrik's download index. We publish the continents (top-level
 /// regions) and their direct children (countries); sub-country levels (US states, German Bundesländer)
-/// are skipped. <see cref="World"/> is synthetic and merges every continent.
+/// are skipped. <see cref="World"/> is synthetic and merges every continent, and a few disputed
+/// territories Geofabrik doesn't enumerate at all (e.g. Western Sahara) are added as synthetic regions —
+/// see <c>syntheticRegions</c>.
 /// </summary>
 public static class Regions
 {
@@ -22,6 +24,25 @@ public static class Regions
         ["malaysia-singapore-brunei"] = ["SG", "BN"],
     };
 
+    // Territories country-levels ships borders for but Geofabrik's index does not enumerate AT ALL — no
+    // entry, and the ISO assigned to no extract — so without help they never render. Unlike isoCorrections
+    // (which patches a code onto an EXISTING extract), these have nothing upstream to attach to, so they
+    // are added as whole synthetic regions; the geometry is resolved from country-levels by ISO at build
+    // time, exactly like a real Geofabrik country. They are political stopgaps for territories upstream
+    // folds into a neighbour, so AddSyntheticRegions throws the moment the live index starts covering one
+    // (Western_Sahara is exercised by RegionsTests) — that throw is the canary that the dispute has been
+    // settled upstream and the hand-rolled stand-in should be dropped.
+    //   western-sahara (EH): country-levels splits Western Sahara into MA (the Moroccan-controlled west,
+    //     already rendered via the Morocco region) and EH (the Polisario "Free Zone", ~80.5k km²).
+    //     Geofabrik lists neither EH nor a Western Sahara extract, so the Free Zone rendered as an empty
+    //     wedge between Morocco, Algeria and Mauritania. Rendering EH closes that gap. Named "Western
+    //     Sahara" — the neutral UN/geographic name — not country-levels' recognition-laden "Sahrawi Arab
+    //     Democratic Republic".
+    static readonly Region[] syntheticRegions =
+    [
+        new("western-sahara", "africa", "Western Sahara", ["EH"], ShpUrl: null),
+    ];
+
     /// <summary>Downloads the Geofabrik index and builds the region tree.</summary>
     public static async Task<IReadOnlyList<Region>> Load(HttpCache httpCache, string directory) =>
         Build(await Geofabrik.Index(httpCache, directory));
@@ -38,6 +59,8 @@ public static class Regions
         regions.AddRange(index
             .Where(_ => _.Parent is null || continents.Contains(_.Parent))
             .Select(_ => new Region(_.Id, _.Parent, _.Name, CorrectedIso(_), _.ShpUrl)));
+
+        AddSyntheticRegions(regions, index, continents);
         return regions;
     }
 
@@ -47,6 +70,37 @@ public static class Regions
         isoCorrections.TryGetValue(entry.Id, out var extra)
             ? [.. entry.Iso2, .. extra.Where(_ => !entry.Iso2.Contains(_))]
             : entry.Iso2;
+
+    // Append each syntheticRegions territory whose continent this index actually builds. Before adding one
+    // it asserts the live index still doesn't cover it: if Geofabrik has meanwhile assigned the territory's
+    // ISO to any extract, or shipped an extract under its id, the synthetic entry is redundant and would
+    // render the country twice — so throw with an actionable message. This is the canary the data build
+    // trips the day a territory stops being unlisted/disputed upstream.
+    static void AddSyntheticRegions(List<Region> regions, IReadOnlyList<GeofabrikEntry> index, HashSet<string> continents)
+    {
+        var assignedIso = index.SelectMany(CorrectedIso).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var ids = index.Select(_ => _.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var territory in syntheticRegions)
+        {
+            // Only attach to a continent that is part of this index — keeps a partial index (e.g. the
+            // Europe-only one the unit tests use) from sprouting an unrelated Africa region.
+            if (!continents.Contains(territory.Parent!))
+            {
+                continue;
+            }
+
+            var iso = territory.Iso.Single();
+            if (assignedIso.Contains(iso) || ids.Contains(territory.Id))
+            {
+                throw new InvalidOperationException(
+                    $"Geofabrik's index now covers the synthetic territory '{territory.Name}' ({iso}) — it is " +
+                    $"no longer unlisted/disputed upstream. Remove it from Regions.syntheticRegions so the real " +
+                    $"index entry is used; otherwise {iso} would render twice.");
+            }
+
+            regions.Add(territory);
+        }
+    }
 
     /// <summary>
     /// The regions whose ISO codes describe a region (used to look up borders, states and cities).

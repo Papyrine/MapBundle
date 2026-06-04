@@ -151,6 +151,21 @@ committed; `.received.*` are gitignored.
   pure function over a `GeofabrikEntry` list (testable offline); `Regions.Load` downloads then builds.
   Only the index is downloaded — Geofabrik's bulk per-region extracts are **not** (they were the ~30 GB
   bottleneck that motivated moving Cities/Rivers/Lakes to Natural Earth).
+- **`Regions.cs` patches gaps in Geofabrik's ISO assignments**, which don't always match the geometry
+  country-levels actually ships. Two mechanisms, both pure-tested in `RegionsTests`:
+  - `isoCorrections` — a named multi-country extract that lists only *some* of its members gets the
+    missing codes added back, so the country isn't silently dropped from its continent and World:
+    `gcc-states` was missing `SA` (Saudi Arabia); `malaysia-singapore-brunei` was missing `SG`/`BN`.
+  - `syntheticRegions` — a territory with *no* Geofabrik entry at all (the ISO is assigned to no extract)
+    is added as a whole synthetic region, geometry resolved from country-levels by ISO like a real
+    country. Currently just `western-sahara` (`EH`): country-levels splits Western Sahara into `MA` (the
+    Moroccan-controlled west, already rendered via Morocco) and `EH` (the Polisario "Free Zone"), and
+    Geofabrik lists neither, so the Free Zone rendered as an empty wedge between Morocco, Algeria and
+    Mauritania. The region is named "Western Sahara" (neutral), though the on-map label still carries
+    country-levels' feature name ("Sahrawi Arab Democratic Republic"). `Regions.Build` **throws** if the
+    live index ever starts covering a synthetic territory (assigns its ISO, or ships its id) — the canary
+    that the dispute is settled upstream and the stand-in should be removed; the data build trips it
+    automatically.
 - Layers (`MapLayer`, 8): Borders, StatesProvinces, Cities, Rivers, Lakes, Coastline, Land, Ocean.
   Sources: **country-levels** (`CountryLevels.cs`) for Borders (iso1) + StatesProvinces (iso2), selected
   per region by ISO code; **Natural Earth** (`NaturalEarth.cs`) global 1:10m layers for Cities

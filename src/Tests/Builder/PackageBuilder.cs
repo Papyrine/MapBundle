@@ -9,12 +9,15 @@ public class PackageBuilder
     [Test]
     [Explicit]
     public Task Generate() =>
-        RunAsync();
+        BuildAsync(_ => true, writeIndex: true);
 
     [Test]
     [Explicit]
-    public Task Slice() =>
-        BuildAsync(SliceIds());
+    public Task Slice()
+    {
+        var wanted = SliceIds().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return BuildAsync(_ => wanted.Contains(_.Id) || wanted.Contains(_.Key), writeIndex: false);
+    }
 
     /// <summary>
     /// Builds only the slow regions — World plus every continent — so per-layer timing changes can
@@ -58,17 +61,6 @@ public class PackageBuilder
     // The succinct NuGet readme (not the full GitHub readme.md, which carries the entire ~200-row
     // per-region bundle table). Packed at the package root as readme.md (see NuPkgWriter).
     static string ReadmePath => Path.Combine(root, "nuget-readme.md");
-
-    /// <summary>Builds and packs every region package (continents, countries and the merged World).</summary>
-    public static Task RunAsync() =>
-        BuildAsync(_ => true, writeIndex: true);
-
-    /// <summary>Builds and packs only the regions whose id is listed — used to validate a slice end-to-end.</summary>
-    public static Task BuildAsync(params string[] ids)
-    {
-        var wanted = ids.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        return BuildAsync(_ => wanted.Contains(_.Id) || wanted.Contains(_.Key), writeIndex: false);
-    }
 
     static async Task BuildAsync(Func<Region, bool> selected, bool writeIndex)
     {
@@ -146,7 +138,7 @@ public class PackageBuilder
 
         if (writeIndex)
         {
-            WriteBundlesIndex([.. bundles]);
+            WriteBundlesIndex(bundles);
         }
     }
 
@@ -453,7 +445,7 @@ public class PackageBuilder
     /// each ordered alphabetically by name. The kind is implicit in the section heading, so the row has
     /// no Type column. Empty sections are skipped.
     /// </summary>
-    static void WriteBundlesIndex(IReadOnlyList<Bundle> bundles)
+    static void WriteBundlesIndex(List<Bundle> bundles)
     {
         (string Heading, Func<Bundle, bool> Match)[] sections =
         [

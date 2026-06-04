@@ -191,4 +191,76 @@ public class RegionsTests
         var gcc = Regions.Build(index).Single(_ => _.Id == "gcc-states");
         await Assert.That(gcc.Iso.Count(_ => _ == "SA")).IsEqualTo(1);
     }
+
+    [Test]
+    public async Task Western_Sahara_is_rendered_as_a_synthetic_region()
+    {
+        // Geofabrik enumerates no Western Sahara region and assigns its ISO (EH) to no extract, so we add
+        // it synthetically — otherwise the Polisario "Free Zone" (country-levels' EH polygon) renders as
+        // an empty wedge between Morocco, Algeria and Mauritania. Geometry is resolved from country-levels
+        // by ISO at build time, exactly like a real Geofabrik country.
+        GeofabrikEntry[] index =
+        [
+            new("africa", null, "Africa", [], null),
+            new("morocco", "africa", "Morocco", ["MA"], "shp"),
+        ];
+        var regions = Regions.Build(index);
+
+        var ws = regions.Single(_ => _.Id == "western-sahara");
+        await Assert.That(ws.Iso).IsEquivalentTo(["EH"]);
+        await Assert.That(ws.Key).IsEqualTo("WesternSahara");
+        await Assert.That(ws.Parent).IsEqualTo("africa");
+        await Assert.That(ws.IsCountry).IsTrue();
+
+        // It also rides into Africa's and World's merged borders, so the wedge is filled there too.
+        await Assert.That(Regions.Members(regions.Single(_ => _.Id == "africa"), regions).Select(_ => _.Id))
+            .Contains("western-sahara");
+        await Assert.That(Regions.Members(Regions.World, regions).SelectMany(_ => _.Iso)).Contains("EH");
+    }
+
+    [Test]
+    public async Task Synthetic_region_is_only_added_when_its_continent_is_built()
+    {
+        // A partial index that doesn't include the territory's continent must not sprout it (this is also
+        // why the Europe-only sampleIndex tests above are unaffected by the synthetic Western Sahara).
+        var regions = Regions.Build([new("europe", null, "Europe", [], null)]);
+        await Assert.That(regions.Any(_ => _.Id == "western-sahara")).IsFalse();
+    }
+
+    [Test]
+    public async Task Synthetic_territory_fails_loudly_once_upstream_covers_it()
+    {
+        // THE CANARY. The synthetic Western Sahara region is a stopgap for Geofabrik not listing EH. The
+        // day Western Sahara stops being an unlisted/disputed territory upstream — Geofabrik assigns EH to
+        // an extract (here folded into Morocco) or ships a Western Sahara extract — the stand-in is
+        // redundant and would render EH twice, so Build throws. The live data build (PackageBuilder
+        // .Generate -> Regions.Load -> Build over the real index) trips this automatically, telling us to
+        // drop the synthetic entry. The message names the territory and points at the fix.
+        GeofabrikEntry[] index =
+        [
+            new("africa", null, "Africa", [], null),
+            new("morocco", "africa", "Morocco", ["MA", "EH"], "shp"), // upstream now covers EH
+        ];
+        await Assert.That(() => Regions.Build(index)).Throws<InvalidOperationException>();
+
+        var message = CaptureBuildError(index);
+        await Assert.That(message).Contains("Western Sahara");
+        await Assert.That(message).Contains("EH");
+        await Assert.That(message).Contains("syntheticRegions");
+    }
+
+    // Build's exception-assertion pattern (Throws<T>()) doesn't surface the message; capture it so the
+    // canary test can assert the message is actionable (names the territory and the fix site).
+    static string CaptureBuildError(GeofabrikEntry[] index)
+    {
+        try
+        {
+            Regions.Build(index);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return exception.Message;
+        }
+        throw new("Expected an InvalidOperationException; none was thrown.");
+    }
 }
