@@ -175,6 +175,20 @@ committed; `.received.*` are gitignored.
   whose Natural Earth point sits outside the tight border bbox, e.g. Monaco); Rivers/Lakes/Land/Ocean by
   **bounding box** (osmdata also reprojected EPSG:3857→WGS84; Natural Earth is already WGS84). Coastline
   is derived from the land outlines. There is no per-region downloading or member-merging step anymore.
+- **`OsmBoundaries.cs` backfills StatesProvinces gaps** that country-levels' pinned ISO 3166-2 snapshot
+  predates. country-levels keys subdivisions by ISO 3166-2 code, so a territory created after v2.2.0's
+  snapshot (or mis-coded in it) is simply absent — its polygon missing from the per-country union leaves
+  a literal hole in the StatesProvinces layer (the layer is a union of wilaya/province polygons, *not*
+  clipped to the country border). The fix mirrors `Regions`' `isoCorrections`/`syntheticRegions`: a pinned,
+  unit-tested table (`Backfills`) of `(country, iso2, name, OSM relation id)` fetched from OSM via
+  Nominatim's `lookup` (ready GeoJSON, re-keyed to country-levels' minimal name/iso2/admin_level schema)
+  and concatenated onto that country's country-levels subdivisions in `PackageBuilder.BuildRegion`.
+  Currently the seven Algerian wilayas from the 2019 reform that country-levels omits (Timimoun, Bordj
+  Badji Mokhtar, Béni Abbès, In Salah, Touggourt, Djanet, El Meniaa; codes are the official ISO
+  3166-2:2019 values, which match OSM rather than country-levels' older set). Caveat: the backfilled
+  polygons come from live OSM at full resolution while the country-levels neighbours are pre-simplified,
+  so shared borders can differ by a sub-pixel sliver — invisible at country-scale preview; not clipped.
+  The Nominatim fetch needs an identifying `User-Agent` (set on the shared `HttpClient` in `PackageBuilder`).
 - `Geo.cs` is the NetTopologySuite bridge: lossless GeoConvert↔NTS conversion, topology-preserving
   simplify, closed-form EPSG:3857→4326 reprojection, and polygon-outline (coastline) extraction.
 - Archives are downloaded (cached by Replicant) and extracted by `Archives.cs` (zip + tar.gz), with an

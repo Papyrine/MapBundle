@@ -89,14 +89,18 @@ public class PackageBuilder
         {
             Timeout = TimeSpan.FromMinutes(30)
         };
+        // Some sources (Nominatim, used by OsmBoundaries) reject requests without an identifying
+        // User-Agent per the OSM usage policy; set one for every request the cache makes.
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MapBundle-data-builder/1.0 (+https://github.com/Papyrine/MapBundle)");
         await using var httpCache = new HttpCache(httpDirectory, httpClient, maxRetries: 3);
 
         var regions = await Regions.Load(httpCache, Path.Combine(CacheDirectory, "geofabrik"));
         var countryLevels = await CountryLevels.Download(httpCache, Path.Combine(CacheDirectory, "country-levels"));
         var osmData = await OsmData.Download(httpCache, Path.Combine(CacheDirectory, "osmdata"));
         var naturalEarth = await NaturalEarth.Download(httpCache, Path.Combine(CacheDirectory, "natural-earth"));
+        var osmBoundaries = await OsmBoundaries.Download(httpCache, Path.Combine(CacheDirectory, "osm-boundaries"));
 
-        var context = new Context(regions, countryLevels, osmData, naturalEarth);
+        var context = new Context(regions, countryLevels, osmData, naturalEarth, osmBoundaries);
         var staging = Path.Combine(OutputDirectory, ".staging");
 
         var chosen = regions.Where(selected).ToList();
@@ -174,8 +178,12 @@ public class PackageBuilder
             .Select(context.CountryLevels.Border)
             .OfType<Feature>()
             .ToList();
+        // country-levels first, then any OSM backfill for wilayas/provinces its ISO 3166-2 snapshot
+        // predates (e.g. Algeria's 2019 wilayas) — see OsmBoundaries. The orderedIso/table orders are
+        // both stable, so the merged feature order (and the .fgb bytes + preview PNG) stays deterministic.
         var states = orderedIso
             .SelectMany(context.CountryLevels.Subdivisions)
+            .Concat(orderedIso.SelectMany(context.OsmBoundaries.Subdivisions))
             .ToList();
         var bounds = new FeatureCollection(borders).GetBounds();
 
@@ -535,11 +543,12 @@ public class PackageBuilder
     sealed record Bundle(Region Region, string Package, string Staging, Dictionary<MapLayer, int> Counts);
 
     /// <summary>Shared state for a build: the loaded global sources, plus the region tree for member lookup.</summary>
-    sealed class Context(IReadOnlyList<Region> regions, CountryLevels countryLevels, OsmData osmData, NaturalEarth naturalEarth)
+    sealed class Context(IReadOnlyList<Region> regions, CountryLevels countryLevels, OsmData osmData, NaturalEarth naturalEarth, OsmBoundaries osmBoundaries)
     {
         public CountryLevels CountryLevels => countryLevels;
         public OsmData OsmData => osmData;
         public NaturalEarth NaturalEarth => naturalEarth;
+        public OsmBoundaries OsmBoundaries => osmBoundaries;
 
         /// <summary>The regions whose borders make up a region: itself, its member countries, or all of them.</summary>
         public IReadOnlyList<Region> Members(Region region) =>
