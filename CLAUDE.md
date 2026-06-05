@@ -185,7 +185,9 @@ committed; `.received.*` are gitignored.
   and concatenated onto that country's country-levels subdivisions in `PackageBuilder.BuildRegion`.
   Currently the seven Algerian wilayas from the 2019 reform that country-levels omits (Timimoun, Bordj
   Badji Mokhtar, Béni Abbès, In Salah, Touggourt, Djanet, El Meniaa; codes are the official ISO
-  3166-2:2019 values, which match OSM rather than country-levels' older set). Caveat: the backfilled
+  3166-2:2019 values, which match OSM rather than country-levels' older set), plus the two DR Congo
+  provinces from the 2015 reform that country-levels' 24-of-26 set omits (Équateur, Mai-Ndombe; OSM's
+  codes match country-levels' here). Caveat: the backfilled
   polygons come from live OSM at full resolution while the country-levels neighbours are pre-simplified,
   so shared borders can differ by a sub-pixel sliver — invisible at country-scale preview; not clipped.
   The Nominatim fetch needs an identifying `User-Agent` (set on the shared `HttpClient` in `PackageBuilder`).

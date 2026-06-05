@@ -32,6 +32,12 @@ public sealed class OsmBoundaries
         new("DZ", "DZ-55", "Touggourt", 6822397),
         new("DZ", "DZ-56", "Djanet", 6825876),
         new("DZ", "DZ-58", "El Meniaa", 6825901),
+
+        // DR Congo's 2015 reform took it from 11 to 26 provinces; country-levels ships 24, omitting
+        // Équateur and Mai-Ndombe (both sizeable, in the west-centre), which left a gap there. OSM's
+        // codes match country-levels' here (unlike Algeria), so these are the official ISO 3166-2 values.
+        new("CD", "CD-EQ", "Équateur", 193084),
+        new("CD", "CD-MN", "Mai-Ndombe", 5647368),
     ];
 
     readonly Dictionary<string, List<Feature>> byCountry;
