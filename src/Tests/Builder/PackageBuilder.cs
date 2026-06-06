@@ -1,3 +1,5 @@
+using GeoConvert.Skia;
+
 /// <summary>
 /// Builds the region data packages: country-levels boundaries (borders, states), Natural Earth global
 /// layers (cities, rivers, lakes) and osmdata polygons (land, ocean, and the coastline derived from land),
@@ -272,7 +274,7 @@ public class PackageBuilder
 
         var preview = ReferenceEquals(previewFeatures, features) ? collection : new(previewFeatures);
         var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
-        MapRenderer.RenderPng(
+        SkiaRenderer.RenderPng(
             preview,
             pngPath,
             new()

@@ -89,7 +89,7 @@ public static class NuPkgWriter
           <metadata>
             <id>{id}</id>
             <version>{version}</version>
-            <authors>Simon Cropp</authors>
+            <authors>Simon Cropp;Brandt Vavasour</authors>
             <description>{Escape(description)}</description>
             <projectUrl>{projectUrl}</projectUrl>
             <license type="expression">{license}</license>
