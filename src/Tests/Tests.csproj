@@ -11,10 +11,6 @@
     <!-- The data-package builder lives under Builder/ in this project (run via the explicit
          PackageBuilder.Generate test); it is not shipped. -->
     <PackageReference Include="GeoConvert" />
-    <PackageReference Include="GeoConvert.Skia" />
-    <!-- Native libSkiaSharp.so for the builder's PNG render on Linux CI (Windows/macOS natives come from
-         the base SkiaSharp package). Linux-only so a Windows/macOS restore stays lean. -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="Replicant" />
     <PackageReference Include="ProjectFiles" />

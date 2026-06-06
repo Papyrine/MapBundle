@@ -1,5 +1,3 @@
-using GeoConvert.Skia;
-
 /// <summary>
 /// Builds the region data packages: country-levels boundaries (borders, states), Natural Earth global
 /// layers (cities, rivers, lakes) and osmdata polygons (land, ocean, and the coastline derived from land),
@@ -18,7 +16,9 @@ public class PackageBuilder
     public Task Slice()
     {
         var wanted = SliceIds().ToHashSet(StringComparer.OrdinalIgnoreCase);
-        return BuildAsync(_ => wanted.Contains(_.Id) || wanted.Contains(_.Key), writeIndex: false);
+        return BuildAsync(
+            _ => wanted.Contains(_.Id) || wanted.Contains(_.Key),
+            writeIndex: false);
     }
 
     /// <summary>
@@ -274,14 +274,15 @@ public class PackageBuilder
 
         var preview = ReferenceEquals(previewFeatures, features) ? collection : new(previewFeatures);
         var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
-        SkiaRenderer.RenderPng(
+        // Built-in dependency-free renderer (antialiased fills + zoom-aware strokes). The default
+        // Optimal compression keeps the preview PNGs small; Fastest would bloat them ~30-60% here.
+        MapRenderer.RenderPng(
             preview,
             pngPath,
             new()
             {
                 Bounds = bounds,
                 Width = 1024,
-                Compression = CompressionLevel.Fastest,
                 Label = HasNames(layer) ? NameLabel : null,
                 LabelPriority = layer == MapLayer.Cities ? CityPriority : null,
             });

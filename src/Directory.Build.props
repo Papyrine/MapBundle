@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <Version>0.3.3</Version>
+    <Version>1.0.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageTags>map;maps;geo;geospatial;openstreetmap;osm;flatgeobuf;borders;cities;rivers;offline</PackageTags>
-    <NoWarn>$(NoWarn);CS1591;NU1608;NU1109;IDE0005</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;NU1608;NU1109;IDE0005;SC023</NoWarn>
     <PackageLicenseFile>OsmfEula.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Papyrine_SponsorshipLicenseIgnored>true</Papyrine_SponsorshipLicenseIgnored>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\OsmfEula.txt" Pack="true" PackagePath="" Visible="false" />

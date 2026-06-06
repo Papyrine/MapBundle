@@ -61,7 +61,7 @@ public sealed class OsmBoundaries
             var path = Path.Combine(directory, $"{backfill.Relation}.geojson");
             await httpCache.ToFileAsync(url, path);
 
-            var feature = BuildFeature(File.ReadAllText(path), backfill);
+            var feature = BuildFeature(await File.ReadAllTextAsync(path), backfill);
             if (feature is null)
             {
                 continue;

@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
-    <PackageVersion Include="TUnit" Version="1.49.0" />
+    <PackageVersion Include="TUnit" Version="1.50.0" />
     <!-- The locally-built data package (which pulls the MapBundle core transitively). -->
     <PackageVersion Include="MapBundle.Monaco" Version="$(MapBundleVersion)" />
   </ItemGroup>
