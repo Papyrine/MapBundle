@@ -12,6 +12,7 @@
     <PackageReference Include="GeoConvert" />
     <PackageReference Include="Polyfill" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="SponsorCheck" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Pulls MapBundle.Build into core's restore graph and orders its build before core packs. Scoped

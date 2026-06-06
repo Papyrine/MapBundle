@@ -8,5 +8,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageTags>map;maps;geo;geospatial;openstreetmap;osm;flatgeobuf;borders;cities;rivers;offline</PackageTags>
     <NoWarn>$(NoWarn);CS1591;NU1608;NU1109;IDE0005</NoWarn>
+    <PackageLicenseFile>OsmfEula.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\OsmfEula.txt" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
 </Project>

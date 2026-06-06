@@ -6,6 +6,13 @@
 Bundled, offline map data for .NET apps — borders, cities, waterways and base layers — shipped as [FlatGeobuf](https://flatgeobuf.org/) inside NuGet packages. Most data is derived from [OpenStreetMap](https://www.openstreetmap.org/) under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/); the cities, rivers and lakes layers come from [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 
 
+## Open Source Maintenance Fee
+
+This project participates in the [Open Source Maintenance Fee](https://opensourcemaintenancefee.org). The MapBundle source code is freely available under the terms of the [license](license.txt). To support sustainable maintenance, use of the project's official binary releases in revenue-generating activities and all government agencies requires adherence to the [Open Source Maintenance Fee EULA](OsmfEula.txt). The fee is paid by [sponsoring Papyrine](https://github.com/sponsors/Papyrine). (The bundled map *data* remains separately licensed — see above.)
+
+This project uses [SponsorCheck](https://github.com/SimonCropp/SponsorCheck) to surface a build-time reminder in consuming projects that are not yet sponsoring.
+
+
 ## Packages
 
 | Package | Contents |
@@ -333,7 +340,7 @@ Layer icons: 🗺️ Borders · 🏛️ StatesProvinces · 🏙️ Cities · 〰
 | [MapBundle.SenegalAndGambia](https://www.nuget.org/packages/MapBundle.SenegalAndGambia) | 79 KB | 156 KB | [🗺️](/maps/SenegalAndGambia.Borders.png) [🏙️](/maps/SenegalAndGambia.Cities.png) [〰️](/maps/SenegalAndGambia.Rivers.png) [🏛️](/maps/SenegalAndGambia.StatesProvinces.png) [🏖️](/maps/SenegalAndGambia.Coastline.png) [🟩](/maps/SenegalAndGambia.Land.png) [🌊](/maps/SenegalAndGambia.Ocean.png) | 77 |
 | [MapBundle.Serbia](https://www.nuget.org/packages/MapBundle.Serbia) | 58 KB | 123 KB | [🗺️](/maps/Serbia.Borders.png) [🏙️](/maps/Serbia.Cities.png) [〰️](/maps/Serbia.Rivers.png) [💧](/maps/Serbia.Lakes.png) [🏛️](/maps/Serbia.StatesProvinces.png) [🏖️](/maps/Serbia.Coastline.png) [🟩](/maps/Serbia.Land.png) [🌊](/maps/Serbia.Ocean.png) | 50 |
 | [MapBundle.Seychelles](https://www.nuget.org/packages/MapBundle.Seychelles) | 49 KB | 63 KB | [🗺️](/maps/Seychelles.Borders.png) [🏙️](/maps/Seychelles.Cities.png) [🏖️](/maps/Seychelles.Coastline.png) [🟩](/maps/Seychelles.Land.png) [🌊](/maps/Seychelles.Ocean.png) | 125 |
-| [MapBundle.SierraLeone](https://www.nuget.org/packages/MapBundle.SierraLeone) | 68 KB | 114 KB | [🗺️](/maps/SierraLeone.Borders.png) [🏙️](/maps/SierraLeone.Cities.png) [〰️](/maps/SierraLeone.Rivers.png) [🏛️](/maps/SierraLeone.StatesProvinces.png) [🏖️](/maps/SierraLeone.Coastline.png) [🟩](/maps/SierraLeone.Land.png) [🌊](/maps/SierraLeone.Ocean.png) | 94 |
+| [MapBundle.SierraLeone](https://www.nuget.org/packages/MapBundle.SierraLeone) | 69 KB | 114 KB | [🗺️](/maps/SierraLeone.Borders.png) [🏙️](/maps/SierraLeone.Cities.png) [〰️](/maps/SierraLeone.Rivers.png) [🏛️](/maps/SierraLeone.StatesProvinces.png) [🏖️](/maps/SierraLeone.Coastline.png) [🟩](/maps/SierraLeone.Land.png) [🌊](/maps/SierraLeone.Ocean.png) | 94 |
 | [MapBundle.Slovakia](https://www.nuget.org/packages/MapBundle.Slovakia) | 41 KB | 72 KB | [🗺️](/maps/Slovakia.Borders.png) [🏙️](/maps/Slovakia.Cities.png) [〰️](/maps/Slovakia.Rivers.png) [🏛️](/maps/Slovakia.StatesProvinces.png) | 20 |
 | [MapBundle.Slovenia](https://www.nuget.org/packages/MapBundle.Slovenia) | 60 KB | 126 KB | [🗺️](/maps/Slovenia.Borders.png) [🏙️](/maps/Slovenia.Cities.png) [〰️](/maps/Slovenia.Rivers.png) [🏛️](/maps/Slovenia.StatesProvinces.png) [🏖️](/maps/Slovenia.Coastline.png) [🟩](/maps/Slovenia.Land.png) [🌊](/maps/Slovenia.Ocean.png) | 223 |
 | [MapBundle.SolomonIslands](https://www.nuget.org/packages/MapBundle.SolomonIslands) | 390 KB | 705 KB | [🗺️](/maps/SolomonIslands.Borders.png) [🏙️](/maps/SolomonIslands.Cities.png) [🏛️](/maps/SolomonIslands.StatesProvinces.png) [🏖️](/maps/SolomonIslands.Coastline.png) [🟩](/maps/SolomonIslands.Land.png) [🌊](/maps/SolomonIslands.Ocean.png) | 727 |
