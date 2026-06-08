@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1007" height="2000" viewBox="0 0 1007 2000">
+<rect width="1007" height="2000" fill="#ffffff"/>
+<path d="M255.92,1665.19L418.93,1842.62L32.2,1957.68L26.29,1824.65L255.92,1665.19Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="255.92,1665.19 418.93,1842.62 32.2,1957.68 26.29,1824.65 255.92,1665.19" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M690.45,1035.57L726.59,955.73L937.78,1124.09L931.97,1372.41L841.39,1283.8L793.05,1177.41L672.39,1124.26L690.45,1035.57Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="690.45,1035.57 726.59,955.73 937.78,1124.09 931.97,1372.41 841.39,1283.8 793.05,1177.41 672.39,1124.26 690.45,1035.57" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M105.74,733.91L160.09,583.19L226.29,698.52L202.19,698.51L105.74,733.91Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="105.74,733.91 160.09,583.19 226.29,698.52 202.19,698.51 105.74,733.91" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M407.14,423.67L449.3,414.81L358.92,538.95L654.15,689.71L618.01,751.8L569.79,725.2L419.13,725.2L370.92,716.32L250.51,485.7L407.14,423.67Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="407.14,423.67 449.3,414.81 358.92,538.95 654.15,689.71 618.01,751.8 569.79,725.2 419.13,725.2 370.92,716.32 250.51,485.7 407.14,423.67" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M160.09,583.19L238.54,361.53L352.94,414.79L407.14,423.67L250.51,485.7L370.92,716.32L364.89,716.32L322.71,707.44L274.5,707.42L226.29,698.52L160.09,583.19Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="160.09,583.19 238.54,361.53 352.94,414.79 407.14,423.67 250.51,485.7 370.92,716.32 364.89,716.32 322.71,707.44 274.5,707.42 226.29,698.52 160.09,583.19" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M569.79,725.2L539.66,760.68L527.61,751.81L485.42,734.08L419.13,725.2L569.79,725.2Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="569.79,725.2 539.66,760.68 527.61,751.81 485.42,734.08 419.13,725.2 569.79,725.2" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M449.3,414.81L527.59,370.47L690.27,601.02L654.15,689.71L358.92,538.95L449.3,414.81Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="449.3,414.81 527.59,370.47 690.27,601.02 654.15,689.71 358.92,538.95 449.3,414.81" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M515.55,778.42L539.66,760.68L569.79,725.2L618.01,751.8L581.87,884.83L485.42,734.08L515.55,778.42Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="515.55,778.42 539.66,760.68 569.79,725.2 618.01,751.8 581.87,884.83 485.42,734.08 515.55,778.42" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M569.82,911.44L726.59,955.73L690.45,1035.57L545.71,938.05L569.82,911.44Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="569.82,911.44 726.59,955.73 690.45,1035.57 545.71,938.05 569.82,911.44" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M238.54,361.53L365.1,15.72L515.54,184.24L352.94,414.79L238.54,361.53Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="238.54,361.53 365.1,15.72 515.54,184.24 352.94,414.79 238.54,361.53" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M105.74,733.91L202.19,698.51L274.5,707.42L322.71,707.44L364.89,716.32L370.92,716.32L419.13,725.2L485.42,734.08L581.87,884.83L569.82,911.44L545.71,938.05L521.59,991.26L147.7,1026.6L105.74,733.91Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="105.74,733.91 202.19,698.51 274.5,707.42 322.71,707.44 364.89,716.32 370.92,716.32 419.13,725.2 485.42,734.08 581.87,884.83 569.82,911.44 545.71,938.05 521.59,991.26 147.7,1026.6 105.74,733.91" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M515.55,778.42L521.58,760.68L527.61,751.81L539.66,760.68L515.55,778.42Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="515.55,778.42 521.58,760.68 527.61,751.81 539.66,760.68 515.55,778.42" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M672.39,1124.26L793.05,1177.41L841.39,1283.8L931.97,1372.41L907.89,1434.51L793.21,1425.72L690.6,1425.77L672.39,1124.26Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="672.39,1124.26 793.05,1177.41 841.39,1283.8 931.97,1372.41 907.89,1434.51 793.21,1425.72 690.6,1425.77 672.39,1124.26" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M726.91,1620.86L817.5,1647.42L853.78,1718.34L823.69,1877.99L799.52,1869.14L726.91,1620.86Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="726.91,1620.86 817.5,1647.42 853.78,1718.34 823.69,1877.99 799.52,1869.14 726.91,1620.86" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M352.94,414.79L515.54,184.24L527.59,370.47L449.3,414.81L407.14,423.67L352.94,414.79Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="352.94,414.79 515.54,184.24 527.59,370.47 449.3,414.81 407.14,423.67 352.94,414.79" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M255.92,1665.19L268.16,1337.07L370.75,1319.37L612.19,1638.64L654.45,1629.76L696.68,1532.19L726.91,1620.86L799.52,1869.14L539.76,1984.52L418.93,1842.62L255.92,1665.19Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="255.92,1665.19 268.16,1337.07 370.75,1319.37 612.19,1638.64 654.45,1629.76 696.68,1532.19 726.91,1620.86 799.52,1869.14 539.76,1984.52 418.93,1842.62 255.92,1665.19" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M521.59,991.26L545.71,938.05L690.45,1035.57L672.39,1124.26L696.68,1532.19L654.45,1629.76L612.19,1638.64L370.75,1319.37L364.75,1195.21L521.59,991.26Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="521.59,991.26 545.71,938.05 690.45,1035.57 672.39,1124.26 696.68,1532.19 654.45,1629.76 612.19,1638.64 370.75,1319.37 364.75,1195.21 521.59,991.26" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M793.21,1425.72L907.89,1434.51L980.57,1682.75L853.78,1718.34L817.5,1647.42L793.21,1425.72Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="793.21,1425.72 907.89,1434.51 980.57,1682.75 853.78,1718.34 817.5,1647.42 793.21,1425.72" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M147.7,1026.6L521.59,991.26L364.75,1195.21L370.75,1319.37L268.16,1337.07L147.7,1026.6Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="147.7,1026.6 521.59,991.26 364.75,1195.21 370.75,1319.37 268.16,1337.07 147.7,1026.6" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M202.19,698.51L226.29,698.52L274.5,707.42L202.19,698.51Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="202.19,698.51 226.29,698.52 274.5,707.42 202.19,698.51" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M485.42,734.08L527.61,751.81L521.58,760.68L515.55,778.42L485.42,734.08Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="485.42,734.08 527.61,751.81 521.58,760.68 515.55,778.42 485.42,734.08" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M690.6,1425.77L793.21,1425.72L817.5,1647.42L726.91,1620.86L696.68,1532.19L690.6,1425.77Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="690.6,1425.77 793.21,1425.72 817.5,1647.42 726.91,1620.86 696.68,1532.19 690.6,1425.77" fill="none" stroke="#1e1e1e" stroke-width="4.07" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="464.81" y="1681.02" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Triesen</text>
+<text x="293.76" y="869.44" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Schaan</text>
+<text x="501.51" y="1287.5" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Triesenberg</text>
+<text x="168.02" y="1827.27" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Balzers</text>
+<text x="286.74" y="1140.5" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Vaduz</text>
+<text x="395.85" y="618.75" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Eschen</text>
+<text x="339.26" y="237.16" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Ruggell</text>
+<text x="501.53" y="539.55" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Mauren</text>
+<text x="223.94" y="558.21" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Gamprin</text>
+<text x="403.5" y="340.89" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Schellenberg</text>
+<text x="609.37" y="972.79" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Planken</text>
+</svg>

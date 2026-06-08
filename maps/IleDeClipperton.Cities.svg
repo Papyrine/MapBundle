@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1003" height="2000" viewBox="0 0 1003 2000">
+<rect width="1003" height="2000" fill="#ffffff"/>
+<circle cx="181.74" cy="685.29" r="3.44" fill="#1e1e1e"/>
+<circle cx="482.51" cy="1291.85" r="3.44" fill="#1e1e1e"/>
+<text x="487.39" y="1286.97" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Port Vila</text>
+<text x="186.62" y="680.41" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Luganville</text>
+</svg>

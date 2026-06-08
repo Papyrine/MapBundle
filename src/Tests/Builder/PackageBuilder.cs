@@ -273,18 +273,34 @@ public class PackageBuilder
         }
 
         var preview = ReferenceEquals(previewFeatures, features) ? collection : new(previewFeatures);
-        var pngPath = Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png");
         // Built-in dependency-free renderer (antialiased fills + zoom-aware strokes). The default
         // Optimal compression keeps the preview PNGs small; Fastest would bloat them ~30-60% here.
+        Func<Feature, string?>? label = HasNames(layer) ? NameLabel : null;
+        Func<Feature, double>? labelPriority = layer == MapLayer.Cities ? CityPriority : null;
         MapRenderer.RenderPng(
             preview,
-            pngPath,
+            Path.Combine(MapsDirectory, $"{region.Key}.{layer}.png"),
             new()
             {
                 Bounds = bounds,
-                Width = 1024,
-                Label = HasNames(layer) ? NameLabel : null,
-                LabelPriority = layer == MapLayer.Cities ? CityPriority : null,
+                MaxDimension = 1024,
+                Label = label,
+                LabelPriority = labelPriority,
+            });
+        MapRenderer.RenderSvg(
+            preview,
+            Path.Combine(MapsDirectory, $"{region.Key}.{layer}.svg"),
+            new()
+            {
+                Bounds = bounds,
+                MaxDimension = 2000,
+                Label = label,
+                LabelPriority = labelPriority,
+                // Thin sub-pixel detail out of the vector preview. At 1024px the full-resolution
+                // coastlines/borders emit millions of vertices the eye can't resolve, ballooning the
+                // world SVGs past 100 MB; a half-pixel Douglas–Peucker tolerance is visually lossless
+                // at this render size yet collapses most of that bulk (the matching PNG is unaffected).
+                SvgSimplifyTolerance = 0.5,
             });
     }
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1734" height="2000" viewBox="0 0 1734 2000">
+<rect width="1734" height="2000" fill="#ffffff"/>
+<path d="M1725.66,88.66L1382.22,326.44L1382.25,564.17L1267.76,722.67L1153.27,960.41L752.49,1039.66L809.74,1356.63L1096.03,1277.39L1096.04,1435.87L867,1673.61L580.67,1990.58L8.07,1594.29L237.14,1435.84L179.9,1277.34L695.24,801.93L924.25,722.69L1095.99,484.95L1267.71,88.72L1553.91,9.44L1725.66,88.66Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="1725.66,88.66 1382.22,326.44 1382.25,564.17 1267.76,722.67 1153.27,960.41 752.49,1039.66 809.74,1356.63 1096.03,1277.39 1096.04,1435.87 867,1673.61 580.67,1990.58 8.07,1594.29 237.14,1435.84 179.9,1277.34 695.24,801.93 924.25,722.69 1095.99,484.95 1267.71,88.72 1553.91,9.44 1725.66,88.66" fill="none" stroke="#1e1e1e" stroke-width="8.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="751.54" y="1130.45" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Monaco</text>
+</svg>

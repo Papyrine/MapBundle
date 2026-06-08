@@ -6,6 +6,7 @@
     <File Path="nuget.config" />
   </Folder>
   <Project Path="RawConsumer/RawConsumer.csproj" />
+  <Project Path="NtsConsumer/NtsConsumer.csproj" />
   <Project Path="ConvertedConsumer/ConvertedConsumer.csproj" />
   <Project Path="FilteredConsumer/FilteredConsumer.csproj" />
   <Project Path="RedirectedOutputConsumer/RedirectedOutputConsumer.csproj" />

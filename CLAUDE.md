@@ -75,8 +75,11 @@ same net10+ SDK requirement as the conversion feature.
 
 Integration tests for these levers live under `IntegrationTests/` — one consumer project per
 top-level mode: `RawConsumer` (default raw copy), `ConvertedConsumer` (format + simplify + render),
-`FilteredConsumer` (whitelist + blacklist). Building each project IS the test; the assertions inspect
-what landed in `maps/Monaco`. A fourth fixture project, `InvalidConsumer`, is kept out of the slnx
+`FilteredConsumer` (whitelist + blacklist). `NtsConsumer` is the worked sample for the raw path: it
+reads the verbatim `.fgb` files straight into the **NetTopologySuite** API via the `FlatGeobuf` reader
+(no MapBundle core, no GeoConvert) and runs topology ops (union / centroid / buffer) on them — proving
+the shipped FlatGeobuf round-trips into the wider NTS ecosystem. Building each project IS the test; the
+assertions inspect what landed in `maps/Monaco`. A fourth fixture project, `InvalidConsumer`, is kept out of the slnx
 and driven by `InvalidLayerNameTests` (an `[Explicit]` test that runs `dotnet build` as a subprocess
 and asserts the build fails with the layer-name validation error). CI builds the local Monaco
 fixture, runs all three positive consumers, then runs the negative test. The
