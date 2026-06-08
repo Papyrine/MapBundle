@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1641" viewBox="0 0 2000 1641">
+<rect width="2000" height="1641" fill="#ffffff"/>
+<polyline points="1612.73,1251.5 1612.75,1246.86 1614.94,1243.81 1615.25,1241.01 1618.29,1238.55 1619.99,1239.25 1623.66,1234.11 1627.18,1230.76 1631.99,1230.02 1632.92,1225.27 1635.53,1219.97" fill="none" stroke="#1e1e1e" stroke-width="0.71" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1635.53,1219.97 1635.92,1218.03 1638.56,1214.57 1639.6,1207.16 1641.6,1204.69 1645.36,1195.66 1645.55,1192.38 1648.42,1188.36 1648.53,1186.43 1652.24,1177.05 1651.98,1172.05 1654.15,1167.44 1652.84,1162.48 1653.34,1160.99" fill="none" stroke="#1e1e1e" stroke-width="0.71" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="29.24,1383.27 38.36,1375.82 40.41,1375.8 50.41,1380.86 58.57,1380.1 62.82,1380.51 69.52,1382.57 74.87,1385.87 77.01,1388.1 83.99,1390.57" fill="none" stroke="#1e1e1e" stroke-width="0.71" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="26.87" y="1387.13" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Arnaud</text>
+<text x="1625.58" y="1198.67" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Drau</text>
+<text x="1595.88" y="1241.49" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Þjórsá</text>
+</svg>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1017" viewBox="0 0 2000 1017">
+<rect width="2000" height="1017" fill="#ffffff"/>
+<circle cx="815.72" cy="544.52" r="3.48" fill="#1e1e1e"/>
+<circle cx="1173.42" cy="551.39" r="3.48" fill="#1e1e1e"/>
+<circle cx="510.99" cy="576.94" r="3.48" fill="#1e1e1e"/>
+<circle cx="1487.34" cy="804.16" r="3.48" fill="#1e1e1e"/>
+<circle cx="494.61" cy="792.29" r="3.48" fill="#1e1e1e"/>
+<circle cx="332.85" cy="237.16" r="3.48" fill="#1e1e1e"/>
+<circle cx="1410.51" cy="744.78" r="3.48" fill="#1e1e1e"/>
+<text x="1415.48" y="739.81" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Tbilisi</text>
+<text x="820.69" y="539.55" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Kutaisi</text>
+<text x="1492.31" y="799.19" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Rustavi</text>
+<text x="499.58" y="787.33" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Batumi</text>
+<text x="337.82" y="232.19" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Sukhumi</text>
+<text x="515.95" y="571.97" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Poti</text>
+<text x="1178.39" y="546.42" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Tskhinvali</text>
+</svg>

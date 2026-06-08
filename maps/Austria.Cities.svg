@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1030" viewBox="0 0 2000 1030">
+<rect width="2000" height="1030" fill="#ffffff"/>
+<circle cx="95.76" cy="572.73" r="3.42" fill="#1e1e1e"/>
+<circle cx="1800.4" cy="458.68" r="3.42" fill="#1e1e1e"/>
+<circle cx="1729.52" cy="467.96" r="3.42" fill="#1e1e1e"/>
+<circle cx="1525.93" cy="750.87" r="3.42" fill="#1e1e1e"/>
+<circle cx="1247.8" cy="927.51" r="3.42" fill="#1e1e1e"/>
+<circle cx="1234.6" cy="291.89" r="3.42" fill="#1e1e1e"/>
+<circle cx="923.11" cy="483.54" r="3.42" fill="#1e1e1e"/>
+<circle cx="508.57" cy="675.9" r="3.42" fill="#1e1e1e"/>
+<circle cx="1752.7" cy="322.53" r="3.42" fill="#1e1e1e"/>
+<text x="1757.55" y="317.69" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Vienna</text>
+<text x="1239.45" y="287.04" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Linz</text>
+<text x="1530.78" y="746.02" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Graz</text>
+<text x="927.95" y="478.69" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Salzburg</text>
+<text x="513.42" y="671.05" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Innsbruck</text>
+<text x="1252.64" y="922.66" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Klagenfurt</text>
+<text x="1734.37" y="463.11" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Wiener Neustadt</text>
+<text x="100.6" y="567.88" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Bregenz</text>
+</svg>

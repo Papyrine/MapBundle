@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="759" height="2000" viewBox="0 0 759 2000">
+<rect width="759" height="2000" fill="#ffffff"/>
+<circle cx="297.28" cy="744.46" r="3.71" fill="#1e1e1e"/>
+<circle cx="443.98" cy="751.49" r="3.71" fill="#1e1e1e"/>
+<circle cx="280.72" cy="1083.8" r="3.71" fill="#1e1e1e"/>
+<circle cx="396.23" cy="935.98" r="3.71" fill="#1e1e1e"/>
+<circle cx="345.73" cy="283.45" r="3.71" fill="#1e1e1e"/>
+<circle cx="481.69" cy="343.62" r="3.71" fill="#1e1e1e"/>
+<circle cx="464.53" cy="589.31" r="3.71" fill="#1e1e1e"/>
+<circle cx="113.98" cy="940.64" r="3.71" fill="#1e1e1e"/>
+<circle cx="444.25" cy="814.89" r="3.71" fill="#1e1e1e"/>
+<circle cx="254.88" cy="660.26" r="3.71" fill="#1e1e1e"/>
+<text x="260.29" y="654.84" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Tel Aviv</text>
+<text x="449.66" y="809.47" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Jerusalem</text>
+<text x="351.14" y="278.04" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Haifa</text>
+<text x="119.39" y="935.23" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Gaza City</text>
+<text x="401.65" y="930.57" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Al Khalil</text>
+<text x="469.94" y="583.89" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Nablus</text>
+<text x="286.13" y="1078.38" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Beer Sheva</text>
+<text x="487.1" y="338.21" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Nazareth</text>
+<text x="302.69" y="739.05" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Ramla</text>
+<text x="449.4" y="746.08" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Ramallah</text>
+</svg>

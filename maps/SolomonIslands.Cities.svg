@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="998" viewBox="0 0 2000 998">
+<rect width="2000" height="998" fill="#ffffff"/>
+<circle cx="199.73" cy="421.37" r="3.14" fill="#1e1e1e"/>
+<circle cx="1396.74" cy="771.07" r="3.14" fill="#1e1e1e"/>
+<circle cx="615.33" cy="596.28" r="3.14" fill="#1e1e1e"/>
+<text x="619.61" y="591.99" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Honiara</text>
+<text x="204.01" y="417.09" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Gizo</text>
+<text x="1401.03" y="766.78" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Lata</text>
+</svg>

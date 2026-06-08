@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1564" viewBox="0 0 2000 1564">
+<rect width="2000" height="1564" fill="#ffffff"/>
+<polyline points="1738.02,11.01 1764.52,61.85 1780.92,85.91 1800.44,104.85 1826.38,119.25 1843.91,124.22 1852.32,127.95 1859.37,134.91 1864.1,145.93 1865.14,155.37 1867.72,164.87 1876.79,176.38 1884.19,181.4 1910.28,193 1920.39,200.45 1960.57,251.1 1968.57,265.17 1970.35,270.38" fill="none" stroke="#1e1e1e" stroke-width="2.04" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="21.39,822.56 26.98,834.18 31.44,850.87 22.37,862.62 22.26,870.17 26.26,875.3 29.72,886.74 32.33,891.11 38.58,894.59 52.27,896.47 58.53,899.04 64.58,904.02 68.37,911.35 73.45,918.8 82.38,937.86 102.27,954.15 121.91,1011.54 132.13,1024.67 139.94,1032.32 159.14,1076.99 155.69,1084.87 147.27,1097.8 143.9,1105.13 146.53,1111.97 176.44,1149.4 179.77,1160.24 181.5,1176.52 189.38,1202.18 189.91,1219.81" fill="none" stroke="#1e1e1e" stroke-width="2.04" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="701.66,148.64 703.9,123.3 711.06,93.98 717.92,32.79 711.41,16.42 712.54,14.59" fill="none" stroke="#1e1e1e" stroke-width="2.04" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="103.04" y="1014.53" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Drin</text>
+<text x="1816.56" y="141.11" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Strymnas</text>
+<text x="680.53" y="87.87" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Morava</text>
+</svg>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="549" height="2000" viewBox="0 0 549 2000">
+<rect width="549" height="2000" fill="#ffffff"/>
+<path d="M8.1,36.76L9.12,34.28L10.55,33.44L15.5,36.65L14.63,38.03L9.35,39.72L8.1,36.76Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="8.1,36.76 9.12,34.28 10.55,33.44 15.5,36.65 14.63,38.03 9.35,39.72 8.1,36.76" fill="none" stroke="#1e1e1e" stroke-width="0.88" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M517.02,521.79L518.48,518.86L521.71,516.34L524.44,516.72L525.57,518.96L525.47,520.5L523.42,521.99L521.3,522.1L519.14,523.46L517.02,521.79Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="517.02,521.79 518.48,518.86 521.71,516.34 524.44,516.72 525.57,518.96 525.47,520.5 523.42,521.99 521.3,522.1 519.14,523.46 517.02,521.79" fill="none" stroke="#1e1e1e" stroke-width="0.88" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M275.76,1964.07L275.67,1962.05L279.27,1961.93L281.52,1965.98L280.86,1967.39L275.76,1964.07Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="275.76,1964.07 275.67,1962.05 279.27,1961.93 281.52,1965.98 280.86,1967.39 275.76,1964.07" fill="none" stroke="#1e1e1e" stroke-width="0.88" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M164.3,1767.04L166.71,1766.94L168.13,1768.01L168.93,1770.29L165.8,1773.42L164.25,1772.84L162.82,1770.87L162.94,1768.94L164.3,1767.04Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="164.3,1767.04 166.71,1766.94 168.13,1768.01 168.93,1770.29 165.8,1773.42 164.25,1772.84 162.82,1770.87 162.94,1768.94 164.3,1767.04" fill="none" stroke="#1e1e1e" stroke-width="0.88" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M145.79,1782.3L145.63,1781.34L147.01,1780.53L148.71,1781.58L146.76,1782.89L145.79,1782.3Z" fill-rule="evenodd" fill="#4682b4" fill-opacity="0.471"/>
+<polyline points="145.79,1782.3 145.63,1781.34 147.01,1780.53 148.71,1781.58 146.76,1782.89 145.79,1782.3" fill="none" stroke="#1e1e1e" stroke-width="0.88" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="87.18" y="1776.93" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Tristan da Cunha</text>
+<text x="434" y="526.85" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Saint Helena</text>
+<text x="2" y="43.68" font-family="sans-serif" font-size="14" stroke="#ffffff" stroke-opacity="0.784" stroke-width="2.33" stroke-linejoin="round" paint-order="stroke" fill="#141414">Ascension</text>
+</svg>
