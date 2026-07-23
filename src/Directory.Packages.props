@@ -15,7 +15,7 @@
     <PackageVersion Include="Polyfill" Version="11.0.1" />
     <PackageVersion Include="Replicant" Version="3.3.0" />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
-    <PackageVersion Include="TUnit" Version="1.61.15" />
+    <PackageVersion Include="TUnit" Version="1.61.35" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.4.1" />
     <PackageVersion Include="Verify" Version="31.27.0" />
     <PackageVersion Include="Verify.TUnit" Version="31.27.0" />
