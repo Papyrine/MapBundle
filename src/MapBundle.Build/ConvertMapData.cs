@@ -121,7 +121,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
         try
         {
             var simplifyTolerance = 0d;
-            Apply(SimplifyTolerance, _ => simplifyTolerance = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
+            Apply(SimplifyTolerance, _ => simplifyTolerance = double.Parse(_, CultureInfo.InvariantCulture));
             var simplifyMethod = GeoConvert.SimplifyMethod.DouglasPeucker;
             Apply(SimplifyMethod, _ => simplifyMethod = MapConverter.ParseSimplifyMethod(_));
 
@@ -185,7 +185,7 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
 
     bool HasPositiveSimplifyTolerance() =>
         !string.IsNullOrWhiteSpace(SimplifyTolerance)
-        && double.TryParse(SimplifyTolerance, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var tolerance)
+        && double.TryParse(SimplifyTolerance, NumberStyles.Float, CultureInfo.InvariantCulture, out var tolerance)
         && tolerance > 0;
 
     // A signature of every property that affects what Convert emits, built from the raw MSBuild strings
@@ -222,9 +222,9 @@ public sealed class ConvertMapData : Microsoft.Build.Utilities.Task
         Apply(ImageStrokeWidth, _ => options.StrokeWidth = int.Parse(_));
         Apply(ImagePointRadius, _ => options.PointRadius = int.Parse(_));
         Apply(ImageStrokeAutoScale, _ => options.StrokeAutoScale = bool.Parse(_));
-        Apply(ImageMinFeaturePixels, _ => options.MinFeaturePixels = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
+        Apply(ImageMinFeaturePixels, _ => options.MinFeaturePixels = double.Parse(_, CultureInfo.InvariantCulture));
         Apply(ImageLabels, _ => options.Labels = bool.Parse(_));
-        Apply(ImageLabelSize, _ => options.LabelSize = double.Parse(_, System.Globalization.CultureInfo.InvariantCulture));
+        Apply(ImageLabelSize, _ => options.LabelSize = double.Parse(_, CultureInfo.InvariantCulture));
         Apply(ImageLabelColor, _ => options.LabelColor = MapConverter.ParseColor(_));
         Apply(ImageCompression, _ => options.Compression = MapConverter.ParseCompression(_));
         return options;

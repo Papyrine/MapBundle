@@ -1,6 +1,3 @@
-using System.IO.Compression;
-using GeoConvert;
-
 namespace MapBundle.Build;
 
 /// <summary>A single conversion run: what to convert, where to, and how to render any preview images.</summary>
@@ -103,7 +100,10 @@ public sealed class ImageOptions
             LabelSize = LabelSize,
             LabelColor = LabelColor,
             Label = Labels ? NameLabel : null,
-            Png = new() { Compression = Compression },
+            Png = new()
+            {
+                Compression = Compression
+            },
         };
 
     static string? NameLabel(Feature feature) =>

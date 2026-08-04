@@ -1,7 +1,3 @@
-using System.Globalization;
-using System.IO.Compression;
-using GeoConvert;
-
 namespace MapBundle.Build;
 
 /// <summary>
