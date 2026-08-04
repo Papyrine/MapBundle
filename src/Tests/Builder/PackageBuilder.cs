@@ -300,7 +300,7 @@ public class PackageBuilder
                 // coastlines/borders emit millions of vertices the eye can't resolve, ballooning the
                 // world SVGs past 100 MB; a half-pixel Douglas–Peucker tolerance is visually lossless
                 // at this render size yet collapses most of that bulk (the matching PNG is unaffected).
-                SvgSimplifyTolerance = 0.5,
+                Svg = new() { SimplifyTolerance = 0.5 },
             });
     }
 

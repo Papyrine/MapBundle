@@ -103,7 +103,7 @@ public sealed class ImageOptions
             LabelSize = LabelSize,
             LabelColor = LabelColor,
             Label = Labels ? NameLabel : null,
-            Compression = Compression,
+            Png = new() { Compression = Compression },
         };
 
     static string? NameLabel(Feature feature) =>
