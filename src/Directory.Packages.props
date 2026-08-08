@@ -9,13 +9,13 @@
     <!-- Test/builder only: simplify + geometry ops while preparing OSM data. Not a shipped dependency. -->
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.176" />
-    <PackageVersion Include="SponsorCheck" Version="0.16.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine" CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
+    <PackageVersion Include="SponsorCheck" Version="0.20.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine" CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
     <SponsorExemption Include="MaintainerConsulting" Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
     <SponsorExemption Include="SmallRevenue" Message="Consumers under US$10,000 annual gross revenue are exempt." />
-    <PackageVersion Include="Polyfill" Version="11.0.1" />
+    <PackageVersion Include="Polyfill" Version="11.0.2" />
     <PackageVersion Include="Replicant" Version="3.3.0" />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
-    <PackageVersion Include="TUnit" Version="1.63.0" />
+    <PackageVersion Include="TUnit" Version="1.63.25" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.4.2" />
     <PackageVersion Include="Verify" Version="31.28.0" />
     <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
