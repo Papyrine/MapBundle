@@ -8,8 +8,8 @@
     <MapBundleVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\src\Directory.Build.props')), '&lt;Version&gt;([^&lt;]+)&lt;/Version&gt;').Groups[1].Value)</MapBundleVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-    <PackageVersion Include="TUnit" Version="1.61.35" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageVersion Include="TUnit" Version="1.65.38" />
     <!-- NtsConsumer only: read the raw FlatGeobuf layers straight into the NetTopologySuite API. -->
     <PackageVersion Include="FlatGeobuf" Version="3.26.0" />
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
