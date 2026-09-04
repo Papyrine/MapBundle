@@ -50,3 +50,4 @@ build-10m-full.log
 generate.log
 heavy.log
 build.log
+*.lnk
