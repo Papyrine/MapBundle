@@ -140,8 +140,8 @@ committed; `.received.*` are gitignored.
   `src/Directory.Build.props`. `.slnx` solution.
 - Strong-name signing against `src/key.snk` (committed). ProjectDefaults **overwrites the repo-root
   `.editorconfig`** and generates `*.DotSettings` on build — change code style there, not by hand.
-- CI: `src/appveyor.yml` (Linux) builds, tests, gates coverage, then runs the **full data build** (the
-  explicit `PackageBuilder.Generate` test). The `.cache` folder is persisted between builds; downloads are
+- CI: `.github/workflows/build.yml` (GitHub Actions, Linux) builds, tests, gates coverage, then runs the **full data build** (the
+  explicit `PackageBuilder.Generate` test). The `.cache/http` folder is persisted between builds (actions/cache); downloads are
   cached by **Replicant** (`HttpCache`).
 
 ## Builder design notes

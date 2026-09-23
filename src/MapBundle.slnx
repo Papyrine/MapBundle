@@ -4,7 +4,6 @@
   <Project Path="Tests/Tests.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../readme.md" />
-    <File Path="appveyor.yml" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="mdsnippets.json" />
