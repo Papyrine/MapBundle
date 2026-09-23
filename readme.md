@@ -1,6 +1,6 @@
 # MapBundle
 
-[![Build status](https://img.shields.io/appveyor/build/SimonCropp/MapBundle)](https://ci.appveyor.com/project/SimonCropp/MapBundle)
+[![Build status](https://github.com/Papyrine/MapBundle/actions/workflows/build.yml/badge.svg)](https://github.com/Papyrine/MapBundle/actions/workflows/build.yml)
 [![NuGet Status](https://img.shields.io/nuget/v/MapBundle.svg?label=MapBundle)](https://www.nuget.org/packages/MapBundle/)
 
 Bundled, offline map data for .NET apps — borders, cities, waterways and base layers — shipped as [FlatGeobuf](https://flatgeobuf.org/) inside NuGet packages. Most data is derived from [OpenStreetMap](https://www.openstreetmap.org/) under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/); the cities, rivers and lakes layers come from [Natural Earth](https://www.naturalearthdata.com/) (public domain).

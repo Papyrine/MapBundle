@@ -1,0 +1,121 @@
+name: build
+
+# Builds the code, runs tests, gates coverage, then runs the full data build: downloading the
+# source data (Natural Earth cities/rivers/lakes, country-levels boundaries, osmdata land/ocean — cached
+# on disk by Replicant; Geofabrik supplies only the region index) and packing every World/Region data
+# package. The .cache/http folder is persisted between builds (actions/cache) and re-validated, so only
+# changed source files are re-downloaded.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      # SponsorCheck bundles the sponsor list during pack on non-PR builds and needs a classic PAT
+      # (org secret). PR builds skip it.
+      GitHubToken: ${{ secrets.SPONSOR_CHECK_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache source downloads
+        # Replicant's HTTP cache (the expensive part). The extracted archives are rewritten from it each
+        # build, so there's no point caching them too. Keyed on the files that hold the source URLs.
+        uses: actions/cache@v4
+        with:
+          path: .cache/http
+          key: http-${{ hashFiles('src/Tests/Builder/NaturalEarth.cs', 'src/Tests/Builder/CountryLevels.cs', 'src/Tests/Builder/OsmData.cs', 'src/Tests/Builder/Geofabrik.cs') }}
+          restore-keys: http-
+
+      - name: Build
+        # DeterministicSourcePaths=false: ProjectDefaults turns on ContinuousIntegrationBuild (hence
+        # deterministic source paths) on CI, but Microsoft's coverage collector cannot map those
+        # rewritten "/_/..." paths back to files and emits an EMPTY report — which the gate below would
+        # read as a meaningless 0/0 = 100%. So this build opts out: its core package (in nugets/) has
+        # degraded source paths and is used only as the integration-test feed, NOT published — a separate
+        # deterministic pack step at the end produces the publish-grade core in core-nuget/.
+        run: dotnet build src --configuration Release -p:DeterministicSourcePaths=false
+
+      - name: Unit tests
+        run: src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --report-trx --report-trx-filename unit.trx --results-directory TestResults --coverage --coverage-output-format cobertura --coverage-output unit.cobertura.xml
+
+      - name: Coverage gate
+        shell: pwsh
+        run: ./src/coverage-check.ps1 -Report TestResults/unit.cobertura.xml -Threshold 100
+
+      - name: MSBuild integration tests
+        # Build a small real MapBundle.Monaco package into the local feed (offline — no source
+        # downloads; the core package from the build above stays alongside it), then build six consumer
+        # projects against that feed and run them. Building the consumers IS the test — the RawConsumer
+        # expects the FlatGeobuf layers copied verbatim; the NtsConsumer reads those raw layers straight
+        # into the NetTopologySuite API via the FlatGeobuf reader; the ConvertedConsumer expects GeoJSON
+        # plus a rendered PNG; the FilteredConsumer expects only the whitelisted layers (minus any the
+        # blacklist removes) plus the meta.json sidecar; the RedirectedOutputConsumer (convert path) and
+        # RedirectedRawConsumer (raw path, MapBundleOutputDirectory as the sole setting) both expect the
+        # produced files at $(MSBuildProjectDirectory)\custom\Monaco\ and NOT at the default maps/Monaco/
+        # location. The InvalidLayerNameTests negative test then drives `dotnet build` on an
+        # IntegrationTests/InvalidConsumer fixture (kept out of the slnx so the build-all step above
+        # doesn't trip on it) and asserts the build fails with the layer-name validation error — pins
+        # that a typo can't silently empty maps/<Region>.
+        run: |
+          set -e
+          src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/IntegrationFixture/BuildMonacoPackage"
+          dotnet build IntegrationTests --configuration Release
+          dotnet run --project IntegrationTests/RawConsumer --configuration Release --no-build
+          dotnet run --project IntegrationTests/NtsConsumer --configuration Release --no-build
+          dotnet run --project IntegrationTests/ConvertedConsumer --configuration Release --no-build
+          dotnet run --project IntegrationTests/FilteredConsumer --configuration Release --no-build
+          dotnet run --project IntegrationTests/RedirectedOutputConsumer --configuration Release --no-build
+          dotnet run --project IntegrationTests/RedirectedRawConsumer --configuration Release --no-build
+          src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/InvalidLayerNameTests/*"
+
+      - name: Full data build
+        run: src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --treenode-filter "/*/*/PackageBuilder/Generate"
+
+      - name: Pack publish-grade core
+        # Pack with deterministic source paths (no opt-out, so the CI default ContinuousIntegrationBuild
+        # stays on) into its own core-nuget/ folder, kept apart from the degraded-paths core and the
+        # Monaco fixture in nugets/. -o overrides ProjectDefaults' PackageOutputPath (which would
+        # otherwise drop it back into nugets/).
+        run: dotnet pack src/MapBundle/MapBundle.csproj --configuration Release -o core-nuget
+
+      - name: Upload snapshot diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: received
+          path: '**/*.received.*'
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload core package
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-nuget
+          path: core-nuget/*.nupkg
+
+      - name: Upload data packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-nugets
+          path: data-nugets/*.nupkg
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: TestResults/*.cobertura.xml
+          if-no-files-found: ignore
