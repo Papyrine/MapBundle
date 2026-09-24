@@ -1,44 +1,80 @@
-name: build
+name: Build
 
 # Builds the code, runs tests, gates coverage, then runs the full data build: downloading the
 # source data (Natural Earth cities/rivers/lakes, country-levels boundaries, osmdata land/ocean — cached
 # on disk by Replicant; Geofabrik supplies only the region index) and packing every World/Region data
 # package. The .cache/http folder is persisted between builds (actions/cache) and re-validated, so only
-# changed source files are re-downloaded.
+# changed source files are re-downloaded. On a tag, the publish job pushes the core package (core-nuget/)
+# and the data packages (data-nugets/) — never the degraded-source-paths core or the Monaco fixture in
+# nugets/.
 
 on:
   push:
-    branches: ['**']
+    branches: [main]
+    tags: ['*']
   pull_request:
   workflow_dispatch:
+
+# Read only by default. The publish job asks for the OIDC token it needs itself.
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DOTNET_NOLOGO: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
       # SponsorCheck bundles the sponsor list during pack on non-PR builds and needs a classic PAT
       # (org secret). PR builds skip it.
       GitHubToken: ${{ secrets.SPONSOR_CHECK_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
+
+      # Keyed on everything that decides the package graph. restore-keys lets a changed graph start
+      # from the previous cache rather than empty.
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', '**/Directory.Packages.props', '**/Directory.Build.props', '**/*.csproj', '**/*.fsproj') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Cache source downloads
         # Replicant's HTTP cache (the expensive part). The extracted archives are rewritten from it each
         # build, so there's no point caching them too. Keyed on the files that hold the source URLs.
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/http
           key: http-${{ hashFiles('src/Tests/Builder/NaturalEarth.cs', 'src/Tests/Builder/CountryLevels.cs', 'src/Tests/Builder/OsmData.cs', 'src/Tests/Builder/Geofabrik.cs') }}
           restore-keys: http-
+
+      # The tag is the version: tag 1.2.3 (or v1.2.3) builds 1.2.3. Other builds use the Version in
+      # src/Directory.Build.props. The data packages, the Monaco fixture and the integration tests read
+      # <Version> straight from src/Directory.Build.props (CoreVersion / Directory.Packages.props) rather
+      # than from -p:Version, so it is rewritten here too to keep every package on the tag's version.
+      - name: Resolve the version from the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -e
+          version="${GITHUB_REF_NAME#v}"
+          echo "VERSION_ARGUMENT=-p:Version=$version" >> "$GITHUB_ENV"
+          sed -i "s#<Version>[^<]*</Version>#<Version>$version</Version>#" src/Directory.Build.props
 
       - name: Build
         # DeterministicSourcePaths=false: ProjectDefaults turns on ContinuousIntegrationBuild (hence
@@ -47,7 +83,7 @@ jobs:
         # read as a meaningless 0/0 = 100%. So this build opts out: its core package (in nugets/) has
         # degraded source paths and is used only as the integration-test feed, NOT published — a separate
         # deterministic pack step at the end produces the publish-grade core in core-nuget/.
-        run: dotnet build src --configuration Release -p:DeterministicSourcePaths=false
+        run: dotnet build src --configuration Release -p:DeterministicSourcePaths=false ${{ env.VERSION_ARGUMENT }}
 
       - name: Unit tests
         run: src/Tests/bin/Release/net10.0/Tests --no-ansi --no-progress --report-trx --report-trx-filename unit.trx --results-directory TestResults --coverage --coverage-output-format cobertura --coverage-output unit.cobertura.xml
@@ -90,33 +126,64 @@ jobs:
         # stays on) into its own core-nuget/ folder, kept apart from the degraded-paths core and the
         # Monaco fixture in nugets/. -o overrides ProjectDefaults' PackageOutputPath (which would
         # otherwise drop it back into nugets/).
-        run: dotnet pack src/MapBundle/MapBundle.csproj --configuration Release -o core-nuget
+        run: dotnet pack src/MapBundle/MapBundle.csproj --configuration Release -o core-nuget ${{ env.VERSION_ARGUMENT }}
 
-      - name: Upload snapshot diffs
+      - name: Upload received on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: received
           path: '**/*.received.*'
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
 
-      - name: Upload core package
-        uses: actions/upload-artifact@v4
+      # Only the publishable packages: the core from core-nuget/ and the data packages.
+      - name: Upload packages
+        if: success()
+        uses: actions/upload-artifact@v7
         with:
-          name: core-nuget
-          path: core-nuget/*.nupkg
-
-      - name: Upload data packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-nugets
-          path: data-nugets/*.nupkg
+          name: nupkgs
+          path: |
+            core-nuget/*.nupkg
+            data-nugets/*.nupkg
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: TestResults/*.cobertura.xml
           if-no-files-found: ignore
+
+  # Trusted publishing: no stored API key. nuget.org validates GitHub's OIDC token against the
+  # policy naming this repository and this workflow file, and returns a key good for an hour.
+  publish:
+    needs: build
+    environment: nuget
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkgs
+          path: packages
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: SimonCropp
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "packages/**/*.nupkg"
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
