@@ -71,7 +71,12 @@ static class Geo
         try
         {
             var repaired = nts.Buffer(0);
-            return repaired.IsEmpty ? geometry : ToGeo(repaired);
+            if (repaired.IsEmpty)
+            {
+                return geometry;
+            }
+
+            return ToGeo(repaired);
         }
         catch (Exception exception) when (exception is Nts.TopologyException or ArgumentException)
         {
@@ -93,7 +98,12 @@ static class Geo
         try
         {
             var simplified = TopologyPreservingSimplifier.Simplify(ToNts(geometry), toleranceDegrees);
-            return simplified.IsEmpty ? null : ToGeo(simplified);
+            if (simplified.IsEmpty)
+            {
+                return null;
+            }
+
+            return ToGeo(simplified);
         }
         catch (Exception exception) when (exception is Nts.TopologyException or ArgumentException)
         {
@@ -147,7 +157,12 @@ static class Geo
         {
             var rectangle = factory.ToGeometry(new(bounds.MinX, bounds.MaxX, bounds.MinY, bounds.MaxY));
             var clipped = ToNts(geometry).Intersection(rectangle);
-            return clipped.IsEmpty ? null : ToGeo(clipped);
+            if (clipped.IsEmpty)
+            {
+                return null;
+            }
+
+            return ToGeo(clipped);
         }
         catch (Exception exception) when (exception is Nts.TopologyException or ArgumentException)
         {

@@ -13,7 +13,18 @@ public sealed record Region(
     bool IsWorld = false)
 {
     /// <summary>The folder/key the data ships under (PascalCase), for example <c>"Monaco"</c> or <c>"NorthAmerica"</c>.</summary>
-    public string Key => IsWorld ? "World" : Pascal(Id);
+    public string Key
+    {
+        get
+        {
+            if (IsWorld)
+            {
+                return "World";
+            }
+
+            return Pascal(Id);
+        }
+    }
 
     public string PackageId => $"MapBundle.{Key}";
 

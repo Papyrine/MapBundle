@@ -18,8 +18,13 @@ static class Props
 
     // Numeric attribute access for ordering (e.g. label priority by population/rank). Parses the
     // text form invariantly so a missing/blank/non-numeric value falls back to 0 rather than throwing.
-    public static double Number(Feature feature, string key) =>
-        double.TryParse(Text(feature, key), NumberStyles.Any, CultureInfo.InvariantCulture, out var number)
-            ? number
-            : 0;
+    public static double Number(Feature feature, string key)
+    {
+        if (double.TryParse(Text(feature, key), NumberStyles.Any, CultureInfo.InvariantCulture, out var number))
+        {
+            return number;
+        }
+
+        return 0;
+    }
 }

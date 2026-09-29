@@ -66,10 +66,15 @@ public static class Regions
 
     // The entry's ISO codes plus any isoCorrections entry for it, skipping codes already present so an
     // upstream fix doesn't double them. Order is irrelevant downstream: BuildRegion sorts the merged set.
-    static string[] CorrectedIso(GeofabrikEntry entry) =>
-        isoCorrections.TryGetValue(entry.Id, out var extra)
-            ? [.. entry.Iso2, .. extra.Where(_ => !entry.Iso2.Contains(_))]
-            : entry.Iso2;
+    static string[] CorrectedIso(GeofabrikEntry entry)
+    {
+        if (isoCorrections.TryGetValue(entry.Id, out var extra))
+        {
+            return [.. entry.Iso2, .. extra.Where(_ => !entry.Iso2.Contains(_))];
+        }
+
+        return entry.Iso2;
+    }
 
     // Append each syntheticRegions territory whose continent this index actually builds. Before adding one
     // it asserts the live index still doesn't cover it: if Geofabrik has meanwhile assigned the territory's
@@ -122,9 +127,19 @@ public static class Regions
         if (region.IsContinent)
         {
             var children = regions.Where(_ => _.Parent == region.Id && _.Iso.Length > 0);
-            return region.Iso.Length > 0 ? [region, .. children] : [.. children];
+            if (region.Iso.Length > 0)
+            {
+                return [region, .. children];
+            }
+
+            return [.. children];
         }
 
-        return region.Iso.Length > 0 ? [region] : [];
+        if (region.Iso.Length > 0)
+        {
+            return [region];
+        }
+
+        return [];
     }
 }

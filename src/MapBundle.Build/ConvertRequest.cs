@@ -106,6 +106,13 @@ public sealed class ImageOptions
             },
         };
 
-    static string? NameLabel(Feature feature) =>
-        feature.Properties.TryGetValue("name", out var value) ? value as string : null;
+    static string? NameLabel(Feature feature)
+    {
+        if (feature.Properties.TryGetValue("name", out var value))
+        {
+            return value as string;
+        }
+
+        return null;
+    }
 }

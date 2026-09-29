@@ -32,13 +32,23 @@ public static class Geofabrik
         ];
     }
 
-    static string[] Iso(JsonElement properties) =>
-        properties.TryGetProperty("iso3166-1:alpha2", out var iso) && iso.ValueKind == JsonValueKind.Array
-            ? [.. iso.EnumerateArray().Select(_ => _.GetString()!)]
-            : [];
+    static string[] Iso(JsonElement properties)
+    {
+        if (properties.TryGetProperty("iso3166-1:alpha2", out var iso) && iso.ValueKind == JsonValueKind.Array)
+        {
+            return [.. iso.EnumerateArray().Select(_ => _.GetString()!)];
+        }
 
-    static string? Shp(JsonElement properties) =>
-        properties.TryGetProperty("urls", out var urls) && urls.TryGetProperty("shp", out var shp)
-            ? shp.GetString()
-            : null;
+        return [];
+    }
+
+    static string? Shp(JsonElement properties)
+    {
+        if (properties.TryGetProperty("urls", out var urls) && urls.TryGetProperty("shp", out var shp))
+        {
+            return shp.GetString();
+        }
+
+        return null;
+    }
 }

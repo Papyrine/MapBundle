@@ -381,8 +381,15 @@ public class PackageBuilder
             or MapLayer.Rivers
             or MapLayer.Lakes;
 
-    static string? NameLabel(Feature feature) =>
-        feature.Properties.TryGetValue("name", out var value) ? value as string : null;
+    static string? NameLabel(Feature feature)
+    {
+        if (feature.Properties.TryGetValue("name", out var value))
+        {
+            return value as string;
+        }
+
+        return null;
+    }
 
     // Label priority for the Cities layer: the bigger place wins the renderer's greedy label-collision
     // pass, so a metropolis claims its slot before a nearby small town. Without this every point ties at
@@ -534,9 +541,12 @@ public class PackageBuilder
     {
         var icon = LayerIcon(layer);
         var file = $"{region.Key}.{layer}.png";
-        return File.Exists(Path.Combine(MapsDirectory, file))
-            ? $"[{icon}](/maps/{file})"
-            : icon;
+        if (File.Exists(Path.Combine(MapsDirectory, file)))
+        {
+            return $"[{icon}](/maps/{file})";
+        }
+
+        return icon;
     }
 
     static string LayerIcon(MapLayer layer) =>
@@ -553,10 +563,20 @@ public class PackageBuilder
             _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
         };
 
-    static string Size(long bytes) =>
-        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024:F1} MB" :
-        bytes >= 1024 ? $"{bytes / 1024d:F0} KB" :
-        $"{bytes} B";
+    static string Size(long bytes)
+    {
+        if (bytes >= 1024 * 1024)
+        {
+            return $"{bytes / 1024d / 1024:F1} MB";
+        }
+
+        if (bytes >= 1024)
+        {
+            return $"{bytes / 1024d:F0} KB";
+        }
+
+        return $"{bytes} B";
+    }
 
     /// <summary>A built package: its region, the written <c>.nupkg</c> path, its staging folder and layer feature counts.</summary>
     sealed record Bundle(Region Region, string Package, string Staging, Dictionary<MapLayer, int> Counts);
