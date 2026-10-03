@@ -4,24 +4,11 @@
 // integration test — these assertions inspect what landed where on disk.
 public class RedirectedOutputConsumerTests
 {
-    // Walk up from the test assembly to the .csproj's directory: the redirect uses
-    // $(MSBuildProjectDirectory)\custom, which lives in the project's source tree, not in
-    // AppContext.BaseDirectory (which is bin/<Config>/<TFM>/).
-    static string ProjectDirectory => FindProjectDirectory();
+    // The redirect uses $(MSBuildProjectDirectory)\custom, which lives in the project's source tree,
+    // not in AppContext.BaseDirectory (which is bin/<Config>/<TFM>/).
+    static string RedirectRoot => Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "custom"));
 
-    static string FindProjectDirectory()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null &&
-               !File.Exists(Path.Combine(directory.FullName, "RedirectedOutputConsumer.csproj")))
-        {
-            directory = directory.Parent;
-        }
-        return directory?.FullName ?? throw new InvalidOperationException(
-            "Could not locate RedirectedOutputConsumer.csproj walking up from " + AppContext.BaseDirectory);
-    }
-
-    static string RedirectedRegionDirectory => Path.Combine(ProjectDirectory, "custom", "Monaco");
+    static string RedirectedRegionDirectory => Path.Combine(RedirectRoot, "Monaco");
     static string DefaultRegionDirectory => Path.Combine(AppContext.BaseDirectory, "maps", "Monaco");
 
     [Test]
@@ -97,7 +84,7 @@ public class RedirectedOutputConsumerTests
         // the source .fgb is unchanged. With the redirect on, that stamp lives in the redirected
         // output directory (under the OutputDirectory root, not its <Region> subfolder — confirmed
         // by inspecting the file system). Confirm it's there and captures this project's setting.
-        var stamp = Path.Combine(ProjectDirectory, "custom", ".mapbundle-settings");
+        var stamp = Path.Combine(RedirectRoot, ".mapbundle-settings");
         await Assert.That(File.Exists(stamp)).IsTrue().Because($"expected at {stamp}");
         var contents = await File.ReadAllTextAsync(stamp);
         await Assert.That(contents).Contains("0.0001");

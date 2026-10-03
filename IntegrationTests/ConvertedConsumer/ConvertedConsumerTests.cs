@@ -62,19 +62,12 @@ public class ConvertedConsumerTests
         await Assert.That(settings).Contains("0.0001");
     }
 
-    // Walk up from the test assembly to the project, then search its obj/ for the build intermediate
+    // Search the project's obj/ for the build intermediate
     // (Config/Tfm vary by how it was built, so we don't hard-code obj/<Config>/<Tfm>/mapbundle).
     static string? FindIntermediateFile(string name)
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null &&
-               !File.Exists(Path.Combine(directory.FullName, "ConvertedConsumer.csproj")))
-        {
-            directory = directory.Parent;
-        }
-
-        var obj = directory is null ? null : Path.Combine(directory.FullName, "obj");
-        if (obj is null || !Directory.Exists(obj))
+        var obj = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "obj"));
+        if (!Directory.Exists(obj))
         {
             return null;
         }

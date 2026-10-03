@@ -6,24 +6,9 @@
 // ConvertMapData task. Building this project IS the integration test.
 public class RedirectedRawConsumerTests
 {
-    // Walk up from the test assembly to the .csproj's directory: the redirect uses
-    // $(MSBuildProjectDirectory)\custom, which lives in the project's source tree, not in
-    // AppContext.BaseDirectory (which is bin/<Config>/<TFM>/).
-    static string ProjectDirectory => FindProjectDirectory();
-
-    static string FindProjectDirectory()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null &&
-               !File.Exists(Path.Combine(directory.FullName, "RedirectedRawConsumer.csproj")))
-        {
-            directory = directory.Parent;
-        }
-        return directory?.FullName ?? throw new InvalidOperationException(
-            "Could not locate RedirectedRawConsumer.csproj walking up from " + AppContext.BaseDirectory);
-    }
-
-    static string RedirectRoot => Path.Combine(ProjectDirectory, "custom");
+    // The redirect uses $(MSBuildProjectDirectory)\custom, which lives in the project's source tree,
+    // not in AppContext.BaseDirectory (which is bin/<Config>/<TFM>/).
+    static string RedirectRoot => Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "custom"));
     static string RedirectedRegionDirectory => Path.Combine(RedirectRoot, "Monaco");
     static string DefaultRegionDirectory => Path.Combine(AppContext.BaseDirectory, "maps", "Monaco");
 

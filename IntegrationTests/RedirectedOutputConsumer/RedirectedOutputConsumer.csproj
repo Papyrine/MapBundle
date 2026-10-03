@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="MapBundle.Monaco" />
+    <PackageReference Include="ProjectFiles" PrivateAssets="all" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
