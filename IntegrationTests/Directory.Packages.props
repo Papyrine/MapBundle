@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="ProjectFiles" Version="1.6.0" />
-    <PackageVersion Include="TUnit" Version="1.75.0" />
+    <PackageVersion Include="TUnit" Version="1.76.28" />
     <!-- NtsConsumer only: read the raw FlatGeobuf layers straight into the NetTopologySuite API. -->
     <PackageVersion Include="FlatGeobuf" Version="3.26.0" />
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
